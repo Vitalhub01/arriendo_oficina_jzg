@@ -1,0 +1,10 @@
+<h1 class="text-2xl font-bold">Reseñas</h1>
+<div class="mt-6 space-y-3">
+  <% @reviews.each do |review| %>
+    <div class="card p-4 text-sm">
+      <p><strong><%= review.box.title %></strong> — <%= review.rating %>/5</p>
+      <p class="text-gray-600"><%= review.body %></p>
+      <%= button_to review.visible? ? "Ocultar" : "Mostrar", admin_review_path(review), method: :patch, params: { review: { visible: !review.visible? } }, class: "btn-secondary mt-2 !py-1 !px-3" %>
+    </div>
+  <% end %>
+</div>

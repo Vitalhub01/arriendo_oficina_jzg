@@ -1,0 +1,30 @@
+<div class="mx-auto max-w-4xl px-4 py-12">
+  <h1 class="text-3xl font-bold">Membresía profesional</h1>
+  <p class="mt-4 text-gray-600">
+    Beneficios: descuentos en arriendos, capacitaciones y accesos exclusivos para profesionales suscritos.
+  </p>
+
+  <% if @membership&.current? %>
+    <div class="card mt-8 p-6">
+      <p class="font-semibold text-green-700">Membresía activa: <%= @membership.membership_plan.name %></p>
+      <p class="mt-2 text-sm text-gray-600">Válida hasta <%= l(@membership.expires_at, format: :long) %></p>
+    </div>
+  <% end %>
+
+  <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+    <% @membership_plans.each do |plan| %>
+      <div class="card p-6">
+        <h2 class="text-xl font-semibold"><%= plan.name %></h2>
+        <p class="mt-2 text-3xl font-bold"><%= plan.formatted_price %></p>
+        <p class="mt-2 text-sm text-gray-500"><%= plan.billing_period.humanize %></p>
+        <% if plan.benefits.present? %>
+          <div class="mt-4 text-sm text-gray-700"><%= simple_format(plan.benefits) %></div>
+        <% end %>
+        <% if plan.discount_percent.positive? %>
+          <p class="mt-4 text-sm font-medium text-rose-600"><%= plan.discount_percent %>% de descuento en arriendos</p>
+        <% end %>
+        <%= button_to "Suscribirme", membership_path(membership_plan_id: plan.id), method: :post, class: "btn-primary mt-6 w-full" %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,8 @@
+<div class="mx-auto max-w-3xl px-4 py-8 prose">
+  <h1>Política de cancelación</h1>
+  <ul>
+    <li>Reservas pendientes de pago pueden cancelarse en cualquier momento; el slot se libera al expirar o cancelar.</li>
+    <li>Reservas confirmadas pueden cancelarse hasta <%= ENV.fetch("BOOKING_CANCELLATION_HOURS", "24") %> horas antes del inicio.</li>
+    <li>Los reembolsos de reservas pagadas se procesan según las reglas de Mercado Pago.</li>
+  </ul>
+</div>

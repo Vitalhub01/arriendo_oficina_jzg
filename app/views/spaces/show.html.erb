@@ -1,0 +1,97 @@
+<% content_for :body_class, "pb-24 lg:pb-0" %>
+<div class="mx-auto max-w-7xl px-4 py-6">
+  <% if @errors.present? %>
+    <div class="mb-4 rounded-xl bg-red-50 p-4 text-red-800">
+      <ul class="list-disc pl-5"><% @errors.each do |e| %><li><%= e %></li><% end %></ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+    <div class="space-y-8 lg:col-span-2">
+      <div data-controller="gallery" class="overflow-hidden rounded-2xl">
+        <% if @space.photos.attached? %>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-4 sm:grid-rows-2">
+            <% @space.photos.first(5).each_with_index do |photo, i| %>
+              <div class="<%= i == 0 ? 'sm:col-span-2 sm:row-span-2' : '' %> aspect-[4/3] overflow-hidden bg-gray-100">
+                <%= image_tag photo.variant(resize_to_limit: [1200, 800]), class: "h-full w-full object-cover", alt: @space.title %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="flex aspect-video items-center justify-center bg-gray-100 text-gray-400">Sin fotos</div>
+        <% end %>
+      </div>
+
+      <div>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold md:text-3xl"><%= @space.title %></h1>
+            <p class="mt-1 text-gray-600"><%= @space.commune %>, <%= @space.city %></p>
+          </div>
+          <span class="rounded-full bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700"><%= @space.box_type_label %></span>
+        </div>
+        <p class="mt-4 leading-relaxed text-gray-700"><%= simple_format(@space.description) %></p>
+
+        <% if equipment_list(@space).any? %>
+          <h2 class="mt-6 text-lg font-semibold">Implementos</h2>
+          <ul class="mt-2 list-disc pl-5 text-gray-700">
+            <% equipment_list(@space).each do |item| %>
+              <li><%= item %></li>
+            <% end %>
+          </ul>
+        <% end %>
+
+        <% if @space.amenities.present? %>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <% @space.amenities.each do |key, enabled| %>
+              <% next unless enabled == true || enabled == "1" %>
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"><%= amenity_label(key) %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <section>
+        <h2 class="text-xl font-semibold">Horarios disponibles</h2>
+        <%= turbo_frame_tag "availability_schedule" do %>
+          <%= render "spaces/availability_schedule", space: @space, schedule: @schedule, week_start: @week_start %>
+        <% end %>
+      </section>
+    </div>
+
+    <div class="hidden lg:block">
+      <div class="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+        <%= render "spaces/booking_form", space: @space %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white p-4 shadow-lg lg:hidden">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-sm text-gray-500">Desde</p>
+      <p class="text-lg font-bold"><%= format_clp(@space.price_per_hour_cents) %> <span class="text-sm font-normal text-gray-500">/ hora</span></p>
+    </div>
+    <% if user_signed_in? %>
+      <a href="#booking-form-mobile" class="btn-primary">Reservar</a>
+    <% else %>
+      <%= link_to "Ingresar para reservar", new_user_session_path, class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div id="booking-form-mobile" class="fixed inset-0 z-50 hidden overflow-y-auto bg-white p-4 lg:hidden">
+  <div class="mb-4 flex items-center justify-between">
+    <h2 class="text-lg font-semibold">Reservar</h2>
+    <button type="button" onclick="document.getElementById('booking-form-mobile').classList.add('hidden')" class="text-2xl">&times;</button>
+  </div>
+  <%= render "spaces/booking_form", space: @space %>
+</div>
+
+<script>
+  document.querySelector('a[href="#booking-form-mobile"]')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('booking-form-mobile').classList.remove('hidden');
+  });
+</script>

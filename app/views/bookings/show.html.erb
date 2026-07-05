@@ -1,0 +1,48 @@
+<div class="mx-auto max-w-3xl px-4 py-8">
+  <h1 class="text-2xl font-bold">Detalle de reserva</h1>
+  <div class="card mt-6 p-6">
+    <h2 class="text-lg font-semibold"><%= @booking.space.title %></h2>
+    <dl class="mt-4 space-y-2 text-sm">
+      <div class="flex justify-between"><dt class="text-gray-500">Fecha</dt><dd><%= l(@booking.start_at.to_date, format: :long) %></dd></div>
+      <div class="flex justify-between"><dt class="text-gray-500">Horario</dt><dd><%= l(@booking.start_at, format: "%H:%M") %> — <%= l(@booking.end_at, format: "%H:%M") %></dd></div>
+      <div class="flex justify-between"><dt class="text-gray-500">Tipo</dt><dd><%= @booking.hourly? ? 'Por hora' : 'Por jornada' %></dd></div>
+      <div class="flex justify-between"><dt class="text-gray-500">Duración</dt><dd><%= @booking.hours %> hora(s)</dd></div>
+      <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="font-semibold"><%= @booking.formatted_total %></dd></div>
+      <div class="flex justify-between"><dt class="text-gray-500">Estado</dt><dd><%= booking_status_label(@booking) %></dd></div>
+      <% if (invoice = @booking.payment&.invoice)&.downloadable? %>
+        <div class="flex justify-between"><dt class="text-gray-500">Boleta</dt><dd><%= link_to "Descargar boleta #{invoice.folio}", rails_blob_path(invoice.pdf, disposition: 'attachment'), class: "text-rose-600 hover:underline" %></dd></div>
+      <% end %>
+      <% if @booking.pending_payment? && @booking.payment_expires_at.present? %>
+        <div class="flex justify-between"><dt class="text-gray-500">Plazo de pago</dt><dd class="text-amber-700"><%= booking_payment_expires_label(@booking) %></dd></div>
+      <% end %>
+    </dl>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <% if @booking.pending_payment? && !@booking.payment_expired? && @booking.total_amount_cents.positive? %>
+        <%= link_to "Ir a pagar", checkout_booking_path(@booking), class: "btn-primary" %>
+      <% end %>
+      <% if policy(@booking).cancel? %>
+        <%= button_to "Cancelar reserva", cancel_booking_path(@booking), method: :patch, class: "btn-secondary", data: { turbo_confirm: "¿Cancelar esta reserva?" } %>
+      <% end %>
+      <% if policy(@booking).reschedule? %>
+        <%= form_with url: reschedule_booking_path(@booking), method: :patch, class: "w-full space-y-3 rounded-xl border border-gray-200 p-4" do %>
+          <p class="font-medium">Reagendar (sin reembolso, con crédito aplicado)</p>
+          <%= date_field_tag :date, @booking.start_at.to_date + 7.days, class: "input-field", required: true %>
+          <%= time_field_tag :start_time, l(@booking.start_at, format: "%H:%M"), class: "input-field", required: true %>
+          <%= number_field_tag :hours, @booking.hours, min: 1, class: "input-field", required: true %>
+          <%= submit_tag "Reagendar reserva", class: "btn-primary" %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <% if @booking.completed? && @booking.testimonial.nil? && current_user == @booking.profesional %>
+      <div class="mt-8 border-t pt-6">
+        <h3 class="font-semibold">Deja tu testimonio</h3>
+        <%= form_with url: booking_testimonial_path(@booking), method: :post, class: "mt-4 space-y-3" do %>
+          <%= select_tag "testimonial[rating]", options_for_select((1..5).map { |n| [n, n] }), class: "input-field" %>
+          <%= text_area_tag "testimonial[body]", nil, rows: 3, placeholder: "Cuéntanos tu experiencia", class: "input-field", required: true %>
+          <%= submit_tag "Enviar testimonio", class: "btn-primary" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

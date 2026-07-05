@@ -1,0 +1,55 @@
+<div data-controller="booking-form booking-type" data-booking-form-price-per-hour-value="<%= box.price_per_hour_cents %>">
+  <p class="text-2xl font-bold"><%= format_clp(box.price_per_hour_cents) %> <span class="text-base font-normal text-gray-500">/ hora</span></p>
+  <p class="mt-1 text-sm text-gray-500">Mínimo <%= box.minimum_hours %> hora(s)</p>
+
+  <% if user_signed_in? %>
+    <div class="mt-4 flex rounded-xl bg-gray-100 p-1">
+      <button type="button" data-action="click->booking-type#show" data-booking-type-type-param="single"
+              class="flex-1 rounded-lg py-2 text-sm font-medium bg-white shadow">Puntual</button>
+      <button type="button" data-action="click->booking-type#show" data-booking-type-type-param="series"
+              class="flex-1 rounded-lg py-2 text-sm font-medium text-gray-600">Recurrente</button>
+    </div>
+
+    <div data-booking-type-target="panel" data-booking-type="single" class="mt-4">
+      <%= form_with url: box_bookings_path(box), method: :post, local: true, class: "space-y-4" do %>
+        <%= hidden_field_tag :booking_type, "single" %>
+        <div>
+          <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
+          <%= date_field_tag :date, params[:date] || Date.current, class: "input-field", required: true %>
+        </div>
+        <div>
+          <%= label_tag :start_time, "Hora inicio", class: "mb-1 block text-sm font-medium" %>
+          <%= time_field_tag :start_time, "09:00", class: "input-field", required: true %>
+        </div>
+        <%= render "boxes/booking_hours_fields", box: box %>
+        <%= submit_tag "Reservar y pagar", class: "btn-primary w-full" %>
+      <% end %>
+    </div>
+
+    <div data-booking-type-target="panel" data-booking-type="series" class="mt-4 hidden">
+      <%= form_with url: box_bookings_path(box), method: :post, local: true, class: "space-y-4" do %>
+        <%= hidden_field_tag :booking_type, "series" %>
+        <div>
+          <%= label_tag :day_of_week, "Día de la semana", class: "mb-1 block text-sm font-medium" %>
+          <%= select_tag :day_of_week, options_for_select(AvailabilityRule::DAY_NAMES.each_with_index.map { |n, i| [n, i] }), class: "input-field" %>
+        </div>
+        <div>
+          <%= label_tag :start_time, "Hora inicio", class: "mb-1 block text-sm font-medium" %>
+          <%= time_field_tag :start_time, "07:00", class: "input-field" %>
+        </div>
+        <div>
+          <%= label_tag :starts_on, "Desde", class: "mb-1 block text-sm font-medium" %>
+          <%= date_field_tag :starts_on, Date.current, class: "input-field" %>
+        </div>
+        <div>
+          <%= label_tag :ends_on, "Hasta", class: "mb-1 block text-sm font-medium" %>
+          <%= date_field_tag :ends_on, 3.months.from_now.to_date, class: "input-field" %>
+        </div>
+        <%= render "boxes/booking_hours_fields", box: box %>
+        <%= submit_tag "Crear serie de reservas", class: "btn-primary w-full" %>
+      <% end %>
+    </div>
+  <% else %>
+    <%= link_to "Ingresa para reservar", new_user_session_path, class: "btn-primary mt-4 w-full block text-center" %>
+  <% end %>
+</div>

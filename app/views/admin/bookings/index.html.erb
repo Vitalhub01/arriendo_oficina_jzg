@@ -1,0 +1,15 @@
+<h1 class="text-2xl font-bold">Reservas</h1>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Espacio</th><th>Profesional</th><th>Fecha</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+    <% @bookings.each do |booking| %>
+      <tr class="border-b">
+        <td class="py-2"><%= booking.space.title %></td>
+        <td><%= booking.profesional.name %></td>
+        <td><%= l(booking.start_at, format: :short) %></td>
+        <td><%= booking_status_label(booking) %></td>
+        <td><%= link_to "Ver", admin_booking_path(booking), class: "text-rose-600" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

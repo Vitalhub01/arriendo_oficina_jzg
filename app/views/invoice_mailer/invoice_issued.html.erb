@@ -1,0 +1,11 @@
+<p>Hola <%= @invoice.user.name %>,</p>
+
+<p>Adjuntamos la boleta electrónica <strong><%= @invoice.folio %></strong> correspondiente a tu reserva en <strong><%= @booking.space.title %></strong>.</p>
+
+<ul>
+  <li>Fecha: <%= l(@booking.start_at.to_date, format: :long) %></li>
+  <li>Horario: <%= l(@booking.start_at, format: "%H:%M") %> — <%= l(@booking.end_at, format: "%H:%M") %></li>
+  <li>Total: <%= @booking.formatted_total %></li>
+</ul>
+
+<p>Gracias por usar Oficina JZG.</p>

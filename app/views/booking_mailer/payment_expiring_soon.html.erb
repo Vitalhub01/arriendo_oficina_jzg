@@ -1,0 +1,2 @@
+<p>Tu reserva en <strong><%= @booking.box.title %></strong> expira el <%= l(@booking.payment_expires_at, format: :short) %>.</p>
+<p><%= link_to "Completar pago", booking_url(@booking) %></p>

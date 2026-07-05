@@ -1,0 +1,14 @@
+<h1 class="text-2xl font-bold">Membresías activas</h1>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Usuario</th><th>Plan</th><th>Vence</th><th>Estado</th></tr></thead>
+  <tbody>
+    <% @memberships.each do |m| %>
+      <tr class="border-b">
+        <td class="py-2"><%= m.user.name %></td>
+        <td><%= m.membership_plan.name %></td>
+        <td><%= l(m.expires_at, format: :short) %></td>
+        <td><%= m.status %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

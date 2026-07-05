@@ -1,0 +1,11 @@
+<div class="mx-auto max-w-md px-4 py-16">
+  <h1 class="text-2xl font-bold">Ingresar</h1>
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "mt-6 space-y-4" }) do |f| %>
+    <%= f.label :email, class: "block text-sm font-medium" %>
+    <%= f.email_field :email, autofocus: true, class: "input-field" %>
+    <%= f.label :password, class: "block text-sm font-medium" %>
+    <%= f.password_field :password, class: "input-field" %>
+    <%= f.submit "Ingresar", class: "btn-primary w-full" %>
+  <% end %>
+  <p class="mt-4 text-center text-sm"><%= link_to "Registrarse", new_registration_path(resource_name), class: "text-rose-600 hover:underline" %></p>
+</div>

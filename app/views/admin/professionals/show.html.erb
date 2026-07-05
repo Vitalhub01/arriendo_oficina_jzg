@@ -1,0 +1,16 @@
+<h1 class="text-2xl font-bold"><%= @professional_profile.user.name %></h1>
+<dl class="mt-4 space-y-2 text-sm">
+  <div><dt class="font-medium">Email</dt><dd><%= @professional_profile.user.email %></dd></div>
+  <div><dt class="font-medium">RUT</dt><dd><%= @professional_profile.full_rut %></dd></div>
+  <div><dt class="font-medium">Estado</dt><dd><%= @professional_profile.validation_status %></dd></div>
+  <% if @professional_profile.superintendencia_data.present? %>
+    <div><dt class="font-medium">Datos Superintendencia</dt><dd><pre class="mt-1 overflow-auto rounded bg-gray-100 p-2 text-xs"><%= JSON.pretty_generate(@professional_profile.superintendencia_data) %></pre></dd></div>
+  <% end %>
+</dl>
+<div class="mt-6 flex gap-3">
+  <%= button_to "Aprobar manualmente", admin_professional_path(@professional_profile), method: :patch, params: { approve: true }, class: "btn-primary" %>
+  <%= form_with model: @professional_profile, url: admin_professional_path(@professional_profile), method: :patch, class: "flex gap-2" do |f| %>
+    <%= f.text_field :rejection_reason, placeholder: "Motivo rechazo", class: "input-field" %>
+    <%= button_tag "Rechazar", name: "reject", value: true, class: "btn-secondary" %>
+  <% end %>
+</div>

@@ -1,0 +1,24 @@
+<h1 class="text-2xl font-bold">Bloqueos — <%= @box.title %></h1>
+<%= link_to "← Volver al box", owner_box_path(@box), class: "text-sm text-rose-600 hover:underline" %>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="card p-4">
+    <%= form_with model: [@box, @block], url: owner_box_availability_blocks_path(@box), class: "space-y-3" do |f| %>
+      <%= f.label :start_at, "Inicio", class: "block text-sm font-medium" %>
+      <%= f.datetime_local_field :start_at, class: "input-field" %>
+      <%= f.label :end_at, "Fin", class: "block text-sm font-medium" %>
+      <%= f.datetime_local_field :end_at, class: "input-field" %>
+      <%= f.label :reason, "Motivo", class: "block text-sm font-medium" %>
+      <%= f.text_field :reason, class: "input-field" %>
+      <%= f.submit "Bloquear", class: "btn-primary" %>
+    <% end %>
+  </div>
+  <div class="card p-4">
+    <% @blocks.each do |block| %>
+      <div class="mb-2 rounded-lg bg-gray-50 p-3 text-sm flex justify-between">
+        <span><%= l(block.start_at, format: :short) %> — <%= l(block.end_at, format: :short) %></span>
+        <%= button_to "×", owner_box_availability_block_path(@box, block), method: :delete, class: "text-red-600" %>
+      </div>
+    <% end %>
+  </div>
+</div>

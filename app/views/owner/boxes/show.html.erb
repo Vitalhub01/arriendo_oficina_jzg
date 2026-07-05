@@ -1,0 +1,27 @@
+<h1 class="text-2xl font-bold"><%= @box.title %></h1>
+<p class="text-gray-600"><%= @box.status.humanize %> · <%= format_clp(@box.price_per_hour_cents) %>/hora</p>
+<p class="mt-2 text-sm text-gray-600">Ingresos del mes: <%= format_clp(@month_revenue) %> · Pendientes de pago: <%= @pending_count %></p>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <%= link_to "Horarios", owner_box_availability_rules_path(@box), class: "btn-secondary" %>
+  <%= link_to "Bloqueos", owner_box_availability_blocks_path(@box), class: "btn-secondary" %>
+  <%= link_to "Calendario", calendar_owner_box_path(@box), class: "btn-secondary" %>
+  <%= link_to "Exportar CSV", export_bookings_owner_box_path(@box), class: "btn-secondary" %>
+  <%= link_to "Editar", edit_owner_box_path(@box), class: "btn-secondary" %>
+</div>
+
+<h2 class="mt-8 text-lg font-semibold">Series activas</h2>
+<div class="mt-4 space-y-2">
+  <% @booking_series.each do |series| %>
+    <div class="rounded-xl border p-3 text-sm"><%= series.renter.name %> — <%= l(series.starts_on, format: :default) %></div>
+  <% end %>
+</div>
+
+<h2 class="mt-8 text-lg font-semibold">Reservas recientes</h2>
+<div class="mt-4 space-y-2">
+  <% @bookings.each do |b| %>
+    <div class="rounded-xl border p-3 text-sm">
+      <%= l(b.start_at, format: :long) %> — <%= b.renter.name %> (<%= booking_status_label(b) %>)
+    </div>
+  <% end %>
+</div>

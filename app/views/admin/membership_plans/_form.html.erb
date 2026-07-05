@@ -1,0 +1,18 @@
+<h1 class="text-2xl font-bold"><%= @membership_plan.persisted? ? 'Editar plan' : 'Nuevo plan' %></h1>
+<%= form_with model: @membership_plan, url: @membership_plan.persisted? ? admin_membership_plan_path(@membership_plan) : admin_membership_plans_path, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <%= f.label :name, class: "block text-sm font-medium" %>
+  <%= f.text_field :name, class: "input-field" %>
+  <%= f.label :description, class: "block text-sm font-medium" %>
+  <%= f.text_area :description, rows: 3, class: "input-field" %>
+  <%= f.label :benefits, class: "block text-sm font-medium" %>
+  <%= f.text_area :benefits, rows: 4, class: "input-field" %>
+  <%= f.label :price_cents, "Precio (centavos)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_cents, class: "input-field" %>
+  <%= f.label :billing_period, class: "block text-sm font-medium" %>
+  <%= f.select :billing_period, MembershipPlan.billing_periods.keys, {}, class: "input-field" %>
+  <%= f.label :discount_percent, class: "block text-sm font-medium" %>
+  <%= f.number_field :discount_percent, class: "input-field" %>
+  <%= f.label :active, class: "inline-flex items-center gap-2" %>
+  <%= f.check_box :active %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

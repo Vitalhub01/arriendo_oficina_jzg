@@ -1,0 +1,29 @@
+published_monday:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 18:00:00"
+
+published_tuesday:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 18:00:00"
+
+published_wednesday:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 18:00:00"
+
+published_thursday:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 18:00:00"
+
+published_friday:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 18:00:00"

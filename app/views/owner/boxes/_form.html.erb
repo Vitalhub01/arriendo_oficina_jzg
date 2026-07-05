@@ -1,0 +1,54 @@
+<%= form_with model: [:owner, box], class: "mt-6 max-w-2xl space-y-4" do |f| %>
+  <% if box.errors.any? %>
+    <div class="rounded-xl bg-red-50 p-4 text-red-800"><%= box.errors.full_messages.join(", ") %></div>
+  <% end %>
+
+  <%= f.label :title, "Título", class: "block text-sm font-medium" %>
+  <%= f.text_field :title, class: "input-field" %>
+
+  <%= f.label :description, "Descripción", class: "block text-sm font-medium" %>
+  <%= f.text_area :description, rows: 4, class: "input-field" %>
+
+  <%= f.label :box_type, "Tipo", class: "block text-sm font-medium" %>
+  <%= f.select :box_type, Box.box_types.keys.map { |k| [Box::BOX_TYPE_LABELS[k], k] }, {}, class: "input-field" %>
+
+  <%= f.label :price_per_hour_cents, "Precio por hora (CLP)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_per_hour_cents, class: "input-field", min: 1000, step: 500 %>
+
+  <%= f.label :minimum_hours, "Horas mínimas", class: "block text-sm font-medium" %>
+  <%= f.number_field :minimum_hours, class: "input-field", min: 1 %>
+
+  <%= f.label :address, "Dirección", class: "block text-sm font-medium" %>
+  <%= f.text_field :address, class: "input-field" %>
+
+  <div class="grid grid-cols-2 gap-4">
+    <%= f.label :commune, "Comuna", class: "block text-sm font-medium" %>
+    <%= f.label :city, "Ciudad", class: "block text-sm font-medium" %>
+    <%= f.text_field :commune, class: "input-field" %>
+    <%= f.text_field :city, class: "input-field", value: box.city.presence || "Santiago" %>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <%= f.label :latitude, "Latitud", class: "block text-sm font-medium" %>
+    <%= f.label :longitude, "Longitud", class: "block text-sm font-medium" %>
+    <%= f.number_field :latitude, step: :any, class: "input-field" %>
+    <%= f.number_field :longitude, step: :any, class: "input-field" %>
+  </div>
+
+  <%= f.label :photos, "Fotos", class: "block text-sm font-medium" %>
+  <%= f.file_field :photos, multiple: true, class: "input-field" %>
+
+  <fieldset>
+    <legend class="text-sm font-medium">Amenities</legend>
+    <div class="mt-2 grid grid-cols-2 gap-2">
+      <% Box::AMENITY_OPTIONS.each do |amenity| %>
+        <label class="flex items-center gap-2 text-sm">
+          <%= check_box_tag "box[amenities][#{amenity}]", "1", box.amenities&.dig(amenity), class: "rounded" %>
+          <%= amenity_label(amenity) %>
+        </label>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <%= f.submit class: "btn-primary" %>
+<% end %>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title>Admin — Oficina JZG</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="min-h-screen bg-gray-100">
+    <div class="flex min-h-screen">
+      <aside class="hidden w-64 bg-gray-900 p-6 text-white md:block">
+        <h1 class="text-xl font-bold">Oficina JZG</h1>
+        <nav class="mt-8 space-y-2 text-sm">
+          <%= link_to "Dashboard", admin_root_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Oficina", edit_admin_office_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Espacios", admin_spaces_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Jornadas", admin_jornada_definitions_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Reglas de precio", admin_pricing_rules_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Profesionales", admin_professionals_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Reservas", admin_bookings_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Membresías", admin_memberships_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Planes membresía", admin_membership_plans_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Testimonios", admin_testimonials_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "FAQ", admin_faqs_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Configuración", edit_admin_site_settings_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+          <%= link_to "Ver sitio", root_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+        </nav>
+      </aside>
+      <main class="flex-1 p-4 md:p-8">
+        <% if notice %><div class="mb-4 rounded-xl bg-green-50 p-3 text-green-800"><%= notice %></div><% end %>
+        <% if alert %><div class="mb-4 rounded-xl bg-red-50 p-3 text-red-800"><%= alert %></div><% end %>
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

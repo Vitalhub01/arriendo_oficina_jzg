@@ -1,0 +1,8 @@
+<%= form_with url: spaces_path, method: :get, local: true, class: "w-full text-gray-900" do |f| %>
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+    <%= date_field_tag :date, params[:date], class: "input-field", placeholder: "Fecha" %>
+    <%= time_field_tag :start_time, params[:start_time] || "09:00", class: "input-field" %>
+    <%= number_field_tag :hours, params[:hours] || 1, min: 1, class: "input-field", placeholder: "Horas" %>
+    <%= submit_tag "Buscar disponibilidad", class: "btn-primary" %>
+  </div>
+<% end %>

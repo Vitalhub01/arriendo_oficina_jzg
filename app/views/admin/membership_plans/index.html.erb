@@ -1,0 +1,17 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold">Planes de membresía</h1>
+  <%= link_to "Nuevo plan", new_admin_membership_plan_path, class: "btn-primary" %>
+</div>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Nombre</th><th>Precio</th><th>Activo</th><th></th></tr></thead>
+  <tbody>
+    <% @membership_plans.each do |plan| %>
+      <tr class="border-b">
+        <td class="py-2"><%= plan.name %></td>
+        <td><%= plan.formatted_price %></td>
+        <td><%= plan.active? ? 'Sí' : 'No' %></td>
+        <td><%= link_to "Editar", edit_admin_membership_plan_path(plan), class: "text-rose-600" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,5 @@
+<% if resource.errors.any? %>
+  <div class="rounded-xl bg-red-50 p-4 text-sm text-red-800">
+    <%= resource.errors.full_messages.join(", ") %>
+  </div>
+<% end %>

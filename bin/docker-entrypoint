@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+bundle check || bundle install
+
+if [ "${SKIP_DB_PREPARE}" != "1" ]; then
+  bin/rails db:prepare
+fi
+
+exec "$@"

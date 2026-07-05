@@ -1,0 +1,29 @@
+<div class="mx-auto max-w-7xl px-4 py-8">
+  <h1 class="text-2xl font-bold">Boxes disponibles</h1>
+  <p class="mt-1 text-gray-600"><%= @pagy.count %> resultados</p>
+
+  <% if @map_boxes.any? %>
+    <div class="mt-6 card overflow-hidden">
+      <div
+        data-controller="map-index"
+        data-map-index-markers-value="<%= @map_boxes.map { |b| { lat: b.latitude.to_f, lng: b.longitude.to_f, title: b.title, url: box_path(b) } }.to_json %>"
+        class="h-64 w-full">
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <% @boxes.each do |box| %>
+      <%= render "shared/box_card", box: box %>
+    <% end %>
+  </div>
+
+  <div class="mt-8"><%== pagy_nav(@pagy) if @pagy.pages > 1 %></div>
+
+  <% if @boxes.empty? %>
+    <div class="mt-12 text-center text-gray-500">
+      <p>No encontramos boxes con esos filtros.</p>
+      <%= link_to "Ver todos", boxes_path, class: "mt-4 inline-block text-rose-600 hover:underline" %>
+    </div>
+  <% end %>
+</div>

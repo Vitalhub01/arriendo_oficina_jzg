@@ -1,0 +1,14 @@
+<div class="mx-auto max-w-lg px-4 py-12">
+  <h1 class="text-2xl font-bold">Mi perfil</h1>
+  <%= form_with model: @user, url: profile_path, method: :patch, class: "mt-6 space-y-4" do |f| %>
+    <div>
+      <%= f.label :name, class: "block text-sm font-medium" %>
+      <%= f.text_field :name, class: "input-field" %>
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Email</label>
+      <p class="input-field bg-gray-50"><%= @user.email %></p>
+    </div>
+    <%= f.submit "Guardar", class: "btn-primary" %>
+  <% end %>
+</div>

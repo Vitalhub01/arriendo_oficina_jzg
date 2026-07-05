@@ -1,0 +1,17 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold">Reglas de precio</h1>
+  <%= link_to "Nueva regla", new_admin_pricing_rule_path, class: "btn-primary" %>
+</div>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Nombre</th><th>Tipo</th><th>Activa</th><th></th></tr></thead>
+  <tbody>
+    <% @pricing_rules.each do |rule| %>
+      <tr class="border-b">
+        <td class="py-2"><%= rule.name %></td>
+        <td><%= rule.rule_type %></td>
+        <td><%= rule.active? ? 'Sí' : 'No' %></td>
+        <td><%= link_to "Editar", edit_admin_pricing_rule_path(rule), class: "text-rose-600" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,14 @@
+<h1 class="text-2xl font-bold">FAQ</h1>
+<%= link_to "Nueva pregunta", new_admin_faq_path, class: "btn-primary mt-4 inline-flex" %>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Pregunta</th><th>Visible</th><th></th></tr></thead>
+  <tbody>
+    <% @faqs.each do |faq| %>
+      <tr class="border-b">
+        <td class="py-2"><%= faq.question %></td>
+        <td><%= faq.visible? ? 'Sí' : 'No' %></td>
+        <td><%= link_to "Editar", edit_admin_faq_path(faq), class: "text-rose-600" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,25 @@
+<div class="mx-auto max-w-md px-4 py-16">
+  <h1 class="text-2xl font-bold">Registro profesional</h1>
+  <p class="mt-2 text-sm text-gray-600">Nombre y RUT son obligatorios para validar tu registro en el área de la salud.</p>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "mt-6 space-y-4" }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+    <% if resource.professional_profile&.errors&.any? %>
+      <div class="rounded-xl bg-red-50 p-3 text-sm text-red-800">
+        <% resource.professional_profile.errors.full_messages.each do |msg| %>
+          <p><%= msg %></p>
+        <% end %>
+      </div>
+    <% end %>
+    <%= f.label :name, "Nombre completo", class: "block text-sm font-medium" %>
+    <%= f.text_field :name, class: "input-field", required: true %>
+    <%= label_tag :user_rut, "RUT", class: "block text-sm font-medium" %>
+    <%= text_field_tag "user[rut]", params.dig(:user, :rut), class: "input-field", placeholder: "12.345.678-9", required: true %>
+    <%= f.label :email, class: "block text-sm font-medium" %>
+    <%= f.email_field :email, class: "input-field", required: true %>
+    <%= f.label :password, class: "block text-sm font-medium" %>
+    <%= f.password_field :password, class: "input-field", required: true %>
+    <%= f.label :password_confirmation, class: "block text-sm font-medium" %>
+    <%= f.password_field :password_confirmation, class: "input-field", required: true %>
+    <%= f.submit "Registrarse", class: "btn-primary w-full" %>
+  <% end %>
+</div>

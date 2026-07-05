@@ -1,0 +1,81 @@
+es:
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "Validación fallida: %{errors}"
+    models:
+      box: Box
+      booking: Reserva
+    attributes:
+      box:
+        title: Título
+        price_per_hour_cents: Precio por hora
+      booking:
+        status: Estado
+    enums:
+      booking:
+        status:
+          pending_payment: Pendiente de pago
+          confirmed: Confirmada
+          cancelled: Cancelada
+          completed: Completada
+  date:
+    day_names:
+      - domingo
+      - lunes
+      - martes
+      - miércoles
+      - jueves
+      - viernes
+      - sábado
+    abbr_day_names:
+      - dom
+      - lun
+      - mar
+      - mié
+      - jue
+      - vie
+      - sáb
+    month_names:
+      - ~
+      - enero
+      - febrero
+      - marzo
+      - abril
+      - mayo
+      - junio
+      - julio
+      - agosto
+      - septiembre
+      - octubre
+      - noviembre
+      - diciembre
+    abbr_month_names:
+      - ~
+      - ene
+      - feb
+      - mar
+      - abr
+      - may
+      - jun
+      - jul
+      - ago
+      - sep
+      - oct
+      - nov
+      - dic
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d %b"
+      long: "%A %d de %B de %Y"
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"
+      short: "%d/%m %H:%M"
+      long: "%A %d de %B %H:%M"
+  devise:
+    sessions:
+      signed_in: "Sesión iniciada."
+      signed_out: "Sesión cerrada."
+    registrations:
+      signed_up: "Cuenta creada exitosamente."

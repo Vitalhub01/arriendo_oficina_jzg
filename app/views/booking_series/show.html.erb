@@ -1,0 +1,30 @@
+<div class="mx-auto max-w-3xl px-4 py-8">
+  <h1 class="text-2xl font-bold">Serie recurrente</h1>
+  <div class="mt-6 card p-6">
+    <h2 class="text-lg font-semibold"><%= @series.box.title %></h2>
+    <p class="mt-2 text-sm text-gray-600">
+      <%= l(@series.starts_on, format: :default) %> — <%= l(@series.ends_on, format: :default) %>
+      · <%= @series.hours %> hora(s) semanales
+    </p>
+    <p class="mt-1 text-sm">Estado: <%= @series.status.humanize %></p>
+
+    <div class="mt-6 flex flex-wrap gap-3">
+      <% if @series.active? %>
+        <%= button_to "Pausar", booking_series_path(@series), method: :patch, params: { booking_series: { status: "paused" } }, class: "btn-secondary" %>
+        <%= button_to "Cancelar serie", booking_series_path(@series), method: :patch, params: { booking_series: { status: "cancelled" } }, class: "btn-secondary", data: { turbo_confirm: "¿Cancelar toda la serie?" } %>
+      <% elsif @series.paused? %>
+        <%= button_to "Reanudar", booking_series_path(@series), method: :patch, params: { booking_series: { status: "active" } }, class: "btn-primary" %>
+      <% end %>
+    </div>
+
+    <h3 class="mt-8 font-semibold">Reservas de la serie</h3>
+    <ul class="mt-4 space-y-2 text-sm">
+      <% @bookings.each do |booking| %>
+        <li class="flex justify-between border-b py-2">
+          <span><%= l(booking.start_at, format: :long) %></span>
+          <span><%= booking_status_label(booking) %></span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

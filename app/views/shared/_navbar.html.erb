@@ -1,0 +1,23 @@
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+    <%= link_to root_path, class: "flex items-center gap-2" do %>
+      <span class="text-2xl font-bold text-rose-600">Oficina JZG</span>
+    <% end %>
+
+    <div class="hidden items-center gap-4 md:flex">
+      <%= link_to "Espacios", spaces_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+      <%= link_to "Membresía", membership_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+      <% if user_signed_in? %>
+        <%= link_to "Mis reservas", bookings_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+        <%= link_to "Perfil", edit_profile_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+        <% if current_user.admin? %>
+          <%= link_to "Admin", admin_root_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+        <% end %>
+        <%= button_to "Salir", destroy_user_session_path, method: :delete, class: "text-sm font-medium text-gray-500" %>
+      <% else %>
+        <%= link_to "Ingresar", new_user_session_path, class: "text-sm font-medium text-gray-700" %>
+        <%= link_to "Registrarse", new_user_registration_path, class: "btn-primary !py-2 !px-4" %>
+      <% end %>
+    </div>
+  </div>
+</header>

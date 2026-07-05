@@ -1,0 +1,142 @@
+<div data-controller="search-sheet">
+  <section class="relative overflow-hidden bg-gradient-to-br from-rose-600 via-rose-500 to-orange-400 text-white">
+    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center opacity-20"></div>
+    <div class="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
+      <div class="max-w-2xl">
+        <p class="text-sm font-semibold uppercase tracking-wider text-rose-100">Arriendo de box para profesionales de la salud</p>
+        <h1 class="mt-3 text-4xl font-bold leading-tight md:text-5xl">Arrienda tu box por hora</h1>
+        <p class="mt-4 text-lg text-rose-50">
+          Espacios equipados y acogedores para psicólogos y terapeutas.
+          Reserva por hora o por jornada con total flexibilidad.
+        </p>
+        <%= link_to "Reservar ahora", spaces_path, class: "btn-secondary mt-8 inline-flex !border-white/30 !bg-white/10 !text-white backdrop-blur hover:!bg-white/20" %>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <div class="mb-8 text-center">
+      <h2 class="text-3xl font-bold">Salas disponibles</h2>
+      <p class="mt-2 text-gray-600">Totalmente equipadas para hacer terapia</p>
+    </div>
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <% @spaces.each do |space| %>
+        <%= render "shared/space_card", space: space %>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="bg-white py-16">
+    <div class="mx-auto max-w-7xl px-4">
+      <div class="mb-10 text-center">
+        <h2 class="text-3xl font-bold">Valores de nuestras salas</h2>
+        <p class="mt-2 text-gray-600">Elige el formato que mejor se adapte a ti</p>
+      </div>
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div class="card p-8">
+          <h3 class="text-xl font-semibold text-rose-600">Arriendo por hora</h3>
+          <p class="mt-2 text-3xl font-bold">
+            <%= @spaces.first ? format_clp(@spaces.minimum(:price_per_hour_cents)) : '$6.000' %>
+            <span class="text-base font-normal text-gray-500">/ hora</span>
+          </p>
+          <p class="mt-4 text-gray-600">Reserva en el horario que quieras con total libertad. El formato más flexible para coordinar con tus pacientes.</p>
+          <%= link_to "Ver disponibilidad", spaces_path, class: "btn-primary mt-6 inline-flex" %>
+        </div>
+        <div class="card p-8">
+          <h3 class="text-xl font-semibold text-rose-600">Arriendo por jornada</h3>
+          <% sample_jornada = @jornadas.first %>
+          <p class="mt-2 text-3xl font-bold">
+            <%= sample_jornada ? sample_jornada.formatted_price : '$80.000' %>
+            <span class="text-base font-normal text-gray-500">/ jornada</span>
+          </p>
+          <p class="mt-4 text-gray-600">Mañana o tarde completa. Valor por hora más conveniente para quienes arriendan bloques regulares.</p>
+          <%= link_to "Ver jornadas", spaces_path, class: "btn-primary mt-6 inline-flex" %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <h2 class="text-center text-3xl font-bold">¿Por qué nosotros?</h2>
+    <div class="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <% [
+        ["Ubicación", "Excelente ubicación con fácil acceso y entorno seguro y tranquilo."],
+        ["Equipado", "Boxes con implementos pensados para la atención clínica y terapéutica."],
+        ["Atención personalizada", "Te acompañamos para que tengas la mejor experiencia en la oficina."],
+        ["Flexibilidad", "Arriendo por hora o jornada según tus necesidades."],
+        ["WiFi", "Conexión estable para sesiones online sin interrupciones."],
+        ["Profesionales verificados", "Validación con Superintendencia de Salud para reservar con confianza."]
+      ].each do |title, desc| %>
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-lg font-bold text-rose-600">✓</div>
+          <h3 class="mt-4 text-lg font-semibold"><%= title %></h3>
+          <p class="mt-2 text-gray-600"><%= desc %></p>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <% if @testimonials.any? %>
+    <section class="bg-gray-50 py-16">
+      <div class="mx-auto max-w-7xl px-4">
+        <h2 class="text-center text-3xl font-bold">Lo que opinan nuestros clientes</h2>
+        <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <% @testimonials.each do |testimonial| %>
+            <div class="card p-6">
+              <% if testimonial.rating.present? %>
+                <p class="text-amber-500"><%= "★" * testimonial.rating %></p>
+              <% end %>
+              <p class="mt-3 text-gray-700"><%= testimonial.body %></p>
+              <p class="mt-4 text-sm font-medium text-gray-900"><%= testimonial.profesional.name %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <h2 class="text-center text-3xl font-bold">Membresía profesional</h2>
+    <p class="mx-auto mt-4 max-w-2xl text-center text-gray-600">
+      Descuentos en arriendos, capacitaciones y accesos exclusivos para miembros suscritos.
+    </p>
+    <%= link_to "Conocer membresía", membership_path, class: "btn-primary mx-auto mt-8 flex w-fit" %>
+  </section>
+
+  <% if @faqs.any? %>
+    <section class="bg-white py-16">
+      <div class="mx-auto max-w-3xl px-4">
+        <h2 class="text-center text-3xl font-bold">Preguntas frecuentes</h2>
+        <div class="mt-10 space-y-4">
+          <% @faqs.each do |faq| %>
+            <details class="card p-4">
+              <summary class="cursor-pointer font-semibold"><%= faq.question %></summary>
+              <p class="mt-3 text-gray-600"><%= faq.answer %></p>
+            </details>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @office&.latitude.present? %>
+    <section class="mx-auto max-w-7xl px-4 py-16">
+      <h2 class="text-center text-3xl font-bold">Ubicación</h2>
+      <p class="mt-4 text-center text-gray-600"><%= @office.full_address %></p>
+      <div class="mt-6 h-[350px] overflow-hidden rounded-2xl border border-gray-200"
+           data-controller="map"
+           data-map-lat-value="<%= @office.latitude %>"
+           data-map-lng-value="<%= @office.longitude %>"
+           data-map-address-value="<%= @office.full_address %>">
+      </div>
+    </section>
+  <% end %>
+
+  <section class="bg-gradient-to-r from-rose-600 to-orange-400 py-16 text-white">
+    <div class="mx-auto max-w-7xl px-4 text-center">
+      <h2 class="text-3xl font-bold">Preocúpate de lo que más importa: ¡La terapia!</h2>
+      <p class="mt-4 text-rose-50">Nosotros nos encargamos del resto.</p>
+      <%= link_to "Reservar un box", spaces_path, class: "btn-secondary mt-8 inline-flex !bg-white !text-rose-600 hover:!bg-rose-50" %>
+    </div>
+  </section>
+</div>

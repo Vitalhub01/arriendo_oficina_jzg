@@ -1,0 +1,17 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold">Espacios</h1>
+  <%= link_to "Nuevo espacio", new_admin_space_path, class: "btn-primary" %>
+</div>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Nombre</th><th>Precio/hora</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+    <% @spaces.each do |space| %>
+      <tr class="border-b">
+        <td class="py-2"><%= space.title %></td>
+        <td><%= format_clp(space.price_per_hour_cents) %></td>
+        <td><%= space.status %></td>
+        <td><%= link_to "Editar", edit_admin_space_path(space), class: "text-rose-600" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

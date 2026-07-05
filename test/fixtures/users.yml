@@ -1,0 +1,35 @@
+admin:
+  name: Admin Test
+  email: admin@test.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 0
+
+profesional:
+  name: Profesional Test
+  email: profesional@test.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 1
+
+profesional_suscrito:
+  name: Suscriptor Test
+  email: suscriptor@test.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 2
+
+owner:
+  name: Owner Legacy
+  email: owner@test.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 1
+
+renter:
+  name: Renter Legacy
+  email: renter@test.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 1
+
+other_owner:
+  name: Other Owner
+  email: other-owner@test.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 1

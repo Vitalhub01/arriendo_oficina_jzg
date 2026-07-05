@@ -1,0 +1,20 @@
+<h1 class="text-2xl font-bold"><%= @space.persisted? ? 'Editar espacio' : 'Nuevo espacio' %></h1>
+<%= form_with model: @space, url: @space.persisted? ? admin_space_path(@space) : admin_spaces_path, class: "mt-6 max-w-2xl space-y-4" do |f| %>
+  <%= f.label :title, class: "block text-sm font-medium" %>
+  <%= f.text_field :title, class: "input-field" %>
+  <%= f.label :description, class: "block text-sm font-medium" %>
+  <%= f.text_area :description, rows: 4, class: "input-field" %>
+  <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
+  <%= f.collection_select :office_id, Office.all, :id, :name, {}, class: "input-field" %>
+  <%= f.label :price_per_hour_cents, "Precio por hora (centavos)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_per_hour_cents, class: "input-field" %>
+  <%= f.label :capacity, class: "block text-sm font-medium" %>
+  <%= f.number_field :capacity, class: "input-field" %>
+  <%= f.label :dimensions, class: "block text-sm font-medium" %>
+  <%= f.text_field :dimensions, class: "input-field" %>
+  <%= f.label :status, class: "block text-sm font-medium" %>
+  <%= f.select :status, Space.statuses.keys, {}, class: "input-field" %>
+  <%= f.label :photos, class: "block text-sm font-medium" %>
+  <%= f.file_field :photos, multiple: true, class: "input-field" %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

@@ -1,0 +1,34 @@
+<div class="mx-auto max-w-7xl px-4 py-8">
+  <h1 class="text-2xl font-bold">Mis reservas</h1>
+
+  <div class="mt-6 space-y-4">
+    <% @bookings.each do |booking| %>
+      <div class="card p-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 class="font-semibold"><%= booking.space.title %></h3>
+            <p class="text-sm text-gray-600"><%= l(booking.start_at, format: :long) %> — <%= booking.hours %> hora(s)</p>
+            <p class="mt-1 text-sm"><%= booking.formatted_total %></p>
+            <% if booking.pending_payment? && booking.payment_expires_at.present? %>
+              <p class="mt-1 text-xs text-amber-700"><%= booking_payment_expires_label(booking) %></p>
+            <% end %>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="rounded-full px-3 py-1 text-xs font-medium <%= booking_status_badge_classes(booking) %>">
+              <%= booking_status_label(booking) %>
+            </span>
+            <% if booking.pending_payment? && !booking.payment_expired? && booking.total_amount_cents.positive? %>
+              <%= link_to "Pagar", checkout_booking_path(booking), class: "btn-primary !py-2 !px-4" %>
+            <% end %>
+            <% if policy(booking).cancel? %>
+              <%= button_to "Cancelar", cancel_booking_path(booking), method: :patch, class: "btn-secondary !py-2 !px-4", data: { turbo_confirm: "¿Cancelar esta reserva?" } %>
+            <% end %>
+            <%= link_to "Ver", booking_path(booking), class: "btn-secondary !py-2 !px-4" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-8"><%== pagy_nav(@pagy) if @pagy.pages > 1 %></div>
+</div>

@@ -1,0 +1,13 @@
+<div>
+  <%= label_tag :hours, "Duración (horas)", class: "mb-1 block text-sm font-medium" %>
+  <div class="flex items-center gap-3">
+    <button type="button" data-action="click->booking-form#decrement" class="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-300 text-xl">−</button>
+    <%= number_field_tag :hours, space.minimum_hours, min: space.minimum_hours, class: "input-field text-center", data: { booking_form_target: "hours", action: "input->booking-form#updateTotal" } %>
+    <button type="button" data-action="click->booking-form#increment" class="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-300 text-xl">+</button>
+  </div>
+</div>
+
+<div class="rounded-xl bg-gray-50 p-4">
+  <p class="text-sm text-gray-600">Total estimado</p>
+  <p class="text-xl font-bold" data-booking-form-target="total"><%= format_clp(space.price_for_duration(space.minimum_hours)) %></p>
+</div>

@@ -1,0 +1,15 @@
+<h1 class="text-2xl font-bold">Calendario — <%= @box.title %></h1>
+<%= link_to "← Volver al box", owner_box_path(@box), class: "mt-2 inline-block text-rose-600 hover:underline" %>
+
+<div class="mt-6">
+  <%= render "boxes/availability_schedule", box: @box, schedule: @schedule, week_start: @week_start %>
+</div>
+
+<h2 class="mt-8 text-lg font-semibold">Reservas de la semana</h2>
+<ul class="mt-4 space-y-2 text-sm">
+  <% @week_bookings.each do |booking| %>
+    <li class="rounded-xl border p-3">
+      <%= l(booking.start_at, format: :long) %> — <%= booking.renter.name %> (<%= booking_status_label(booking) %>)
+    </li>
+  <% end %>
+</ul>

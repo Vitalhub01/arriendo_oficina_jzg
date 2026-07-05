@@ -1,0 +1,59 @@
+<% jornadas = space.jornada_definitions.active.or(JornadaDefinition.active.where(office_id: space.office_id)) %>
+<div data-controller="booking-form booking-type" data-booking-form-price-per-hour-value="<%= space.price_per_hour_cents %>">
+  <p class="text-2xl font-bold"><%= format_clp(space.price_per_hour_cents) %> <span class="text-base font-normal text-gray-500">/ hora</span></p>
+  <p class="mt-1 text-sm text-gray-500">Mínimo <%= space.minimum_hours %> hora(s)</p>
+
+  <% if user_signed_in? && current_user.can_book? %>
+    <div class="mt-4 flex rounded-xl bg-gray-100 p-1">
+      <button type="button" data-action="click->booking-type#show" data-booking-type-type-param="hourly"
+              class="flex-1 rounded-lg bg-white py-2 text-sm font-medium shadow">Por hora</button>
+      <button type="button" data-action="click->booking-type#show" data-booking-type-type-param="jornada"
+              class="flex-1 rounded-lg py-2 text-sm font-medium text-gray-600">Por jornada</button>
+    </div>
+
+    <div data-booking-type-target="panel" data-booking-type="hourly" class="mt-4">
+      <%= form_with url: space_bookings_path(space), method: :post, local: true, class: "space-y-4" do %>
+        <%= hidden_field_tag :booking_type, "hourly" %>
+        <div>
+          <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
+          <%= date_field_tag :date, @prefill_date || Date.current, class: "input-field", required: true %>
+        </div>
+        <div>
+          <%= label_tag :start_time, "Hora inicio", class: "mb-1 block text-sm font-medium" %>
+          <%= time_field_tag :start_time, @prefill_start_time || "09:00", class: "input-field", required: true %>
+        </div>
+        <%= render "spaces/booking_hours_fields", space: space %>
+        <% if current_user.reschedule_credits.usable.any? %>
+          <div>
+            <%= label_tag :reschedule_credit_id, "Usar crédito de reagendamiento", class: "mb-1 block text-sm font-medium" %>
+            <%= select_tag :reschedule_credit_id,
+                  options_from_collection_for_select(current_user.reschedule_credits.usable, :id, ->(c) { "#{format_clp(c.amount_cents)} (#{c.hours}h)" }),
+                  { include_blank: "No usar crédito" }, class: "input-field" %>
+          </div>
+        <% end %>
+        <%= submit_tag "Reservar y pagar", class: "btn-primary w-full" %>
+      <% end %>
+    </div>
+
+    <div data-booking-type-target="panel" data-booking-type="jornada" class="mt-4 hidden">
+      <%= form_with url: space_bookings_path(space), method: :post, local: true, class: "space-y-4" do %>
+        <%= hidden_field_tag :booking_type, "jornada" %>
+        <div>
+          <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
+          <%= date_field_tag :date, Date.current, class: "input-field", required: true %>
+        </div>
+        <div>
+          <%= label_tag :jornada_definition_id, "Jornada", class: "mb-1 block text-sm font-medium" %>
+          <%= select_tag :jornada_definition_id,
+                options_from_collection_for_select(jornadas, :id, ->(j) { "#{j.name} (#{j.formatted_price})" }),
+                class: "input-field", required: true %>
+        </div>
+        <%= submit_tag "Reservar jornada", class: "btn-primary w-full" %>
+      <% end %>
+    </div>
+  <% elsif user_signed_in? %>
+    <%= link_to "Completa tu perfil para reservar", onboarding_path, class: "btn-primary mt-4 block w-full text-center" %>
+  <% else %>
+    <%= link_to "Ingresa para reservar", new_user_session_path, class: "btn-primary mt-4 block w-full text-center" %>
+  <% end %>
+</div>

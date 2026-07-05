@@ -1,0 +1,114 @@
+<% content_for :body_class, "pb-24 lg:pb-0" %>
+<div class="mx-auto max-w-7xl px-4 py-6">
+  <% if @errors.present? %>
+    <div class="mb-4 rounded-xl bg-red-50 p-4 text-red-800">
+      <ul class="list-disc pl-5"><% @errors.each do |e| %><li><%= e %></li><% end %></ul>
+    </div>
+  <% end %>
+  <% if @conflicts.present? %>
+    <div class="mb-4 rounded-xl bg-amber-50 p-4 text-amber-900">
+      <p class="font-semibold">Fechas con conflictos:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% @conflicts.each do |c| %>
+          <li><%= l(c[:date]) %>: <%= c[:message] %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+    <div class="lg:col-span-2 space-y-8">
+      <div data-controller="gallery" class="overflow-hidden rounded-2xl">
+        <% if @box.photos.attached? %>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-4 sm:grid-rows-2">
+            <% @box.photos.first(5).each_with_index do |photo, i| %>
+              <div class="<%= i == 0 ? 'sm:col-span-2 sm:row-span-2' : '' %> aspect-[4/3] overflow-hidden bg-gray-100">
+                <%= image_tag photo.variant(resize_to_limit: [1200, 800]), class: "h-full w-full object-cover cursor-pointer", alt: @box.title %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="flex aspect-video items-center justify-center bg-gray-100 text-gray-400">Sin fotos</div>
+        <% end %>
+      </div>
+
+      <div>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold md:text-3xl"><%= @box.title %></h1>
+            <p class="mt-1 text-gray-600"><%= @box.commune %>, <%= @box.city %></p>
+          </div>
+          <span class="rounded-full bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700"><%= @box.box_type_label %></span>
+        </div>
+        <p class="mt-4 text-gray-700 leading-relaxed"><%= simple_format(@box.description) %></p>
+        <% if @box.amenities.present? %>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <% @box.amenities.each do |key, enabled| %>
+              <% next unless enabled == true || enabled == "1" %>
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"><%= amenity_label(key) %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <section>
+        <h2 class="text-xl font-semibold">Ubicación</h2>
+        <p class="mt-2 text-gray-700"><%= @box.full_address %></p>
+        <div class="mt-3 flex flex-wrap gap-3">
+          <%= link_to "Cómo llegar (Google Maps)", maps_directions_url(@box), target: "_blank", rel: "noopener", class: "text-sm font-medium text-rose-600 hover:underline" %>
+          <%= link_to "Abrir en Waze", waze_url(@box), target: "_blank", rel: "noopener", class: "text-sm font-medium text-rose-600 hover:underline" %>
+        </div>
+        <% if @box.latitude.present? && @box.longitude.present? %>
+          <div class="mt-4 h-[250px] overflow-hidden rounded-2xl border border-gray-200 md:h-[400px]"
+               data-controller="map"
+               data-map-lat-value="<%= @box.latitude %>"
+               data-map-lng-value="<%= @box.longitude %>"
+               data-map-address-value="<%= @box.full_address %>">
+          </div>
+        <% end %>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Horarios disponibles</h2>
+        <%= turbo_frame_tag "availability_schedule" do %>
+          <%= render "boxes/availability_schedule", box: @box, schedule: @schedule, week_start: @week_start %>
+        <% end %>
+      </section>
+    </div>
+
+    <div class="hidden lg:block">
+      <div class="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+        <%= render "boxes/booking_form", box: @box %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white p-4 shadow-lg lg:hidden">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-sm text-gray-500">Desde</p>
+      <p class="text-lg font-bold"><%= format_clp(@box.price_per_hour_cents) %> <span class="text-sm font-normal text-gray-500">/ hora</span></p>
+    </div>
+    <% if user_signed_in? %>
+      <a href="#booking-form-mobile" class="btn-primary">Reservar</a>
+    <% else %>
+      <%= link_to "Ingresar para reservar", new_user_session_path, class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div id="booking-form-mobile" class="fixed inset-0 z-50 hidden overflow-y-auto bg-white p-4 lg:hidden" data-controller="search-sheet">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold">Reservar</h2>
+    <button onclick="document.getElementById('booking-form-mobile').classList.add('hidden')" class="text-2xl">&times;</button>
+  </div>
+  <%= render "boxes/booking_form", box: @box %>
+</div>
+
+<script>
+  document.querySelector('a[href="#booking-form-mobile"]')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('booking-form-mobile').classList.remove('hidden');
+  });
+</script>

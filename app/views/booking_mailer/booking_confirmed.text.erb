@@ -1,0 +1,5 @@
+Hola,
+
+Tu reserva en <%= @booking.box.title %> fue confirmada.
+Fecha: <%= l(@booking.start_at, format: :long) %>
+Total: <%= @booking.formatted_total %>

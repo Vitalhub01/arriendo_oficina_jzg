@@ -1,0 +1,29 @@
+<h1 class="text-2xl font-bold">Horarios — <%= @box.title %></h1>
+<%= link_to "← Volver al box", owner_box_path(@box), class: "text-sm text-rose-600 hover:underline" %>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="card p-4">
+    <h2 class="font-semibold">Agregar horario semanal</h2>
+    <%= form_with model: [@box, @rule], url: owner_box_availability_rules_path(@box), class: "mt-4 space-y-3" do |f| %>
+      <%= f.label :day_of_week, "Día", class: "block text-sm font-medium" %>
+      <%= f.select :day_of_week, AvailabilityRule::DAY_NAMES.each_with_index.map { |n, i| [n, i] }, {}, class: "input-field" %>
+      <%= f.label :start_time, "Desde", class: "block text-sm font-medium" %>
+      <%= f.time_field :start_time, class: "input-field" %>
+      <%= f.label :end_time, "Hasta", class: "block text-sm font-medium" %>
+      <%= f.time_field :end_time, class: "input-field" %>
+      <%= f.submit "Agregar", class: "btn-primary" %>
+    <% end %>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="font-semibold">Horarios configurados</h2>
+    <ul class="mt-4 space-y-2">
+      <% @rules.each do |rule| %>
+        <li class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+          <span><%= rule.day_name %>: <%= rule.start_time.strftime("%H:%M") %> - <%= rule.end_time.strftime("%H:%M") %></span>
+          <%= button_to "Eliminar", owner_box_availability_rule_path(@box, rule), method: :delete, class: "text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar?" } } %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

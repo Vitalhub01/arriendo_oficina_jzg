@@ -1,0 +1,17 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold">Jornadas</h1>
+  <%= link_to "Nueva jornada", new_admin_jornada_definition_path, class: "btn-primary" %>
+</div>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Nombre</th><th>Horario</th><th>Precio</th><th></th></tr></thead>
+  <tbody>
+    <% @jornada_definitions.each do |j| %>
+      <tr class="border-b">
+        <td class="py-2"><%= j.name %></td>
+        <td><%= j.start_time.strftime('%H:%M') %> - <%= j.end_time.strftime('%H:%M') %></td>
+        <td><%= j.formatted_price %></td>
+        <td><%= link_to "Editar", edit_admin_jornada_definition_path(j), class: "text-rose-600" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

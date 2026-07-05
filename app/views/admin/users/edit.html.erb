@@ -1,0 +1,7 @@
+<h1 class="text-2xl font-bold">Editar usuario</h1>
+<%= form_with model: [:admin, @user], class: "mt-6 max-w-md space-y-4" do |f| %>
+  <%= f.label :name %><%= f.text_field :name, class: "input-field" %>
+  <%= f.label :email %><%= f.email_field :email, class: "input-field" %>
+  <%= f.label :role %><%= f.select :role, User.roles.keys, {}, class: "input-field" %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

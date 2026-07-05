@@ -1,0 +1,16 @@
+<h1 class="text-2xl font-bold">Testimonios</h1>
+<table class="mt-6 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Profesional</th><th>Visible</th><th>Texto</th><th></th></tr></thead>
+  <tbody>
+    <% @testimonials.each do |t| %>
+      <tr class="border-b">
+        <td class="py-2"><%= t.profesional.name %></td>
+        <td><%= t.visible? ? 'Sí' : 'No' %></td>
+        <td class="max-w-xs truncate"><%= t.body %></td>
+        <td>
+          <%= button_to t.visible? ? "Ocultar" : "Mostrar", admin_testimonial_path(t), method: :patch, params: { testimonial: { visible: !t.visible? } }, class: "text-rose-600 text-xs" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

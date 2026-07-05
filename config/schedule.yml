@@ -1,0 +1,23 @@
+expire_pending_bookings:
+  cron: "*/5 * * * *"
+  class: "Bookings::ExpirePendingJob"
+  queue: default
+
+complete_past_bookings:
+  cron: "0 2 * * *"
+  class: "Bookings::CompletePastJob"
+  queue: default
+
+maintain_booking_series:
+  cron: "0 3 * * 1"
+  class: "MaintainBookingSeriesJob"
+  queue: default
+
+expire_memberships:
+  cron: "0 4 * * *"
+  class: "Memberships::ExpireJob"
+  queue: default
+
+  cron: "*/15 * * * *"
+  class: "Bookings::PaymentExpiryReminderJob"
+  queue: mailers

@@ -1,0 +1,42 @@
+published_box:
+  title: Box Clínico Providencia
+  description: Espacio profesional para atención por horas.
+  address: Av. Providencia 1234
+  commune: Providencia
+  city: Santiago
+  latitude: -33.4264
+  longitude: -70.6156
+  box_type: 0
+  price_per_hour_cents: 15000
+  minimum_hours: 2
+  status: 1
+  amenities: <%= { "wifi" => true, "bathroom" => true }.to_json %>
+  equipment: <%= [].to_json %>
+
+draft_box:
+  title: Box Draft
+  description: Borrador sin publicar.
+  address: Av. Test 999
+  commune: Providencia
+  city: Santiago
+  box_type: 1
+  price_per_hour_cents: 10000
+  minimum_hours: 1
+  status: 0
+  amenities: <%= {}.to_json %>
+  equipment: <%= [].to_json %>
+
+suspended_box:
+  title: Box Suspendido
+  description: Box suspendido por admin.
+  address: Apoquindo 3000
+  commune: Las Condes
+  city: Santiago
+  latitude: -33.4100
+  longitude: -70.5800
+  box_type: 2
+  price_per_hour_cents: 8000
+  minimum_hours: 1
+  status: 2
+  amenities: <%= { "wifi" => true }.to_json %>
+  equipment: <%= [].to_json %>

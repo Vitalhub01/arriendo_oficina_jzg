@@ -1,0 +1,12 @@
+<h1 class="text-2xl font-bold">Editar FAQ</h1>
+<%= form_with model: @faq, url: admin_faq_path(@faq), method: :patch, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <%= f.label :question, class: "block text-sm font-medium" %>
+  <%= f.text_field :question, class: "input-field" %>
+  <%= f.label :answer, class: "block text-sm font-medium" %>
+  <%= f.text_area :answer, rows: 4, class: "input-field" %>
+  <%= f.label :position, class: "block text-sm font-medium" %>
+  <%= f.number_field :position, class: "input-field" %>
+  <%= f.label :visible, class: "inline-flex items-center gap-2" %>
+  <%= f.check_box :visible %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

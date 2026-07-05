@@ -1,0 +1,15 @@
+<div class="mx-auto max-w-lg px-4 py-16">
+  <h1 class="text-2xl font-bold">Completa tu perfil</h1>
+  <p class="mt-2 text-gray-600">Esta información nos ayuda a conocerte mejor.</p>
+  <%= form_with model: @professional_profile, url: onboarding_path, method: :patch, class: "mt-6 space-y-4" do |f| %>
+    <%= f.label :age, "Edad", class: "block text-sm font-medium" %>
+    <%= f.number_field :age, class: "input-field", min: 18, max: 100, required: true %>
+    <%= f.label :gender, "Sexo", class: "block text-sm font-medium" %>
+    <%= f.select :gender, [["Femenino", "F"], ["Masculino", "M"], ["Otro", "O"], ["Prefiero no decir", "X"]], {}, class: "input-field", required: true %>
+    <div class="flex items-center gap-2">
+      <%= f.check_box :interested_in_networking, class: "rounded" %>
+      <%= f.label :interested_in_networking, "Me interesa conocer otros profesionales" %>
+    </div>
+    <%= f.submit "Guardar y continuar", class: "btn-primary w-full" %>
+  <% end %>
+</div>

@@ -1,0 +1,20 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+  username: <%= ENV.fetch("DATABASE_USER", "jzg") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "jzg") %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "jzg_development") %>
+
+test:
+  <<: *default
+  database: jzg_test
+
+production:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
+  sslmode: require

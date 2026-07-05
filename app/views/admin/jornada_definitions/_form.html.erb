@@ -1,0 +1,18 @@
+<h1 class="text-2xl font-bold"><%= @jornada_definition.persisted? ? 'Editar jornada' : 'Nueva jornada' %></h1>
+<%= form_with model: @jornada_definition, url: @jornada_definition.persisted? ? admin_jornada_definition_path(@jornada_definition) : admin_jornada_definitions_path, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <%= f.label :name, class: "block text-sm font-medium" %>
+  <%= f.text_field :name, class: "input-field" %>
+  <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
+  <%= f.collection_select :office_id, Office.all, :id, :name, { include_blank: "Global" }, class: "input-field" %>
+  <%= f.label :space_id, "Espacio (opcional)", class: "block text-sm font-medium" %>
+  <%= f.collection_select :space_id, Space.all, :id, :title, { include_blank: "Todos" }, class: "input-field" %>
+  <%= f.label :start_time, class: "block text-sm font-medium" %>
+  <%= f.time_field :start_time, class: "input-field" %>
+  <%= f.label :end_time, class: "block text-sm font-medium" %>
+  <%= f.time_field :end_time, class: "input-field" %>
+  <%= f.label :price_cents, "Precio (centavos)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_cents, class: "input-field" %>
+  <%= f.label :active, class: "inline-flex items-center gap-2" %>
+  <%= f.check_box :active %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

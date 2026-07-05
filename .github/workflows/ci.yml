@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rentabox
+          POSTGRES_PASSWORD: rentabox
+          POSTGRES_DB: rentabox_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    env:
+      RAILS_ENV: test
+      CI: true
+      COVERAGE: true
+      DATABASE_HOST: localhost
+      DATABASE_USER: rentabox
+      DATABASE_PASSWORD: rentabox
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.8
+          bundler-cache: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev imagemagick
+
+      - name: Prepare database
+        run: bin/rails db:test:prepare
+
+      - name: Security audit
+        run: |
+          bundle exec brakeman --no-pager -q
+          bundle exec bundler-audit check --update
+
+      - name: RuboCop
+        run: bundle exec rubocop
+
+      - name: Run tests
+        run: bin/rails test

@@ -1,0 +1,3 @@
+<p>Tienes una nueva reserva confirmada en <strong><%= @booking.box.title %></strong>.</p>
+<p>Arrendatario: <%= @booking.renter.name %></p>
+<p>Fecha: <%= l(@booking.start_at, format: :long) %></p>

@@ -1,0 +1,16 @@
+<h1 class="text-2xl font-bold"><%= @pricing_rule.persisted? ? 'Editar regla' : 'Nueva regla' %></h1>
+<%= form_with model: @pricing_rule, url: @pricing_rule.persisted? ? admin_pricing_rule_path(@pricing_rule) : admin_pricing_rules_path, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <%= f.label :name, class: "block text-sm font-medium" %>
+  <%= f.text_field :name, class: "input-field" %>
+  <%= f.label :rule_type, class: "block text-sm font-medium" %>
+  <%= f.select :rule_type, PricingRule.rule_types.keys, {}, class: "input-field" %>
+  <%= f.label :priority, class: "block text-sm font-medium" %>
+  <%= f.number_field :priority, class: "input-field" %>
+  <%= label_tag "pricing_rule[config][min_hours]", "Horas mínimas (volumen)", class: "block text-sm font-medium" %>
+  <%= number_field_tag "pricing_rule[config][min_hours]", @pricing_rule.config['min_hours'], class: "input-field" %>
+  <%= label_tag "pricing_rule[config][discount_percent]", "Descuento %", class: "block text-sm font-medium" %>
+  <%= number_field_tag "pricing_rule[config][discount_percent]", @pricing_rule.config['discount_percent'], class: "input-field" %>
+  <%= f.label :active, class: "inline-flex items-center gap-2" %>
+  <%= f.check_box :active %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

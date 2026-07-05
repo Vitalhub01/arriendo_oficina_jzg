@@ -1,0 +1,18 @@
+<h1 class="text-2xl font-bold">Todos los boxes</h1>
+<table class="mt-6 w-full text-left text-sm">
+  <thead><tr class="border-b"><th class="py-2">Título</th><th>Dueño</th><th>Estado</th><th>Acción</th></tr></thead>
+  <tbody>
+    <% @boxes.each do |box| %>
+      <tr class="border-b">
+        <td class="py-3"><%= box.title %></td>
+        <td><%= box.owner.name %></td>
+        <td><%= box.status %></td>
+        <td>
+          <%= form_with model: [:admin, box], url: admin_box_path(box), method: :patch, class: "inline" do |f| %>
+            <%= f.select :status, Box.statuses.keys, {}, class: "input-field !py-1 text-xs", onchange: "this.form.requestSubmit()" %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

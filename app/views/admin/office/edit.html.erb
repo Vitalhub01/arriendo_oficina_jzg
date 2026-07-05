@@ -1,0 +1,20 @@
+<h1 class="text-2xl font-bold">Oficina</h1>
+<%= form_with model: @office, url: admin_office_path, method: :patch, class: "mt-6 max-w-2xl space-y-4" do |f| %>
+  <%= f.label :name, class: "block text-sm font-medium" %>
+  <%= f.text_field :name, class: "input-field" %>
+  <%= f.label :description, class: "block text-sm font-medium" %>
+  <%= f.text_area :description, rows: 4, class: "input-field" %>
+  <%= f.label :address, class: "block text-sm font-medium" %>
+  <%= f.text_field :address, class: "input-field" %>
+  <%= f.label :commune, class: "block text-sm font-medium" %>
+  <%= f.text_field :commune, class: "input-field" %>
+  <%= f.label :city, class: "block text-sm font-medium" %>
+  <%= f.text_field :city, class: "input-field" %>
+  <%= f.label :latitude, class: "block text-sm font-medium" %>
+  <%= f.number_field :latitude, step: :any, class: "input-field" %>
+  <%= f.label :longitude, class: "block text-sm font-medium" %>
+  <%= f.number_field :longitude, step: :any, class: "input-field" %>
+  <%= f.label :photos, "Fotos", class: "block text-sm font-medium" %>
+  <%= f.file_field :photos, multiple: true, class: "input-field" %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

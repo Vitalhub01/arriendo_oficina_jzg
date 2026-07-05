@@ -1,0 +1,25 @@
+<h1 class="text-2xl font-bold">Dashboard</h1>
+<div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="card p-4"><p class="text-sm text-gray-500">Espacios</p><p class="text-2xl font-bold"><%= @spaces_count %></p></div>
+  <div class="card p-4"><p class="text-sm text-gray-500">Reservas</p><p class="text-2xl font-bold"><%= @bookings_count %></p></div>
+  <div class="card p-4"><p class="text-sm text-gray-500">Profesionales</p><p class="text-2xl font-bold"><%= @professionals_count %></p></div>
+  <div class="card p-4"><p class="text-sm text-gray-500">Reservas hoy</p><p class="text-2xl font-bold"><%= @bookings_today %></p></div>
+</div>
+<div class="card mt-8 p-4">
+  <p class="text-sm text-gray-500">Ingresos del mes</p>
+  <p class="text-2xl font-bold"><%= format_clp(@month_revenue) %></p>
+</div>
+<h2 class="mt-8 text-lg font-semibold">Reservas recientes</h2>
+<table class="mt-4 w-full text-sm">
+  <thead><tr class="border-b"><th class="py-2 text-left">Espacio</th><th>Profesional</th><th>Fecha</th><th>Estado</th></tr></thead>
+  <tbody>
+    <% @recent_bookings.each do |b| %>
+      <tr class="border-b">
+        <td class="py-2"><%= b.space.title %></td>
+        <td><%= b.profesional.name %></td>
+        <td><%= l(b.start_at, format: :short) %></td>
+        <td><%= booking_status_label(b) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
