@@ -14,7 +14,7 @@ class InvoiceMailer < ApplicationMailer
 
     mail(
       to: invoice.user.email,
-      subject: "Boleta #{invoice.folio} — Oficina JZG"
+      subject: "Boleta #{invoice.folio} — VitalHub"
     )
   end
 end

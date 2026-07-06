@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <title>Admin — Oficina JZG</title>
+    <title>Admin — VitalHub</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <link rel="icon" type="image/png" href="<%= asset_path('logo_vital_hub.png') %>">
   </head>
   <body class="min-h-screen bg-gray-100">
     <div class="flex min-h-screen">
       <aside class="hidden w-64 bg-gray-900 p-6 text-white md:block">
-        <h1 class="text-xl font-bold">Oficina JZG</h1>
+        <%= image_tag "logo_vital_hub.png", alt: "VitalHub", class: "h-9 w-auto" %>
         <nav class="mt-8 space-y-2 text-sm">
           <%= link_to "Dashboard", admin_root_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
           <%= link_to "Oficina", edit_admin_office_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
           <%= link_to "Espacios", admin_spaces_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Jornadas", admin_jornada_definitions_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
           <%= link_to "Reglas de precio", admin_pricing_rules_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
           <%= link_to "Profesionales", admin_professionals_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
           <%= link_to "Reservas", admin_bookings_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>

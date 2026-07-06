@@ -33,15 +33,25 @@ class PricingRule < ApplicationRecord
   end
 
   def apply_volume_discount(context)
-    min_hours = config['min_hours'].to_i
-    return empty_result if context[:hours].to_i < min_hours
+    min_slots = config['min_slots'].to_i
+    min_slots = config['min_hours'].to_i if min_slots.zero?
+
+    slot_count = context[:slot_count].to_i
+    hours = context[:hours].to_f
+    meets_threshold = if slot_count.positive?
+                        slot_count >= min_slots
+                      else
+                        hours >= min_slots
+                      end
+    return empty_result unless meets_threshold
 
     percent = config['discount_percent'].to_i
     discount = (context[:subtotal_cents].to_i * percent / 100.0).round
 
+    threshold_label = slot_count.positive? ? "#{min_slots}+ bloques" : "#{min_slots}+ horas"
     {
       discount_cents: discount,
-      label: "#{name} (#{percent}% por #{min_hours}+ horas)"
+      label: "#{name} (#{percent}% por #{threshold_label})"
     }
   end
 

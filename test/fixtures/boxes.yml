@@ -9,6 +9,8 @@ published_box:
   box_type: 0
   price_per_hour_cents: 15000
   minimum_hours: 2
+  slot_duration_minutes: 60
+  minimum_slots: 2
   status: 1
   amenities: <%= { "wifi" => true, "bathroom" => true }.to_json %>
   equipment: <%= [].to_json %>

@@ -2,9 +2,9 @@
   <div class="flex items-center justify-between">
     <% prev_week = week_start - 1.week %>
     <% next_week = week_start + 1.week %>
-    <%= link_to "← Semana anterior", availability_box_path(box, week_start: prev_week), class: "text-sm font-medium text-rose-600 hover:underline", data: { turbo_frame: "availability_schedule" } %>
+    <%= link_to "← Semana anterior", availability_box_path(box, week_start: prev_week), class: "text-sm font-medium text-brand hover:underline", data: { turbo_frame: "availability_schedule" } %>
     <span class="text-sm text-gray-600"><%= l(week_start, format: :short) %> — <%= l(week_start + 6.days, format: :short) %></span>
-    <%= link_to "Semana siguiente →", availability_box_path(box, week_start: next_week), class: "text-sm font-medium text-rose-600 hover:underline", data: { turbo_frame: "availability_schedule" } %>
+    <%= link_to "Semana siguiente →", availability_box_path(box, week_start: next_week), class: "text-sm font-medium text-brand hover:underline", data: { turbo_frame: "availability_schedule" } %>
   </div>
 
   <div class="mt-4 overflow-x-auto">

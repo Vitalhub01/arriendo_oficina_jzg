@@ -1,0 +1,11 @@
+renter_profile:
+  user: renter
+  rut: 12345678-5
+  validation_status: 2
+  onboarding_completed: true
+
+profesional_profile:
+  user: profesional
+  rut: 87654321-0
+  validation_status: 2
+  onboarding_completed: true

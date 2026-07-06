@@ -1,0 +1,40 @@
+<h1 class="text-2xl font-bold">Tarifas — <%= @space.title %></h1>
+<%= link_to "← Disponibilidad", admin_space_availability_path(@space), class: "text-sm text-brand hover:underline" %>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="card p-4">
+    <h2 class="font-semibold">Agregar tarifa</h2>
+    <%= form_with model: [@space, @slot_rate], url: admin_space_slot_rates_path(@space), class: "mt-4 space-y-3" do |f| %>
+      <%= f.label :name, class: "block text-sm font-medium" %>
+      <%= f.text_field :name, class: "input-field", placeholder: "Mañana" %>
+      <%= f.label :start_time, "Desde", class: "block text-sm font-medium" %>
+      <%= f.time_field :start_time, class: "input-field" %>
+      <%= f.label :end_time, "Hasta", class: "block text-sm font-medium" %>
+      <%= f.time_field :end_time, class: "input-field" %>
+      <%= f.label :price_per_slot_cents, "Precio por bloque (centavos)", class: "block text-sm font-medium" %>
+      <%= f.number_field :price_per_slot_cents, class: "input-field" %>
+      <%= f.label :position, class: "block text-sm font-medium" %>
+      <%= f.number_field :position, class: "input-field", value: @slot_rate.position || 0 %>
+      <%= f.submit "Agregar", class: "btn-primary" %>
+    <% end %>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="font-semibold">Tarifas configuradas</h2>
+    <% if @slot_rates.any? %>
+      <ul class="mt-4 space-y-2">
+        <% @slot_rates.each do |rate| %>
+          <li class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+            <span><%= rate.name %>: <%= rate.start_time.strftime('%H:%M') %>–<%= rate.end_time.strftime('%H:%M') %> — <%= rate.formatted_price %>/bloque</span>
+            <div class="flex gap-2">
+              <%= link_to "Editar", edit_admin_space_slot_rate_path(@space, rate), class: "text-brand hover:underline" %>
+              <%= button_to "Eliminar", admin_space_slot_rate_path(@space, rate), method: :delete, class: "text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar?" } } %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="mt-4 text-sm text-gray-500">Sin tarifas personalizadas. Se usa el precio base del espacio.</p>
+    <% end %>
+  </div>
+</div>

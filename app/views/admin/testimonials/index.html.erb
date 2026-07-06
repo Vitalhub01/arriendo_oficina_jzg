@@ -8,7 +8,7 @@
         <td><%= t.visible? ? 'Sí' : 'No' %></td>
         <td class="max-w-xs truncate"><%= t.body %></td>
         <td>
-          <%= button_to t.visible? ? "Ocultar" : "Mostrar", admin_testimonial_path(t), method: :patch, params: { testimonial: { visible: !t.visible? } }, class: "text-rose-600 text-xs" %>
+          <%= button_to t.visible? ? "Ocultar" : "Mostrar", admin_testimonial_path(t), method: :patch, params: { testimonial: { visible: !t.visible? } }, class: "text-brand text-xs" %>
         </td>
       </tr>
     <% end %>

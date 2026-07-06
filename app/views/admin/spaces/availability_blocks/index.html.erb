@@ -1,0 +1,49 @@
+<h1 class="text-2xl font-bold">Días bloqueados — <%= @space.title %></h1>
+<%= link_to "← Disponibilidad", admin_space_availability_path(@space), class: "text-sm text-brand hover:underline" %>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="card p-4">
+    <h2 class="font-semibold">Bloquear día completo</h2>
+    <p class="mt-1 text-sm text-gray-500">Estilo Airbnb: el espacio no aceptará reservas ese día.</p>
+    <%= form_with url: admin_space_availability_blocks_path(@space), class: "mt-4 space-y-3" do %>
+      <%= label_tag :blocked_date, "Fecha", class: "block text-sm font-medium" %>
+      <%= date_field_tag :blocked_date, Date.current, class: "input-field", required: true %>
+      <%= hidden_field_tag :block_full_day, "1" %>
+      <%= label_tag "availability_block[reason]", "Motivo (opcional)", class: "block text-sm font-medium" %>
+      <%= text_field_tag "availability_block[reason]", nil, class: "input-field", placeholder: "Feriado, mantenimiento..." %>
+      <%= submit_tag "Bloquear día", class: "btn-primary" %>
+    <% end %>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="font-semibold">Bloqueo por rango horario</h2>
+    <%= form_with model: [@space, @block], url: admin_space_availability_blocks_path(@space), class: "mt-4 space-y-3" do |f| %>
+      <%= f.label :start_at, "Desde", class: "block text-sm font-medium" %>
+      <%= f.datetime_local_field :start_at, class: "input-field" %>
+      <%= f.label :end_at, "Hasta", class: "block text-sm font-medium" %>
+      <%= f.datetime_local_field :end_at, class: "input-field" %>
+      <%= f.label :reason, class: "block text-sm font-medium" %>
+      <%= f.text_field :reason, class: "input-field" %>
+      <%= f.submit "Agregar bloqueo", class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card mt-6 p-4">
+  <h2 class="font-semibold">Bloqueos activos</h2>
+  <% if @blocks.any? %>
+    <ul class="mt-4 space-y-2">
+      <% @blocks.each do |block| %>
+        <li class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+          <span>
+            <%= l(block.start_at, format: :short) %> — <%= l(block.end_at, format: :short) %>
+            <% if block.reason.present? %><span class="text-gray-500">(<%= block.reason %>)</span><% end %>
+          </span>
+          <%= button_to "Eliminar", admin_space_availability_block_path(@space, block), method: :delete, class: "text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar bloqueo?" } } %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="mt-4 text-sm text-gray-500">No hay bloqueos programados.</p>
+  <% end %>
+</div>

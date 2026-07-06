@@ -17,7 +17,7 @@
             <% if day[:slots].any? %>
               <% day[:slots].each do |slot| %>
                 <div class="rounded px-1 py-0.5 text-center text-[10px] <%= slot.available ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400 line-through' %>">
-                  <%= format("%02d:00", slot.hour) %>
+                  <%= l(slot.starts_at, format: '%H:%M') %>
                 </div>
               <% end %>
             <% else %>

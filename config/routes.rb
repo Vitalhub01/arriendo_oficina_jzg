@@ -33,10 +33,17 @@ Rails.application.routes.draw do
   get 'privacidad', to: 'pages#privacy', as: :privacy
   get 'cancelacion', to: 'pages#cancellation', as: :cancellation_policy
 
+  get 'sitemap.xml', to: 'sitemaps#show', defaults: { format: :xml }
+
   namespace :admin do
     root to: 'dashboard#index'
     resource :office, only: %i[edit update]
-    resources :spaces
+    resources :spaces do
+      resource :availability, only: [:show], controller: 'spaces/availabilities'
+      resources :slot_rates, controller: 'spaces/slot_rates', except: [:show]
+      resources :availability_rules, controller: 'spaces/availability_rules', except: %i[show edit update]
+      resources :availability_blocks, controller: 'spaces/availability_blocks', except: %i[show edit update]
+    end
     resources :jornada_definitions
     resources :pricing_rules
     resources :professionals, only: %i[index show update]

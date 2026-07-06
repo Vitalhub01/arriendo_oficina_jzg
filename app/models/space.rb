@@ -11,6 +11,7 @@ class Space < ApplicationRecord
   has_many :booking_series, foreign_key: :box_id, dependent: :destroy, inverse_of: :space
   has_many :testimonials, foreign_key: :box_id, dependent: :destroy, inverse_of: :space
   has_many :jornada_definitions, dependent: :destroy, inverse_of: :space
+  has_many :slot_rates, dependent: :destroy, inverse_of: :space
   has_many_attached :photos
 
   enum :box_type, { clinical: 0, office: 1, workspace: 2 }
@@ -27,6 +28,9 @@ class Space < ApplicationRecord
   validates :title, :address, :commune, :city, presence: true
   validates :price_per_hour_cents, numericality: { greater_than: 0 }
   validates :minimum_hours, numericality: { greater_than: 0, only_integer: true }
+  validates :slot_duration_minutes, numericality: { greater_than: 0, only_integer: true }
+  validates :minimum_slots, numericality: { greater_than: 0, only_integer: true }
+  validate :slot_duration_multiple_of_thirty
   validate :photos_required_for_publish, if: :published?
   validate :coordinates_required_for_publish, if: :published?
 
@@ -58,6 +62,19 @@ class Space < ApplicationRecord
     hours * price_per_hour_cents
   end
 
+  def default_price_per_slot_cents
+    (price_per_hour_cents * (slot_duration_minutes / 60.0)).round
+  end
+
+  def price_per_slot_at(time)
+    rate = slot_rates.ordered.find { |r| r.covers_time?(time) }
+    rate&.price_per_slot_cents || default_price_per_slot_cents
+  end
+
+  def slot_duration
+    slot_duration_minutes.minutes
+  end
+
   def formatted_price_per_hour
     Money.new(price_per_hour_cents, 'CLP').format(no_cents_if_whole: true)
   end
@@ -79,6 +96,13 @@ class Space < ApplicationRecord
   def coordinates_required_for_publish
     errors.add(:latitude, 'es requerida para publicar') if latitude.blank?
     errors.add(:longitude, 'es requerida para publicar') if longitude.blank?
+  end
+
+  def slot_duration_multiple_of_thirty
+    return if slot_duration_minutes.blank?
+    return if (slot_duration_minutes % 30).zero?
+
+    errors.add(:slot_duration_minutes, 'debe ser múltiplo de 30')
   end
 end
 

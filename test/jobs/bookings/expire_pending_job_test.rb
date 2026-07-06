@@ -12,14 +12,16 @@ module Bookings
 
     test 'cancels expired pending bookings and frees slot' do
       booking = Booking.create!(
-        box: @box,
-        renter: @renter,
+        space: @box,
+        profesional: @renter,
         start_at: @slot_time,
         end_at: @slot_time + 2.hours,
         hours: 2,
-        total_amount_cents: @box.price_for_duration(2),
+        duration_minutes: 120,
+        total_amount_cents: @box.default_price_per_slot_cents * 2,
         status: :pending_payment,
-        payment_expires_at: 1.minute.ago
+        payment_expires_at: 1.minute.ago,
+        booking_type: :slot_based
       )
 
       Bookings::ExpirePendingJob.perform_now

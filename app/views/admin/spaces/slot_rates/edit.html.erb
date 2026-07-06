@@ -1,0 +1,14 @@
+<h1 class="text-2xl font-bold">Editar tarifa — <%= @space.title %></h1>
+<%= form_with model: [@space, @slot_rate], url: admin_space_slot_rate_path(@space, @slot_rate), method: :patch, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <%= f.label :name, class: "block text-sm font-medium" %>
+  <%= f.text_field :name, class: "input-field" %>
+  <%= f.label :start_time, class: "block text-sm font-medium" %>
+  <%= f.time_field :start_time, class: "input-field" %>
+  <%= f.label :end_time, class: "block text-sm font-medium" %>
+  <%= f.time_field :end_time, class: "input-field" %>
+  <%= f.label :price_per_slot_cents, "Precio por bloque (centavos)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_per_slot_cents, class: "input-field" %>
+  <%= f.label :position, class: "block text-sm font-medium" %>
+  <%= f.number_field :position, class: "input-field" %>
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

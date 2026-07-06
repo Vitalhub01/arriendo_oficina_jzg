@@ -16,8 +16,10 @@ class GenerateInvoiceJobTest < ActiveSupport::TestCase
       start_at: @slot_time,
       end_at: @slot_time + 2.hours,
       hours: 2,
-      total_amount_cents: @box.price_for_duration(2),
-      status: :confirmed
+      duration_minutes: 120,
+      total_amount_cents: @box.default_price_per_slot_cents * 2,
+      status: :confirmed,
+      booking_type: :slot_based
     )
     @payment = Payment.create!(
       booking: @booking,

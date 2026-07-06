@@ -13,6 +13,10 @@ class AvailabilityChecker
       mark_unavailable('Horario inválido')
       return false
     end
+    unless aligned_to_slot_grid?(start_at, end_at)
+      mark_unavailable('Horario no alineado a bloques disponibles')
+      return false
+    end
     unless within_rules?(start_at, end_at)
       mark_unavailable('Fuera del horario ofrecido')
       return false
@@ -29,12 +33,29 @@ class AvailabilityChecker
     true
   end
 
+  def consecutive_slots_available?(start_at, slot_count)
+    slot_duration = box.slot_duration_minutes.minutes
+    slot_count.times.all? do |index|
+      slot_start = start_at + (index * slot_duration)
+      slot_end = slot_start + slot_duration
+      available?(slot_start, slot_end)
+    end
+  end
+
   private
 
   attr_reader :box
 
   def mark_unavailable(message)
     @error_message = message
+  end
+
+  def aligned_to_slot_grid?(start_at, end_at)
+    duration_minutes = ((end_at - start_at) / 60).to_i
+    return false unless (duration_minutes % box.slot_duration_minutes).zero?
+
+    minutes_from_midnight = (start_at - start_at.beginning_of_day) / 60
+    (minutes_from_midnight % box.slot_duration_minutes).zero?
   end
 
   def within_rules?(start_at, end_at)

@@ -38,7 +38,7 @@
             <h1 class="text-2xl font-bold md:text-3xl"><%= @box.title %></h1>
             <p class="mt-1 text-gray-600"><%= @box.commune %>, <%= @box.city %></p>
           </div>
-          <span class="rounded-full bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700"><%= @box.box_type_label %></span>
+          <span class="rounded-full bg-brand-pale px-3 py-1 text-sm font-medium text-brand"><%= @box.box_type_label %></span>
         </div>
         <p class="mt-4 text-gray-700 leading-relaxed"><%= simple_format(@box.description) %></p>
         <% if @box.amenities.present? %>
@@ -55,8 +55,8 @@
         <h2 class="text-xl font-semibold">Ubicación</h2>
         <p class="mt-2 text-gray-700"><%= @box.full_address %></p>
         <div class="mt-3 flex flex-wrap gap-3">
-          <%= link_to "Cómo llegar (Google Maps)", maps_directions_url(@box), target: "_blank", rel: "noopener", class: "text-sm font-medium text-rose-600 hover:underline" %>
-          <%= link_to "Abrir en Waze", waze_url(@box), target: "_blank", rel: "noopener", class: "text-sm font-medium text-rose-600 hover:underline" %>
+          <%= link_to "Cómo llegar (Google Maps)", maps_directions_url(@box), target: "_blank", rel: "noopener", class: "text-sm font-medium text-brand hover:underline" %>
+          <%= link_to "Abrir en Waze", waze_url(@box), target: "_blank", rel: "noopener", class: "text-sm font-medium text-brand hover:underline" %>
         </div>
         <% if @box.latitude.present? && @box.longitude.present? %>
           <div class="mt-4 h-[250px] overflow-hidden rounded-2xl border border-gray-200 md:h-[400px]"

@@ -1,16 +1,31 @@
-<footer class="mt-16 border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-7xl px-4 py-10">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+<footer class="border-t border-gray-200 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-16">
+    <div class="grid grid-cols-1 gap-12 md:grid-cols-3">
       <div>
-        <p class="text-lg font-bold text-rose-600">Arriendo de box</p>
-        <p class="mt-1 text-sm text-gray-500">Arrienda boxes clínicos y espacios de trabajo por hora.</p>
-        <div class="mt-3 flex flex-wrap gap-4 text-sm">
-          <%= link_to "Términos", terms_path, class: "text-gray-600 hover:text-rose-600" %>
-          <%= link_to "Privacidad", privacy_path, class: "text-gray-600 hover:text-rose-600" %>
-          <%= link_to "Cancelaciones", cancellation_policy_path, class: "text-gray-600 hover:text-rose-600" %>
+        <div class="logo-badge logo-badge--footer">
+          <%= image_tag "logo_vital_hub.png", alt: "VitalHub — Espacios de salud" %>
         </div>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-gray-600">
+          Arriendo de espacio profesional para salud. Bloques flexibles o día completo en Chile.
+        </p>
       </div>
-      <p class="text-sm text-gray-400">&copy; <%= Date.current.year %> Arriendo de box. Chile.</p>
+
+      <div>
+        <p class="text-xs font-medium uppercase tracking-widest text-gray-900">Navegación</p>
+        <ul class="mt-4 space-y-3 text-sm text-gray-600">
+          <li><%= link_to "Espacios", spaces_path, class: "hover:text-brand" %></li>
+          <li><%= link_to "Membresía", membership_path, class: "hover:text-brand" %></li>
+          <li><%= link_to "Términos", terms_path, class: "hover:text-brand" %></li>
+          <li><%= link_to "Privacidad", privacy_path, class: "hover:text-brand" %></li>
+          <li><%= link_to "Cancelaciones", cancellation_policy_path, class: "hover:text-brand" %></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="text-xs font-medium uppercase tracking-widest text-gray-900">Contacto</p>
+        <p class="mt-4 text-sm text-gray-600">Espacios de salud · VitalHub</p>
+        <p class="mt-2 text-sm text-gray-400">&copy; <%= Date.current.year %> VitalHub. Chile.</p>
+      </div>
     </div>
   </div>
 </footer>

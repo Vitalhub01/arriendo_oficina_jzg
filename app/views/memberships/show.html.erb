@@ -1,3 +1,6 @@
+<% content_for :title, "Membresía | VitalHub" %>
+<% content_for :meta_description, "Membresía profesional VitalHub: descuentos en arriendo de espacio, capacitaciones y beneficios exclusivos para profesionales de la salud." %>
+
 <div class="mx-auto max-w-4xl px-4 py-12">
   <h1 class="text-3xl font-bold">Membresía profesional</h1>
   <p class="mt-4 text-gray-600">
@@ -21,7 +24,7 @@
           <div class="mt-4 text-sm text-gray-700"><%= simple_format(plan.benefits) %></div>
         <% end %>
         <% if plan.discount_percent.positive? %>
-          <p class="mt-4 text-sm font-medium text-rose-600"><%= plan.discount_percent %>% de descuento en arriendos</p>
+          <p class="mt-4 text-sm font-medium text-brand"><%= plan.discount_percent %>% de descuento en arriendos</p>
         <% end %>
         <%= button_to "Suscribirme", membership_path(membership_plan_id: plan.id), method: :post, class: "btn-primary mt-6 w-full" %>
       </div>

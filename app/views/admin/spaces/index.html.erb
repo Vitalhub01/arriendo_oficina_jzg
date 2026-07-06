@@ -10,7 +10,7 @@
         <td class="py-2"><%= space.title %></td>
         <td><%= format_clp(space.price_per_hour_cents) %></td>
         <td><%= space.status %></td>
-        <td><%= link_to "Editar", edit_admin_space_path(space), class: "text-rose-600" %></td>
+        <td><%= link_to "Editar", edit_admin_space_path(space), class: "text-brand" %> · <%= link_to "Disponibilidad", admin_space_availability_path(space), class: "text-brand" %></td>
       </tr>
     <% end %>
   </tbody>

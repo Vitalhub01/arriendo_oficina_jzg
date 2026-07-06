@@ -10,11 +10,13 @@ class SpacesController < ApplicationController
     @spaces = @spaces.by_max_price(params[:max_price]) if params[:max_price].present?
     @spaces = @spaces.order(created_at: :desc)
 
-    if params[:date].present? && params[:hours].present?
+    if params[:date].present? && (params[:slot_count].present? || params[:hours].present?)
+      slot_count = (params[:slot_count] || params[:hours]).to_i
       start_at, end_at = availability_window(
         date: params[:date],
-        hours: params[:hours],
-        start_time: params[:start_time] || '09:00'
+        slot_count: slot_count,
+        start_time: params[:start_time] || '09:00',
+        slot_duration_minutes: params[:slot_duration_minutes]
       )
       spaces_list = @spaces.select { |space| AvailabilityChecker.new(space).available?(start_at, end_at) }
       @pagy, @spaces = pagy_array(spaces_list)
@@ -30,7 +32,7 @@ class SpacesController < ApplicationController
     @week_start = parse_week_start
     @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
     @prefill_date = params[:date]
-    @prefill_hours = params[:hours]
+    @prefill_slot_count = params[:slot_count] || params[:hours]
     @prefill_start_time = params[:start_time]
   end
 
@@ -54,11 +56,12 @@ class SpacesController < ApplicationController
     Date.current.beginning_of_week(:monday)
   end
 
-  def availability_window(date:, hours:, start_time:)
+  def availability_window(date:, slot_count:, start_time:, slot_duration_minutes: nil)
     parsed_date = Date.parse(date.to_s)
     hour, min = start_time.to_s.split(':').map(&:to_i)
     start_at = Time.zone.local(parsed_date.year, parsed_date.month, parsed_date.day, hour, min)
-    end_at = start_at + hours.to_i.hours
+    duration = (slot_duration_minutes.presence || 60).to_i * slot_count.to_i
+    end_at = start_at + duration.minutes
     [start_at, end_at]
   end
 end

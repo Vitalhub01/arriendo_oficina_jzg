@@ -1,25 +1,110 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #0C613A;
+  --color-brand-dark: #094d2e;
+  --color-brand-light: #A7E1B8;
+  --color-brand-pale: #EAF7EE;
+  --color-brand-black: #000000;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
 @layer base {
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-white font-sans text-gray-900 antialiased;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 min-h-[44px];
+    @apply inline-flex items-center justify-center rounded-none bg-brand px-8 py-3.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 min-h-[48px];
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 min-h-[44px];
+    @apply inline-flex items-center justify-center rounded-none border border-gray-900 bg-transparent px-8 py-3.5 text-sm font-medium uppercase tracking-wide text-gray-900 transition hover:bg-gray-900 hover:text-white min-h-[48px];
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-200 min-h-[44px];
+    @apply w-full rounded-none border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand min-h-[44px];
   }
 
   .card {
-    @apply overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md;
+    @apply overflow-hidden rounded-none border border-gray-200 bg-white transition hover:shadow-lg;
+  }
+
+  .shop-announcement {
+    @apply bg-brand text-center text-xs font-medium uppercase tracking-widest text-white;
+  }
+
+  .shop-section {
+    @apply mx-auto max-w-7xl px-4 py-16 md:py-24;
+  }
+
+  .shop-eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.2em] text-brand;
+  }
+
+  .shop-heading {
+    @apply text-3xl font-medium tracking-tight text-gray-900 md:text-4xl lg:text-5xl;
+  }
+
+  .shop-subheading {
+    @apply text-lg leading-relaxed text-gray-600 md:text-xl;
+  }
+
+  .shop-product-card {
+    @apply flex flex-col bg-white transition;
+  }
+
+  .shop-product-card__media {
+    @apply relative aspect-[4/5] overflow-hidden bg-gray-100;
+  }
+
+  .shop-product-card__media img {
+    @apply h-full w-full object-cover transition duration-500 group-hover:scale-105;
+  }
+
+  .shop-product-card__body {
+    @apply flex flex-1 flex-col pt-4;
+  }
+
+  .shop-product-card__title {
+    @apply text-base font-medium text-gray-900 group-hover:text-brand;
+  }
+
+  .shop-product-card__price {
+    @apply mt-1 text-sm text-gray-600;
+  }
+
+  .shop-icon-block {
+    @apply flex flex-col items-center text-center;
+  }
+
+  .shop-icon-block__icon {
+    @apply flex h-14 w-14 items-center justify-center rounded-full bg-brand-pale text-brand;
+  }
+
+  .logo-badge {
+    @apply inline-flex items-center justify-center;
+  }
+
+  .logo-badge img {
+    @apply h-auto object-contain;
+  }
+
+  .logo-badge--navbar img {
+    @apply w-28 md:w-32 lg:w-36;
+  }
+
+  .logo-badge--navbar-home img {
+    @apply w-32 md:w-36 lg:w-40;
+  }
+
+  .logo-badge--hero img {
+    @apply h-auto w-56 object-contain md:w-72 lg:w-80;
+  }
+
+  .logo-badge--footer img {
+    @apply h-auto w-40 object-contain md:w-48;
   }
 }

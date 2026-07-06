@@ -1,23 +1,29 @@
-<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
-  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-    <%= link_to root_path, class: "flex items-center gap-2" do %>
-      <span class="text-2xl font-bold text-rose-600">Oficina JZG</span>
+<div class="shop-announcement py-2.5">
+  <p>Espacios de salud · Bloques flexibles o día completo · Reserva en línea</p>
+</div>
+
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 md:py-5">
+    <%= link_to root_path, class: "shrink-0" do %>
+      <div class="logo-badge logo-badge--navbar<%= ' logo-badge--navbar-home' if current_page?(root_path) %>">
+        <%= image_tag "logo_vital_hub.png", alt: "VitalHub — Espacios de salud" %>
+      </div>
     <% end %>
 
-    <div class="hidden items-center gap-4 md:flex">
-      <%= link_to "Espacios", spaces_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
-      <%= link_to "Membresía", membership_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+    <nav class="hidden items-center gap-8 md:flex">
+      <%= link_to "Espacios", spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+      <%= link_to "Membresía", membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
       <% if user_signed_in? %>
-        <%= link_to "Mis reservas", bookings_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
-        <%= link_to "Perfil", edit_profile_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+        <%= link_to "Mis reservas", bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <%= link_to "Perfil", edit_profile_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
         <% if current_user.admin? %>
-          <%= link_to "Admin", admin_root_path, class: "text-sm font-medium text-gray-700 hover:text-rose-600" %>
+          <%= link_to "Admin", admin_root_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
         <% end %>
-        <%= button_to "Salir", destroy_user_session_path, method: :delete, class: "text-sm font-medium text-gray-500" %>
+        <%= button_to "Salir", destroy_user_session_path, method: :delete, class: "text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-gray-900" %>
       <% else %>
-        <%= link_to "Ingresar", new_user_session_path, class: "text-sm font-medium text-gray-700" %>
-        <%= link_to "Registrarse", new_user_registration_path, class: "btn-primary !py-2 !px-4" %>
+        <%= link_to "Ingresar", new_user_session_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 hover:text-brand" %>
+        <%= link_to "Reservar", spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
       <% end %>
-    </div>
+    </nav>
   </div>
 </header>

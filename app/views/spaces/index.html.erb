@@ -1,8 +1,19 @@
-<div class="mx-auto max-w-7xl px-4 py-8">
-  <h1 class="text-3xl font-bold">Espacios disponibles</h1>
-  <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+<% content_for :title, "Espacios para arriendo | VitalHub" %>
+<% content_for :meta_description, "Explora espacios disponibles para arriendo por bloques flexibles o día completo. VitalHub conecta profesionales de la salud con espacios equipados en Chile." %>
+
+<section class="shop-section">
+  <div class="mx-auto max-w-2xl text-center">
+    <p class="shop-eyebrow">Catálogo</p>
+    <h1 class="mt-2 text-3xl font-medium tracking-tight text-gray-900 md:text-4xl">Espacios para arriendo</h1>
+    <p class="mt-4 text-gray-600">
+      Encuentra arriendo de espacio profesional para consultas, terapias y atención de salud.
+      Reserva bloques flexibles o el día completo según tu disponibilidad.
+    </p>
+  </div>
+
+  <div class="mt-14 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
     <% @spaces.each do |space| %>
       <%= render "shared/space_card", space: space %>
     <% end %>
   </div>
-</div>
+</section>

@@ -12,17 +12,16 @@ class Booking < ApplicationRecord
   has_one :testimonial, dependent: :destroy
 
   enum :status, { pending_payment: 0, confirmed: 1, cancelled: 2, completed: 3, rescheduled: 4 }
-  enum :booking_type, { hourly: 0, jornada: 1 }
+  enum :booking_type, { hourly: 0, jornada: 1, slot_based: 2 }
 
-  validates :start_at, :end_at, :hours, presence: true
-  validates :hours, numericality: { greater_than: 0, only_integer: true }
+  validates :start_at, :end_at, :duration_minutes, presence: true
+  validates :duration_minutes, numericality: { greater_than: 0, only_integer: true }
   validates :total_amount_cents, numericality: { greater_than_or_equal_to: 0 }
-  validate :minimum_hours_met, if: :hourly?
-  validate :jornada_definition_present, if: :jornada?
+  validate :minimum_slots_met, on: :create
   validate :availability_check, on: :create
 
   before_validation :set_payment_expires_at, on: :create
-  before_validation :set_hours_and_amount, on: :create
+  before_validation :set_duration_and_amount, on: :create
   before_validation :apply_reschedule_credit_deduction, on: :create
 
   scope :upcoming, -> { where(start_at: Time.current..).order(:start_at) }
@@ -48,6 +47,25 @@ class Booking < ApplicationRecord
     Money.new(total_amount_cents, 'CLP').format(no_cents_if_whole: true)
   end
 
+  def slot_count
+    return 0 unless space && duration_minutes.to_i.positive?
+
+    duration_minutes / space.slot_duration_minutes
+  end
+
+  def display_hours
+    (duration_minutes.to_f / 60).round(1)
+  end
+
+  def formatted_duration
+    total_minutes = duration_minutes
+    hours_part = total_minutes / 60
+    minutes_part = total_minutes % 60
+    return "#{hours_part} hora(s)" if minutes_part.zero?
+
+    "#{hours_part}h #{minutes_part}min"
+  end
+
   def box
     space
   end
@@ -60,28 +78,21 @@ class Booking < ApplicationRecord
     self.payment_expires_at ||= Time.current + self.class.payment_ttl
   end
 
-  def set_hours_and_amount
+  def set_duration_and_amount
     return unless start_at && end_at && space
 
-    self.hours = calculate_hours
+    self.duration_minutes = ((end_at - start_at) / 60).to_i
+    self.booking_type = :slot_based
+    self.hours = (duration_minutes / 60.0).round if has_attribute?(:hours)
     apply_pricing
-  end
-
-  def calculate_hours
-    if jornada? && jornada_definition
-      jornada_definition.duration_hours
-    else
-      ((end_at - start_at) / 1.hour).round
-    end
   end
 
   def apply_pricing
     result = PricingEngine.calculate(
       space,
       profesional,
-      booking_type,
-      hours,
-      jornada_definition
+      start_at,
+      slot_count
     )
 
     self.total_amount_cents = result[:total_cents]
@@ -89,23 +100,22 @@ class Booking < ApplicationRecord
     self.pricing_breakdown = { breakdown: result[:breakdown], subtotal_cents: result[:subtotal_cents] }
   end
 
-  def minimum_hours_met
-    return unless space && hours
+  def minimum_slots_met
+    return unless space && duration_minutes.positive?
 
-    errors.add(:hours, "mínimo #{space.minimum_hours} hora(s)") if hours < space.minimum_hours
-  end
+    slots = slot_count
+    return if slots >= space.minimum_slots
 
-  def jornada_definition_present
-    errors.add(:jornada_definition, 'es requerida para reservas por jornada') if jornada_definition.blank?
+    errors.add(:base, "mínimo #{space.minimum_slots} bloque(s)")
   end
 
   def availability_check
     return unless space && start_at && end_at
 
     checker = AvailabilityChecker.new(space)
-    return if checker.available?(start_at, end_at)
-
-    errors.add(:base, checker.error_message || 'Horario no disponible')
+    unless checker.consecutive_slots_available?(start_at, slot_count)
+      errors.add(:base, checker.error_message || 'Horario no disponible')
+    end
   end
 
   def apply_reschedule_credit_deduction

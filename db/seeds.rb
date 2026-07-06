@@ -64,10 +64,10 @@ spaces_data = [
   }
 ]
 
-spaces_data.each do |data|
+  spaces_data.each do |data|
   space = Space.find_or_initialize_by(title: data[:title], office: office)
   space.assign_attributes(
-    description: 'Espacio profesional equipado para atención por horas o jornada completa.',
+    description: 'Espacio profesional equipado para atención por bloques configurables.',
     address: office.address,
     commune: office.commune,
     city: office.city,
@@ -76,6 +76,8 @@ spaces_data.each do |data|
     box_type: data[:box_type],
     price_per_hour_cents: data[:price],
     minimum_hours: 1,
+    slot_duration_minutes: 60,
+    minimum_slots: 1,
     status: :draft,
     capacity: data[:capacity],
     dimensions: data[:dimensions],
@@ -100,25 +102,23 @@ spaces_data.each do |data|
       rule.end_time = Time.zone.parse('2000-01-01 20:00')
     end
   end
-end
 
-[
-  { name: 'Mañana', start: '08:00', end: '13:00', price: 25_000 },
-  { name: 'Tarde', start: '14:00', end: '19:00', price: 25_000 },
-  { name: 'Jornada completa', start: '08:00', end: '19:00', price: 45_000 }
-].each_with_index do |j, i|
-  JornadaDefinition.find_or_create_by!(office: office, name: j[:name]) do |jd|
-    jd.start_time = Time.zone.parse("2000-01-01 #{j[:start]}")
-    jd.end_time = Time.zone.parse("2000-01-01 #{j[:end]}")
-    jd.price_cents = j[:price]
-    jd.position = i
-    jd.active = true
+  [
+    { name: 'Mañana', start: '08:00', end: '13:00', price: 12_500 },
+    { name: 'Tarde', start: '14:00', end: '19:00', price: 15_000 }
+  ].each_with_index do |rate, i|
+    SlotRate.find_or_create_by!(space: space, name: rate[:name]) do |sr|
+      sr.start_time = Time.zone.parse("2000-01-01 #{rate[:start]}")
+      sr.end_time = Time.zone.parse("2000-01-01 #{rate[:end]}")
+      sr.price_per_slot_cents = rate[:price]
+      sr.position = i
+    end
   end
 end
 
 PricingRule.find_or_create_by!(name: 'Descuento por volumen') do |r|
   r.rule_type = :volume_discount
-  r.config = { 'min_hours' => 4, 'discount_percent' => 10 }
+  r.config = { 'min_slots' => 4, 'discount_percent' => 10 }
   r.active = true
   r.priority = 10
 end
@@ -163,9 +163,10 @@ if space && Booking.where(renter_id: profesional.id).none?
     start_at: start_at,
     end_at: start_at + 2.hours,
     hours: 2,
-    total_amount_cents: space.price_for_duration(2),
+    duration_minutes: 120,
+    total_amount_cents: space.default_price_per_slot_cents * 2,
     status: :confirmed,
-    booking_type: :hourly
+    booking_type: :slot_based
   )
 end
 

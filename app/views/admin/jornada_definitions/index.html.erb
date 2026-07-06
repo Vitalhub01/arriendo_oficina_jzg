@@ -10,7 +10,7 @@
         <td class="py-2"><%= j.name %></td>
         <td><%= j.start_time.strftime('%H:%M') %> - <%= j.end_time.strftime('%H:%M') %></td>
         <td><%= j.formatted_price %></td>
-        <td><%= link_to "Editar", edit_admin_jornada_definition_path(j), class: "text-rose-600" %></td>
+        <td><%= link_to "Editar", edit_admin_jornada_definition_path(j), class: "text-brand" %></td>
       </tr>
     <% end %>
   </tbody>

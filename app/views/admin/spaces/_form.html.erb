@@ -6,8 +6,13 @@
   <%= f.text_area :description, rows: 4, class: "input-field" %>
   <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
   <%= f.collection_select :office_id, Office.all, :id, :name, {}, class: "input-field" %>
-  <%= f.label :price_per_hour_cents, "Precio por hora (centavos)", class: "block text-sm font-medium" %>
+  <%= f.label :price_per_hour_cents, "Precio por hora base (centavos)", class: "block text-sm font-medium" %>
   <%= f.number_field :price_per_hour_cents, class: "input-field" %>
+  <%= f.label :slot_duration_minutes, "Duración de bloque (minutos)", class: "block text-sm font-medium" %>
+  <%= f.number_field :slot_duration_minutes, class: "input-field", step: 30, min: 30 %>
+  <p class="text-xs text-gray-500">Múltiplo de 30. Ej: 60 = 1 hora, 90 = 1h30.</p>
+  <%= f.label :minimum_slots, "Mínimo de bloques por reserva", class: "block text-sm font-medium" %>
+  <%= f.number_field :minimum_slots, class: "input-field", min: 1 %>
   <%= f.label :capacity, class: "block text-sm font-medium" %>
   <%= f.number_field :capacity, class: "input-field" %>
   <%= f.label :dimensions, class: "block text-sm font-medium" %>

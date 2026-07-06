@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <title>Panel dueño — Arriendo de box</title>
+    <title>Panel dueño — VitalHub</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <link rel="icon" type="image/png" href="<%= asset_path('logo_vital_hub.png') %>">
   </head>
-  <body class="min-h-screen bg-gray-50">
+  <body class="min-h-screen bg-brand-pale">
     <header class="border-b border-gray-200 bg-white">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         <div class="flex items-center gap-6">
-          <%= link_to "Arriendo de box", root_path, class: "text-lg font-bold text-rose-600" %>
-          <%= link_to "Mis boxes", owner_boxes_path, class: "text-sm font-medium text-gray-700" %>
+          <%= link_to root_path, class: "flex items-center" do %>
+            <%= image_tag "logo_vital_hub.png", alt: "VitalHub", class: "h-8 w-auto" %>
+          <% end %>
+          <%= link_to "Mis espacios", owner_boxes_path, class: "text-sm font-medium text-gray-700" %>
         </div>
         <div class="text-sm text-gray-600"><%= current_user.name %></div>
       </div>

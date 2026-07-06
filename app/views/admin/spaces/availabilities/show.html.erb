@@ -1,0 +1,28 @@
+<h1 class="text-2xl font-bold">Disponibilidad — <%= @space.title %></h1>
+<%= link_to "← Volver a espacios", admin_spaces_path, class: "text-sm text-brand hover:underline" %>
+
+<div class="mt-6 grid gap-4 md:grid-cols-2">
+  <div class="card p-4">
+    <h2 class="font-semibold">Configuración de bloques</h2>
+    <p class="mt-2 text-sm text-gray-600">Duración actual: <%= @space.slot_duration_minutes %> min · Mínimo: <%= @space.minimum_slots %> bloque(s)</p>
+    <%= link_to "Editar espacio", edit_admin_space_path(@space), class: "mt-3 inline-block text-sm text-brand hover:underline" %>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="font-semibold">Tarifas por franja</h2>
+    <p class="mt-2 text-sm text-gray-600">Precio por bloque según horario del día.</p>
+    <%= link_to "Gestionar tarifas", admin_space_slot_rates_path(@space), class: "mt-3 inline-block text-sm text-brand hover:underline" %>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="font-semibold">Horario semanal</h2>
+    <p class="mt-2 text-sm text-gray-600">Días y franjas en que el espacio acepta reservas.</p>
+    <%= link_to "Gestionar horarios", admin_space_availability_rules_path(@space), class: "mt-3 inline-block text-sm text-brand hover:underline" %>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="font-semibold">Días bloqueados</h2>
+    <p class="mt-2 text-sm text-gray-600">Bloquea fechas completas (feriados, mantenimiento).</p>
+    <%= link_to "Gestionar bloqueos", admin_space_availability_blocks_path(@space), class: "mt-3 inline-block text-sm text-brand hover:underline" %>
+  </div>
+</div>

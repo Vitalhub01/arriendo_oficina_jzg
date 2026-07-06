@@ -1,117 +1,177 @@
+<% content_for :title, "VitalHub — Arriendo de espacio flexible" %>
+<% office_city = @office&.city.presence || "Chile" %>
+<% content_for :meta_description, "Arriendo de espacio profesional para salud en #{office_city}. Reserva bloques flexibles o el día completo en espacios equipados para psicólogos y terapeutas." %>
+<% content_for :json_ld, combined_json_ld(local_business_json_ld(@office), faq_page_json_ld(@faqs)) %>
+
 <div data-controller="search-sheet">
-  <section class="relative overflow-hidden bg-gradient-to-br from-rose-600 via-rose-500 to-orange-400 text-white">
-    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center opacity-20"></div>
-    <div class="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
-      <div class="max-w-2xl">
-        <p class="text-sm font-semibold uppercase tracking-wider text-rose-100">Arriendo de box para profesionales de la salud</p>
-        <h1 class="mt-3 text-4xl font-bold leading-tight md:text-5xl">Arrienda tu box por hora</h1>
-        <p class="mt-4 text-lg text-rose-50">
-          Espacios equipados y acogedores para psicólogos y terapeutas.
-          Reserva por hora o por jornada con total flexibilidad.
+  <section class="shop-section !pb-12 md:!pb-16">
+    <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <div class="order-2 lg:order-1">
+        <p class="shop-eyebrow">Espacios de salud</p>
+        <h1 class="shop-heading mt-4">Arriendo de espacio flexible</h1>
+        <p class="shop-subheading mt-6">
+          Workspace profesional para psicólogos y terapeutas en <%= office_city %>.
+          Reserva el tiempo que necesitas — bloques a tu medida o el día completo.
         </p>
-        <%= link_to "Reservar ahora", spaces_path, class: "btn-secondary mt-8 inline-flex !border-white/30 !bg-white/10 !text-white backdrop-blur hover:!bg-white/20" %>
+        <div class="mt-10 flex flex-wrap gap-4">
+          <%= link_to "Ver espacios", spaces_path, class: "btn-primary" %>
+          <%= link_to "Membresía", membership_path, class: "btn-secondary" %>
+        </div>
+      </div>
+
+      <div class="order-1 flex justify-center lg:order-2 lg:justify-end">
+        <div class="relative w-full max-w-lg">
+          <div class="absolute -inset-4 rounded-2xl bg-brand-pale"></div>
+          <div class="relative overflow-hidden rounded-2xl bg-gray-100 shadow-xl">
+            <div class="aspect-[4/3] bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center"></div>
+            <div class="flex items-center justify-center border-t border-gray-200 bg-white px-6 py-8">
+              <div class="logo-badge logo-badge--hero">
+                <%= image_tag "logo_vital_hub.png", alt: "VitalHub — Espacios de salud" %>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="mx-auto max-w-7xl px-4 py-16">
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-bold">Salas disponibles</h2>
-      <p class="mt-2 text-gray-600">Totalmente equipadas para hacer terapia</p>
+  <section class="border-y border-gray-200 bg-brand-pale py-12">
+    <div class="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 md:grid-cols-4">
+      <% [
+        ["Flexibilidad", "Bloques a tu medida"],
+        ["Equipado", "Listo para atender"],
+        ["Ubicación", office_city],
+        ["Reserva online", "Simple y rápida"]
+      ].each do |title, desc| %>
+        <div class="shop-icon-block">
+          <div class="shop-icon-block__icon">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <p class="mt-4 text-sm font-medium uppercase tracking-wide text-gray-900"><%= title %></p>
+          <p class="mt-1 text-sm text-gray-600"><%= desc %></p>
+        </div>
+      <% end %>
     </div>
-    <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+  </section>
+
+  <section class="shop-section">
+    <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+      <div>
+        <p class="shop-eyebrow">Colección destacada</p>
+        <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Espacios disponibles</h2>
+        <p class="mt-2 max-w-xl text-gray-600">Arriendo de espacio profesional, totalmente equipado para consultas y terapias.</p>
+      </div>
+      <%= link_to "Ver todos →", spaces_path, class: "text-sm font-medium uppercase tracking-wide text-brand hover:underline" %>
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
       <% @spaces.each do |space| %>
         <%= render "shared/space_card", space: space %>
       <% end %>
     </div>
   </section>
 
-  <section class="bg-white py-16">
-    <div class="mx-auto max-w-7xl px-4">
-      <div class="mb-10 text-center">
-        <h2 class="text-3xl font-bold">Valores de nuestras salas</h2>
-        <p class="mt-2 text-gray-600">Elige el formato que mejor se adapte a ti</p>
+  <section class="bg-gray-50">
+    <div class="shop-section">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="shop-eyebrow">Tarifas</p>
+        <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Elige tu modalidad</h2>
+        <p class="mt-3 text-gray-600">Bloques flexibles o el día completo, según tu ritmo de trabajo.</p>
       </div>
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div class="card p-8">
-          <h3 class="text-xl font-semibold text-rose-600">Arriendo por hora</h3>
-          <p class="mt-2 text-3xl font-bold">
-            <%= @spaces.first ? format_clp(@spaces.minimum(:price_per_hour_cents)) : '$6.000' %>
-            <span class="text-base font-normal text-gray-500">/ hora</span>
+
+      <div class="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+        <div class="border border-gray-200 bg-white p-8 md:p-10">
+          <p class="text-xs font-medium uppercase tracking-widest text-brand">Más flexible</p>
+          <h3 class="mt-3 text-xl font-medium text-gray-900">Bloques a tu medida</h3>
+          <p class="mt-4 text-4xl font-medium tracking-tight text-gray-900">
+            <%= @min_slot_price ? format_clp(@min_slot_price) : '$6.000' %>
+            <span class="text-base font-normal text-gray-500">/ bloque</span>
           </p>
-          <p class="mt-4 text-gray-600">Reserva en el horario que quieras con total libertad. El formato más flexible para coordinar con tus pacientes.</p>
-          <%= link_to "Ver disponibilidad", spaces_path, class: "btn-primary mt-6 inline-flex" %>
+          <p class="mt-4 leading-relaxed text-gray-600">Elige la duración que necesites: puede ser más o menos de una hora. Ideal para coordinar con tus pacientes.</p>
+          <%= link_to "Ver disponibilidad", spaces_path, class: "btn-primary mt-8 w-full justify-center" %>
         </div>
-        <div class="card p-8">
-          <h3 class="text-xl font-semibold text-rose-600">Arriendo por jornada</h3>
-          <% sample_jornada = @jornadas.first %>
-          <p class="mt-2 text-3xl font-bold">
-            <%= sample_jornada ? sample_jornada.formatted_price : '$80.000' %>
-            <span class="text-base font-normal text-gray-500">/ jornada</span>
+        <div class="border border-gray-200 bg-white p-8 md:p-10">
+          <p class="text-xs font-medium uppercase tracking-widest text-brand">Mejor valor</p>
+          <h3 class="mt-3 text-xl font-medium text-gray-900">Día completo</h3>
+          <p class="mt-4 text-4xl font-medium tracking-tight text-gray-900">
+            <%= @full_day_rate ? @full_day_rate.formatted_price : '$80.000' %>
+            <span class="text-base font-normal text-gray-500">/ día</span>
           </p>
-          <p class="mt-4 text-gray-600">Mañana o tarde completa. Valor por hora más conveniente para quienes arriendan bloques regulares.</p>
-          <%= link_to "Ver jornadas", spaces_path, class: "btn-primary mt-6 inline-flex" %>
+          <p class="mt-4 leading-relaxed text-gray-600">Arrienda el espacio todo el día para jornadas intensas o eventos con varios pacientes.</p>
+          <%= link_to "Consultar día completo", spaces_path, class: "btn-primary mt-8 w-full justify-center" %>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="mx-auto max-w-7xl px-4 py-16">
-    <h2 class="text-center text-3xl font-bold">¿Por qué nosotros?</h2>
-    <div class="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+  <section class="shop-section">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="shop-eyebrow">Por qué VitalHub</p>
+      <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Tu workspace de confianza</h2>
+    </div>
+    <div class="mt-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
       <% [
-        ["Ubicación", "Excelente ubicación con fácil acceso y entorno seguro y tranquilo."],
-        ["Equipado", "Boxes con implementos pensados para la atención clínica y terapéutica."],
-        ["Atención personalizada", "Te acompañamos para que tengas la mejor experiencia en la oficina."],
-        ["Flexibilidad", "Arriendo por hora o jornada según tus necesidades."],
-        ["WiFi", "Conexión estable para sesiones online sin interrupciones."],
-        ["Profesionales verificados", "Validación con Superintendencia de Salud para reservar con confianza."]
+        ["Ubicación privilegiada", "Fácil acceso en un entorno seguro y tranquilo."],
+        ["Espacios equipados", "Implementos pensados para atención clínica y terapéutica."],
+        ["Atención personalizada", "Te acompañamos para la mejor experiencia."],
+        ["Flexibilidad total", "Bloques flexibles o día completo según tus necesidades."],
+        ["WiFi de alta velocidad", "Conexión estable para sesiones online."],
+        ["Profesionales verificados", "Validación con Superintendencia de Salud."]
       ].each do |title, desc| %>
-        <div class="text-center">
-          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-lg font-bold text-rose-600">✓</div>
-          <h3 class="mt-4 text-lg font-semibold"><%= title %></h3>
-          <p class="mt-2 text-gray-600"><%= desc %></p>
+        <div class="border-l-2 border-brand-light pl-6">
+          <h3 class="font-medium text-gray-900"><%= title %></h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600"><%= desc %></p>
         </div>
       <% end %>
     </div>
   </section>
 
   <% if @testimonials.any? %>
-    <section class="bg-gray-50 py-16">
-      <div class="mx-auto max-w-7xl px-4">
-        <h2 class="text-center text-3xl font-bold">Lo que opinan nuestros clientes</h2>
-        <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+    <section class="border-y border-gray-200 bg-brand-pale">
+      <div class="shop-section">
+        <div class="mx-auto max-w-2xl text-center">
+          <p class="shop-eyebrow">Testimonios</p>
+          <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Lo que dicen nuestros clientes</h2>
+        </div>
+        <div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
           <% @testimonials.each do |testimonial| %>
-            <div class="card p-6">
+            <blockquote class="bg-white p-8 shadow-sm">
               <% if testimonial.rating.present? %>
                 <p class="text-amber-500"><%= "★" * testimonial.rating %></p>
               <% end %>
-              <p class="mt-3 text-gray-700"><%= testimonial.body %></p>
-              <p class="mt-4 text-sm font-medium text-gray-900"><%= testimonial.profesional.name %></p>
-            </div>
+              <p class="mt-4 leading-relaxed text-gray-700">"<%= testimonial.body %>"</p>
+              <footer class="mt-6 text-sm font-medium text-gray-900">— <%= testimonial.profesional.name %></footer>
+            </blockquote>
           <% end %>
         </div>
       </div>
     </section>
   <% end %>
 
-  <section class="mx-auto max-w-7xl px-4 py-16">
-    <h2 class="text-center text-3xl font-bold">Membresía profesional</h2>
-    <p class="mx-auto mt-4 max-w-2xl text-center text-gray-600">
+  <section class="shop-section text-center">
+    <p class="shop-eyebrow">Membresía</p>
+    <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Beneficios para profesionales</h2>
+    <p class="mx-auto mt-4 max-w-xl text-gray-600">
       Descuentos en arriendos, capacitaciones y accesos exclusivos para miembros suscritos.
     </p>
-    <%= link_to "Conocer membresía", membership_path, class: "btn-primary mx-auto mt-8 flex w-fit" %>
+    <%= link_to "Conocer membresía", membership_path, class: "btn-primary mx-auto mt-8" %>
   </section>
 
   <% if @faqs.any? %>
-    <section class="bg-white py-16">
-      <div class="mx-auto max-w-3xl px-4">
-        <h2 class="text-center text-3xl font-bold">Preguntas frecuentes</h2>
-        <div class="mt-10 space-y-4">
+    <section class="border-t border-gray-200 bg-gray-50">
+      <div class="shop-section !max-w-3xl">
+        <div class="text-center">
+          <p class="shop-eyebrow">FAQ</p>
+          <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Preguntas frecuentes</h2>
+        </div>
+        <div class="mt-10 divide-y divide-gray-200 border border-gray-200 bg-white">
           <% @faqs.each do |faq| %>
-            <details class="card p-4">
-              <summary class="cursor-pointer font-semibold"><%= faq.question %></summary>
-              <p class="mt-3 text-gray-600"><%= faq.answer %></p>
+            <details class="group px-6 py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between font-medium text-gray-900">
+                <%= faq.question %>
+                <span class="ml-4 text-brand transition group-open:rotate-45">+</span>
+              </summary>
+              <p class="mt-4 pb-2 text-sm leading-relaxed text-gray-600"><%= faq.answer %></p>
             </details>
           <% end %>
         </div>
@@ -120,10 +180,13 @@
   <% end %>
 
   <% if @office&.latitude.present? %>
-    <section class="mx-auto max-w-7xl px-4 py-16">
-      <h2 class="text-center text-3xl font-bold">Ubicación</h2>
-      <p class="mt-4 text-center text-gray-600"><%= @office.full_address %></p>
-      <div class="mt-6 h-[350px] overflow-hidden rounded-2xl border border-gray-200"
+    <section class="shop-section">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="shop-eyebrow">Ubicación</p>
+        <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Visítanos</h2>
+        <p class="mt-3 text-gray-600"><%= @office.full_address %></p>
+      </div>
+      <div class="mt-8 h-[400px] overflow-hidden border border-gray-200"
            data-controller="map"
            data-map-lat-value="<%= @office.latitude %>"
            data-map-lng-value="<%= @office.longitude %>"
@@ -132,11 +195,11 @@
     </section>
   <% end %>
 
-  <section class="bg-gradient-to-r from-rose-600 to-orange-400 py-16 text-white">
-    <div class="mx-auto max-w-7xl px-4 text-center">
-      <h2 class="text-3xl font-bold">Preocúpate de lo que más importa: ¡La terapia!</h2>
-      <p class="mt-4 text-rose-50">Nosotros nos encargamos del resto.</p>
-      <%= link_to "Reservar un box", spaces_path, class: "btn-secondary mt-8 inline-flex !bg-white !text-rose-600 hover:!bg-rose-50" %>
+  <section class="bg-brand text-white">
+    <div class="shop-section text-center">
+      <h2 class="text-2xl font-medium tracking-tight md:text-4xl">Enfócate en lo que importa</h2>
+      <p class="mx-auto mt-4 max-w-lg text-brand-light">Nosotros nos encargamos del espacio. Tú de la terapia.</p>
+      <%= link_to "Reservar un espacio", spaces_path, class: "btn-secondary mt-10 !border-white !text-white hover:!bg-white hover:!text-brand" %>
     </div>
   </section>
 </div>

@@ -5,12 +5,11 @@
     <dl class="mt-4 space-y-2 text-sm">
       <div class="flex justify-between"><dt class="text-gray-500">Fecha</dt><dd><%= l(@booking.start_at.to_date, format: :long) %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Horario</dt><dd><%= l(@booking.start_at, format: "%H:%M") %> — <%= l(@booking.end_at, format: "%H:%M") %></dd></div>
-      <div class="flex justify-between"><dt class="text-gray-500">Tipo</dt><dd><%= @booking.hourly? ? 'Por hora' : 'Por jornada' %></dd></div>
-      <div class="flex justify-between"><dt class="text-gray-500">Duración</dt><dd><%= @booking.hours %> hora(s)</dd></div>
+      <div class="flex justify-between"><dt class="text-gray-500">Duración</dt><dd><%= @booking.formatted_duration %> (<%= @booking.slot_count %> bloque(s))</dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="font-semibold"><%= @booking.formatted_total %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Estado</dt><dd><%= booking_status_label(@booking) %></dd></div>
       <% if (invoice = @booking.payment&.invoice)&.downloadable? %>
-        <div class="flex justify-between"><dt class="text-gray-500">Boleta</dt><dd><%= link_to "Descargar boleta #{invoice.folio}", rails_blob_path(invoice.pdf, disposition: 'attachment'), class: "text-rose-600 hover:underline" %></dd></div>
+        <div class="flex justify-between"><dt class="text-gray-500">Boleta</dt><dd><%= link_to "Descargar boleta #{invoice.folio}", rails_blob_path(invoice.pdf, disposition: 'attachment'), class: "text-brand hover:underline" %></dd></div>
       <% end %>
       <% if @booking.pending_payment? && @booking.payment_expires_at.present? %>
         <div class="flex justify-between"><dt class="text-gray-500">Plazo de pago</dt><dd class="text-amber-700"><%= booking_payment_expires_label(@booking) %></dd></div>
@@ -28,7 +27,7 @@
           <p class="font-medium">Reagendar (sin reembolso, con crédito aplicado)</p>
           <%= date_field_tag :date, @booking.start_at.to_date + 7.days, class: "input-field", required: true %>
           <%= time_field_tag :start_time, l(@booking.start_at, format: "%H:%M"), class: "input-field", required: true %>
-          <%= number_field_tag :hours, @booking.hours, min: 1, class: "input-field", required: true %>
+          <%= number_field_tag :slot_count, @booking.slot_count, min: @booking.space.minimum_slots, class: "input-field", required: true %>
           <%= submit_tag "Reagendar reserva", class: "btn-primary" %>
         <% end %>
       <% end %>

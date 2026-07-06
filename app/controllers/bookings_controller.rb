@@ -35,7 +35,7 @@ class BookingsController < ApplicationController
     ).call
 
     if result.success?
-      flash[:ga_event] = { name: 'booking_started', params: { space_id: @space.id, booking_type: booking_params[:booking_type] } }
+      flash[:ga_event] = { name: 'booking_started', params: { space_id: @space.id, slot_count: booking_params[:slot_count] } }
       if result.booking.confirmed?
         redirect_to result.booking, notice: 'Reserva confirmada con tu crédito'
       else
@@ -114,10 +114,10 @@ class BookingsController < ApplicationController
   end
 
   def booking_params
-    params.permit(:date, :start_time, :hours, :booking_type, :jornada_definition_id)
+    params.permit(:date, :start_time, :slot_count, :hours, :reschedule_credit_id)
   end
 
   def reschedule_params
-    params.permit(:date, :start_time, :hours, :jornada_definition_id)
+    params.permit(:date, :start_time, :slot_count, :hours)
   end
 end

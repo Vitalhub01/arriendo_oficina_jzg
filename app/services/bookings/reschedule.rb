@@ -13,10 +13,11 @@ module Bookings
       return failure('Indica la nueva fecha y horario') if @params[:date].blank?
 
       new_start_at = parse_start_at
-      new_end_at = parse_end_at
+      slot_count = resolve_slot_count
+      new_end_at = new_start_at + (slot_count * @booking.space.slot_duration_minutes).minutes
 
       checker = AvailabilityChecker.new(@booking.space)
-      unless checker.available?(new_start_at, new_end_at)
+      unless checker.consecutive_slots_available?(new_start_at, slot_count)
         return failure(checker.error_message || 'Horario no disponible')
       end
 
@@ -28,7 +29,10 @@ module Bookings
         result = Bookings::Create.new(
           space: @booking.space,
           profesional: @booking.profesional,
-          params: create_params.merge(reschedule_credit_id: credit.id)
+          params: create_params.merge(
+            slot_count: slot_count,
+            reschedule_credit_id: credit.id
+          )
         ).call
 
         unless result.success?
@@ -67,7 +71,7 @@ module Bookings
         user: @booking.profesional,
         source_booking: @booking,
         amount_cents: @booking.total_amount_cents,
-        hours: @booking.hours,
+        hours: @booking.hours.to_i,
         status: :available,
         expires_at: 6.months.from_now
       )
@@ -77,35 +81,24 @@ module Bookings
       {
         date: @params[:date],
         start_time: @params[:start_time],
-        hours: @params[:hours],
-        booking_type: @params[:booking_type] || @booking.booking_type,
-        jornada_definition_id: @params[:jornada_definition_id] || @booking.jornada_definition_id
+        slot_count: resolve_slot_count
       }
+    end
+
+    def resolve_slot_count
+      if @params[:slot_count].present?
+        @params[:slot_count].to_i
+      elsif @params[:hours].present?
+        (@params[:hours].to_i * 60.0 / @booking.space.slot_duration_minutes).ceil
+      else
+        @booking.slot_count
+      end
     end
 
     def parse_start_at
       date = Date.parse(@params[:date].to_s)
-      if @params[:booking_type].to_s == 'jornada' || (@booking.jornada? && @params[:jornada_definition_id].present?)
-        definition = JornadaDefinition.active.find(@params[:jornada_definition_id] || @booking.jornada_definition_id)
-        combine_date_time(date, definition.start_time)
-      else
-        hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
-        Time.zone.local(date.year, date.month, date.day, hour, min)
-      end
-    end
-
-    def parse_end_at
-      date = Date.parse(@params[:date].to_s)
-      if @params[:booking_type].to_s == 'jornada' || @booking.jornada?
-        definition = JornadaDefinition.active.find(@params[:jornada_definition_id] || @booking.jornada_definition_id)
-        combine_date_time(date, definition.end_time)
-      else
-        parse_start_at + @params[:hours].to_i.hours
-      end
-    end
-
-    def combine_date_time(date, time)
-      Time.zone.local(date.year, date.month, date.day, time.hour, time.min, time.sec)
+      hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
+      Time.zone.local(date.year, date.month, date.day, hour, min)
     end
 
     def failure(message)

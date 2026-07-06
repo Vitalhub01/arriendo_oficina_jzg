@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <% static_pages = [
+    [root_url(host: @host, protocol: @protocol), Time.current],
+    [spaces_url(host: @host, protocol: @protocol), @spaces.maximum(:updated_at)],
+    [membership_url(host: @host, protocol: @protocol), Time.current],
+    [terms_url(host: @host, protocol: @protocol), Time.current],
+    [privacy_url(host: @host, protocol: @protocol), Time.current],
+    [cancellation_policy_url(host: @host, protocol: @protocol), Time.current]
+  ] %>
+  <% static_pages.each do |url, lastmod| %>
+  <url>
+    <loc><%= url %></loc>
+    <% if lastmod.present? %>
+    <lastmod><%= lastmod.utc.iso8601 %></lastmod>
+    <% end %>
+  </url>
+  <% end %>
+  <% @spaces.each do |space| %>
+  <url>
+    <loc><%= space_url(space, host: @host, protocol: @protocol) %></loc>
+    <lastmod><%= space.updated_at.utc.iso8601 %></lastmod>
+  </url>
+  <% end %>
+</urlset>

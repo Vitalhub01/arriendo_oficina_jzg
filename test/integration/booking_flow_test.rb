@@ -13,7 +13,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   end
 
   test 'booking requires authentication' do
-    post box_bookings_path(@box), params: booking_params
+    post space_bookings_path(@box), params: booking_params
     assert_redirected_to new_user_session_path
   end
 
@@ -22,14 +22,15 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
 
     assert_difference 'Booking.count', 1 do
       assert_enqueued_jobs 1, only: ActionMailer::MailDeliveryJob do
-        post box_bookings_path(@box), params: booking_params
+        post space_bookings_path(@box), params: booking_params
       end
     end
 
     booking = Booking.order(:created_at).last
     assert booking.pending_payment?
     assert booking.payment_expires_at.present?
-    assert_equal 2, booking.hours
+    assert_equal 2, booking.slot_count
+    assert_equal 120, booking.duration_minutes
     assert_redirected_to checkout_booking_path(booking)
   end
 
@@ -86,7 +87,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     Bookings::ExpirePendingJob.perform_now
 
     assert_difference 'Booking.count', 1 do
-      post box_bookings_path(@box), params: booking_params
+      post space_bookings_path(@box), params: booking_params
     end
   end
 
@@ -153,22 +154,22 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     create_pending_booking
 
     assert_no_difference 'Booking.count' do
-      post box_bookings_path(@box), params: booking_params
+      post space_bookings_path(@box), params: booking_params
     end
 
     assert_response :unprocessable_entity
     assert_match 'ya no está disponible', response.body
   end
 
-  test 'rejects hours below minimum' do
+  test 'rejects slots below minimum' do
     sign_in @renter
 
     assert_no_difference 'Booking.count' do
-      post box_bookings_path(@box), params: booking_params(hours: 1)
+      post space_bookings_path(@box), params: booking_params(slot_count: 1)
     end
 
     assert_response :unprocessable_entity
-    assert_match 'mínimo 2 hora', response.body
+    assert_match 'mínimo 2 bloque', response.body
   end
 
   test 'rejects booking outside availability rules' do
@@ -176,7 +177,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     late_time = next_monday_at(hour: 19)
 
     assert_no_difference 'Booking.count' do
-      post box_bookings_path(@box), params: booking_params(time: late_time, hours: 2)
+      post space_bookings_path(@box), params: booking_params(time: late_time, slot_count: 2)
     end
 
     assert_response :unprocessable_entity
@@ -192,7 +193,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     )
 
     assert_no_difference 'Booking.count' do
-      post box_bookings_path(@box), params: booking_params
+      post space_bookings_path(@box), params: booking_params
     end
 
     assert_response :unprocessable_entity
@@ -201,25 +202,26 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
 
   private
 
-  def booking_params(time: @slot_time, hours: 2)
+  def booking_params(time: @slot_time, slot_count: 2)
     {
-      booking_type: 'single',
       date: booking_date_param(time),
       start_time: booking_start_time_param(time),
-      hours: hours
+      slot_count: slot_count
     }
   end
 
   def create_pending_booking
     Booking.create!(
-      box: @box,
-      renter: @renter,
+      space: @box,
+      profesional: @renter,
       start_at: @slot_time,
       end_at: @slot_time + 2.hours,
       hours: 2,
-      total_amount_cents: @box.price_for_duration(2),
+      duration_minutes: 120,
+      total_amount_cents: @box.default_price_per_slot_cents * 2,
       status: :pending_payment,
-      payment_expires_at: 30.minutes.from_now
+      payment_expires_at: 30.minutes.from_now,
+      booking_type: :slot_based
     )
   end
 

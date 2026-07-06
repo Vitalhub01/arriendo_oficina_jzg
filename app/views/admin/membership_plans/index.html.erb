@@ -10,7 +10,7 @@
         <td class="py-2"><%= plan.name %></td>
         <td><%= plan.formatted_price %></td>
         <td><%= plan.active? ? 'Sí' : 'No' %></td>
-        <td><%= link_to "Editar", edit_admin_membership_plan_path(plan), class: "text-rose-600" %></td>
+        <td><%= link_to "Editar", edit_admin_membership_plan_path(plan), class: "text-brand" %></td>
       </tr>
     <% end %>
   </tbody>

@@ -8,7 +8,7 @@
         <td><%= booking.profesional.name %></td>
         <td><%= l(booking.start_at, format: :short) %></td>
         <td><%= booking_status_label(booking) %></td>
-        <td><%= link_to "Ver", admin_booking_path(booking), class: "text-rose-600" %></td>
+        <td><%= link_to "Ver", admin_booking_path(booking), class: "text-brand" %></td>
       </tr>
     <% end %>
   </tbody>

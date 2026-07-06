@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 class PricingEngine
-  def self.calculate(space, user, booking_type, hours, jornada_definition = nil)
-    new(space, user, booking_type, hours, jornada_definition).calculate
+  def self.calculate(space, user, start_at, slot_count)
+    new(space, user, start_at, slot_count).calculate
   end
 
-  def initialize(space, user, booking_type, hours, jornada_definition = nil)
+  def initialize(space, user, start_at, slot_count)
     @space = space
     @user = user
-    @booking_type = booking_type
-    @hours = hours.to_i
-    @jornada_definition = jornada_definition
+    @start_at = start_at
+    @slot_count = slot_count.to_i
   end
 
   def calculate
@@ -40,24 +39,32 @@ class PricingEngine
 
   private
 
-  attr_reader :space, :user, :booking_type, :hours, :jornada_definition
+  attr_reader :space, :user, :start_at, :slot_count
 
   def base_subtotal
-    if booking_type.to_s == 'jornada' && jornada_definition
-      jornada_definition.price_cents
-    else
-      space.price_for_duration(hours)
+    slot_count.times.sum do |index|
+      slot_start = start_at + (index * space.slot_duration_minutes.minutes)
+      space.price_per_slot_at(slot_start)
     end
   end
 
   def base_line(amount_cents)
-    label = if booking_type.to_s == 'jornada' && jornada_definition
-              "Jornada #{jornada_definition.name}"
-            else
-              "#{hours} hora(s) × #{space.formatted_price_per_hour}"
-            end
+    duration_label = format_duration
+    {
+      type: 'base',
+      label: "#{slot_count} bloque(s) (#{duration_label})",
+      amount_cents: amount_cents
+    }
+  end
 
-    { type: 'base', label: label, amount_cents: amount_cents }
+  def format_duration
+    total_minutes = slot_count * space.slot_duration_minutes
+    hours = total_minutes / 60
+    minutes = total_minutes % 60
+    return "#{hours}h" if minutes.zero?
+    return "#{minutes}min" if hours.zero?
+
+    "#{hours}h #{minutes}min"
   end
 
   def applicable_rules
@@ -67,11 +74,9 @@ class PricingEngine
   def rule_applies?(rule)
     case rule.rule_type
     when 'volume_discount'
-      booking_type.to_s == 'hourly'
+      slot_count >= rule.config['min_slots'].to_i
     when 'membership_discount'
       user&.active_membership?
-    when 'jornada_rate'
-      booking_type.to_s == 'jornada' && jornada_definition.present?
     else
       false
     end
@@ -81,12 +86,15 @@ class PricingEngine
     {
       user: user,
       space: space,
-      hours: hours,
-      booking_type: booking_type,
-      jornada_definition: jornada_definition,
+      slot_count: slot_count,
+      hours: duration_hours,
       subtotal_cents: current_subtotal,
       membership_discount_percent: current_membership_discount_percent
     }
+  end
+
+  def duration_hours
+    (slot_count * space.slot_duration_minutes) / 60.0
   end
 
   def current_membership_discount_percent

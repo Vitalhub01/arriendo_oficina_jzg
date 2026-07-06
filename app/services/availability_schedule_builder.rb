@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class AvailabilityScheduleBuilder
-  Slot = Struct.new(:hour, :available, keyword_init: true)
+  Slot = Struct.new(:starts_at, :available, keyword_init: true)
 
   def initialize(box, week_start:)
     @box = box
@@ -16,7 +16,7 @@ class AvailabilityScheduleBuilder
       {
         date: date,
         day_name: AvailabilityRule::DAY_NAMES[day_of_week],
-        slots: hourly_slots_for(date, day_of_week)
+        slots: slots_for(date, day_of_week)
       }
     end
   end
@@ -25,25 +25,40 @@ class AvailabilityScheduleBuilder
 
   attr_reader :box
 
-  def hourly_slots_for(date, day_of_week)
+  def slots_for(date, day_of_week)
     rules = box.availability_rules.active_on(date).for_day(day_of_week)
     return [] if rules.empty?
 
-    hours = Set.new
+    slot_starts = Set.new
     rules.each do |rule|
-      start_hour = rule.start_time.hour
-      end_hour = rule.end_time.hour
-      (start_hour...end_hour).each { |h| hours << h }
+      slot_starts.merge(slot_start_times_for_rule(date, rule))
     end
 
-    hours.sort.map do |hour|
-      slot_start = Time.zone.local(date.year, date.month, date.day, hour)
-      slot_end = slot_start + 1.hour
-      Slot.new(hour: hour, available: slot_available?(slot_start, slot_end))
+    slot_starts.sort.map do |slot_start|
+      slot_end = slot_start + box.slot_duration
+      Slot.new(starts_at: slot_start, available: slot_available?(slot_start, slot_end))
     end
+  end
+
+  def slot_start_times_for_rule(date, rule)
+    starts = []
+    slot_duration = box.slot_duration_minutes.minutes
+    current = combine_date_time(date, rule.start_time)
+    rule_end = combine_date_time(date, rule.end_time)
+
+    while current + slot_duration <= rule_end
+      starts << current
+      current += slot_duration
+    end
+
+    starts
   end
 
   def slot_available?(start_at, end_at)
     AvailabilityChecker.new(box).available?(start_at, end_at)
+  end
+
+  def combine_date_time(date, time)
+    Time.zone.local(date.year, date.month, date.day, time.hour, time.min, time.sec)
   end
 end

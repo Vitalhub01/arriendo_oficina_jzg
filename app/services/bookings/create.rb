@@ -9,16 +9,15 @@ module Bookings
     end
 
     def call
-      booking_type = @params[:booking_type].to_s == 'jornada' ? :jornada : :hourly
-      jornada_definition = find_jornada_definition if booking_type == :jornada
-      start_at, end_at = parse_times(booking_type, jornada_definition)
+      slot_count = resolve_slot_count
+      start_at, end_at = parse_times(slot_count)
 
       booking = @space.bookings.build(
         profesional: @profesional,
         start_at: start_at,
         end_at: end_at,
-        booking_type: booking_type,
-        jornada_definition: jornada_definition,
+        duration_minutes: slot_count * @space.slot_duration_minutes,
+        booking_type: :slot_based,
         reschedule_credit: find_reschedule_credit
       )
 
@@ -37,27 +36,25 @@ module Bookings
 
     private
 
-    def find_jornada_definition
-      JornadaDefinition.active.find(@params[:jornada_definition_id])
+    def resolve_slot_count
+      if @params[:slot_count].present?
+        @params[:slot_count].to_i
+      elsif @params[:hours].present?
+        hours = @params[:hours].to_i
+        slots = (hours * 60.0 / @space.slot_duration_minutes).ceil
+        [slots, @space.minimum_slots].max
+      else
+        @space.minimum_slots
+      end
     end
 
-    def parse_times(booking_type, jornada_definition)
+    def parse_times(slot_count)
       date = Date.parse(@params[:date].to_s)
-
-      if booking_type == :jornada && jornada_definition
-        start_at = combine_date_time(date, jornada_definition.start_time)
-        end_at = combine_date_time(date, jornada_definition.end_time)
-      else
-        hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
-        start_at = Time.zone.local(date.year, date.month, date.day, hour, min)
-        end_at = start_at + @params[:hours].to_i.hours
-      end
+      hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
+      start_at = Time.zone.local(date.year, date.month, date.day, hour, min)
+      end_at = start_at + (slot_count * @space.slot_duration_minutes).minutes
 
       [start_at, end_at]
-    end
-
-    def combine_date_time(date, time)
-      Time.zone.local(date.year, date.month, date.day, time.hour, time.min, time.sec)
     end
 
     def find_reschedule_credit

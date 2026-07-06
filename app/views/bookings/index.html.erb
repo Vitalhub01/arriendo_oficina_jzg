@@ -7,7 +7,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 class="font-semibold"><%= booking.space.title %></h3>
-            <p class="text-sm text-gray-600"><%= l(booking.start_at, format: :long) %> — <%= booking.hours %> hora(s)</p>
+            <p class="text-sm text-gray-600"><%= l(booking.start_at, format: :long) %> — <%= booking.formatted_duration %></p>
             <p class="mt-1 text-sm"><%= booking.formatted_total %></p>
             <% if booking.pending_payment? && booking.payment_expires_at.present? %>
               <p class="mt-1 text-xs text-amber-700"><%= booking_payment_expires_label(booking) %></p>

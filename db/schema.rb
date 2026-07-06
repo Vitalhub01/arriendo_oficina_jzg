@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_05_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_06_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -100,6 +100,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_05_000002) do
     t.bigint "reschedule_credit_id"
     t.integer "discount_cents", default: 0, null: false
     t.jsonb "pricing_breakdown", default: {}, null: false
+    t.integer "duration_minutes", null: false
     t.index ["booking_series_id"], name: "index_bookings_on_booking_series_id"
     t.index ["box_id", "start_at", "end_at"], name: "index_bookings_on_box_id_and_start_at_and_end_at"
     t.index ["box_id"], name: "index_bookings_on_box_id"
@@ -131,6 +132,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_05_000002) do
     t.integer "capacity"
     t.string "dimensions"
     t.jsonb "equipment", default: [], null: false
+    t.integer "slot_duration_minutes", default: 60, null: false
+    t.integer "minimum_slots", default: 1, null: false
     t.index ["box_type"], name: "index_boxes_on_box_type"
     t.index ["city"], name: "index_boxes_on_city"
     t.index ["commune"], name: "index_boxes_on_commune"
@@ -296,6 +299,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_05_000002) do
     t.index ["key"], name: "index_site_settings_on_key", unique: true
   end
 
+  create_table "slot_rates", force: :cascade do |t|
+    t.bigint "space_id", null: false
+    t.string "name", null: false
+    t.time "start_time", null: false
+    t.time "end_time", null: false
+    t.integer "price_per_slot_cents", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["space_id", "position"], name: "index_slot_rates_on_space_id_and_position"
+    t.index ["space_id"], name: "index_slot_rates_on_space_id"
+  end
+
   create_table "testimonials", force: :cascade do |t|
     t.bigint "box_id", null: false
     t.bigint "profesional_id", null: false
@@ -356,6 +372,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_05_000002) do
   add_foreign_key "reschedule_credits", "bookings", column: "applied_booking_id"
   add_foreign_key "reschedule_credits", "bookings", column: "source_booking_id"
   add_foreign_key "reschedule_credits", "users"
+  add_foreign_key "slot_rates", "boxes", column: "space_id"
   add_foreign_key "testimonials", "bookings"
   add_foreign_key "testimonials", "boxes"
   add_foreign_key "testimonials", "users", column: "profesional_id"
