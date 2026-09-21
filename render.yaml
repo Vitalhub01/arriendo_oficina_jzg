@@ -23,7 +23,7 @@ services:
       - key: MERCADOPAGO_WEBHOOK_SECRET
         sync: false
       - key: APP_HOST
-        value: rentabox.onrender.com
+        value: arriendo-oficina-jzg.onrender.com
       - key: ACTIVE_STORAGE_SERVICE
         value: amazon
       - key: AWS_ACCESS_KEY_ID
