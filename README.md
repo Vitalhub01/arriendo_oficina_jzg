@@ -15,6 +15,8 @@ bin/rails db:prepare db:seed
 bin/dev
 ```
 
+PostgreSQL del proyecto se expone en el host en el puerto **5433** (5432 suele estar ocupado por otros contenedores). Rails en local usa ese puerto por defecto; dentro de Docker Compose se conecta al servicio `db` en el puerto interno 5432.
+
 ## Usuarios demo (seeds)
 
 | Rol | Email | Contraseña |
