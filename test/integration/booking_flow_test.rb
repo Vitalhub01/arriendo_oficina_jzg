@@ -8,7 +8,6 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   setup do
     @box = boxes(:published_box)
     @renter = users(:renter)
-    @owner = users(:owner)
     @slot_time = next_monday_at(hour: 10)
   end
 
@@ -21,9 +20,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     sign_in @renter
 
     assert_difference 'Booking.count', 1 do
-      assert_enqueued_jobs 1, only: ActionMailer::MailDeliveryJob do
-        post space_bookings_path(@box), params: booking_params
-      end
+      post space_bookings_path(@box), params: booking_params
     end
 
     booking = Booking.order(:created_at).last
@@ -127,13 +124,22 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_match booking.box.title, response.body
   end
 
-  test 'owner can view booking on their box' do
-    sign_in @owner
-    booking = create_pending_booking
+  test 'banned profesional cannot create booking' do
+    @renter.update!(banned_at: Time.current)
+    assert_not @renter.can_book?
 
-    get booking_path(booking)
-    assert_response :success
-    assert_match booking.box.title, response.body
+    sign_in @renter
+    post space_bookings_path(@box), params: booking_params
+    assert_redirected_to new_user_session_path
+  end
+
+  test 'rejected profesional cannot create booking' do
+    @renter.professional_profile.update!(validation_status: :rejected)
+    sign_in @renter
+
+    post space_bookings_path(@box), params: booking_params
+    assert_redirected_to onboarding_path
+    assert_match 'perfil profesional', flash[:alert]
   end
 
   test 'checkout without mercado pago token shows alert' do

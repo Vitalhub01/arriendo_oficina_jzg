@@ -74,6 +74,8 @@ es:
       short: "%d/%m %H:%M"
       long: "%A %d de %B %H:%M"
   devise:
+    failure:
+      banned: "Tu cuenta está suspendida. Contacta al administrador."
     sessions:
       signed_in: "Sesión iniciada."
       signed_out: "Sesión cerrada."

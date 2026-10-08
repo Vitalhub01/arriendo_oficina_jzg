@@ -37,7 +37,7 @@ Rails.application.routes.draw do
 
   namespace :admin do
     root to: 'dashboard#index'
-    resource :office, only: %i[edit update]
+    resource :office, only: %i[edit update], controller: 'office'
     resources :spaces do
       resource :availability, only: [:show], controller: 'spaces/availabilities'
       resources :slot_rates, controller: 'spaces/slot_rates', except: [:show]

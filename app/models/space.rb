@@ -35,6 +35,7 @@ class Space < ApplicationRecord
   validate :coordinates_required_for_publish, if: :published?
 
   scope :published_spaces, -> { where(status: :published) }
+  scope :published_boxes, -> { published_spaces }
   scope :by_city, ->(city) { where('LOWER(city) = ?', city.to_s.downcase) if city.present? }
   scope :by_commune, ->(commune) { where('LOWER(commune) = ?', commune.to_s.downcase) if commune.present? }
   scope :by_type, ->(type) { where(box_type: type) if type.present? && box_types.key?(type) }

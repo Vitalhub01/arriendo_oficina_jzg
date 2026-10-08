@@ -39,8 +39,14 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = ENV.fetch('ACTIVE_STORAGE_SERVICE', 'local').to_sym
+  # Store uploaded files (see config/storage.yml). Default: Supabase Storage (S3-compatible).
+  config.active_storage.service = ENV.fetch('ACTIVE_STORAGE_SERVICE', 'supabase').to_sym
+  config.active_storage.variant_processor = :vips
+
+  config.action_controller.default_url_options = {
+    host: ENV.fetch('APP_HOST', 'arriendodebox.cl'),
+    protocol: 'https'
+  }
 
   config.force_ssl = true
 

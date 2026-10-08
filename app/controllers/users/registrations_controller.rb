@@ -29,7 +29,7 @@ module Users
     protected
 
     def build_resource(hash = {})
-      super(hash).tap do |user|
+      super(hash.except(:rut, 'rut')).tap do |user|
         user.role = :profesional
       end
     end

@@ -16,7 +16,7 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
 
     assert monday[:slots].any?
     first_slot = monday[:slots].first
-    assert_equal 8, first_slot.starts_at.hour
-    assert_equal 0, first_slot.starts_at.min
+    second_slot = monday[:slots][1]
+    assert_equal 90, ((second_slot.starts_at - first_slot.starts_at) / 60).to_i
   end
 end

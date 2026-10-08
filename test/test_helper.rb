@@ -20,7 +20,7 @@ module ActiveSupport
   class TestCase
     include IntegrationHelpers
 
-    parallelize(workers: :number_of_processors)
+    parallelize(workers: 1)
 
     set_fixture_class boxes: Space
     fixtures :all

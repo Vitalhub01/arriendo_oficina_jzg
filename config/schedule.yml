@@ -18,6 +18,7 @@ expire_memberships:
   class: "Memberships::ExpireJob"
   queue: default
 
+payment_expiry_reminder:
   cron: "*/15 * * * *"
   class: "Bookings::PaymentExpiryReminderJob"
   queue: mailers

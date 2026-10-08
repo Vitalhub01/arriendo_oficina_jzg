@@ -3,12 +3,15 @@
 require 'test_helper'
 
 class BookingPolicyTest < ActiveSupport::TestCase
+  include IntegrationHelpers
+
   setup do
+    start_at = next_monday_at(hour: 10)
     @booking = Booking.create!(
       space: boxes(:published_box),
       profesional: users(:renter),
-      start_at: 2.days.from_now.change(hour: 10),
-      end_at: 2.days.from_now.change(hour: 12),
+      start_at: start_at,
+      end_at: start_at + 2.hours,
       hours: 2,
       duration_minutes: 120,
       total_amount_cents: boxes(:published_box).default_price_per_slot_cents * 2,
@@ -23,8 +26,8 @@ class BookingPolicyTest < ActiveSupport::TestCase
     assert policy.cancel?
   end
 
-  test 'owner can cancel booking on their box' do
-    policy = BookingPolicy.new(users(:owner), @booking)
+  test 'admin can cancel booking' do
+    policy = BookingPolicy.new(users(:admin), @booking)
     assert policy.cancel?
   end
 end

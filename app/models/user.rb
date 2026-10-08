@@ -33,9 +33,22 @@ class User < ApplicationRecord
     memberships.current.exists?
   end
 
+  def banned?
+    banned_at.present?
+  end
+
   def can_book?
     return true if admin?
+    return false if banned?
 
     professional_profile&.verified? && professional_profile&.onboarding_completed?
+  end
+
+  def active_for_authentication?
+    super && !banned?
+  end
+
+  def inactive_message
+    banned? ? :banned : super
   end
 end

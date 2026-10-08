@@ -5,6 +5,7 @@ class Booking < ApplicationRecord
 
   belongs_to :space, class_name: 'Space', foreign_key: :box_id, inverse_of: :bookings
   belongs_to :profesional, class_name: 'User', foreign_key: :renter_id, inverse_of: :bookings
+  alias_attribute :profesional_id, :renter_id
   belongs_to :booking_series, optional: true
   belongs_to :jornada_definition, optional: true
   belongs_to :reschedule_credit, optional: true

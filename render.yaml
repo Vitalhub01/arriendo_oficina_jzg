@@ -25,14 +25,16 @@ services:
       - key: APP_HOST
         value: arriendo-oficina-jzg.onrender.com
       - key: ACTIVE_STORAGE_SERVICE
-        value: amazon
-      - key: AWS_ACCESS_KEY_ID
+        value: supabase
+      - key: SUPABASE_PROJECT_REF
         sync: false
-      - key: AWS_SECRET_ACCESS_KEY
+      - key: SUPABASE_S3_ACCESS_KEY_ID
         sync: false
-      - key: AWS_BUCKET
+      - key: SUPABASE_S3_SECRET_ACCESS_KEY
         sync: false
-      - key: AWS_REGION
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: SUPABASE_S3_REGION
         value: us-east-1
 
   - type: worker
@@ -55,6 +57,18 @@ services:
           type: redis
           name: rentabox-redis
           property: connectionString
+      - key: ACTIVE_STORAGE_SERVICE
+        value: supabase
+      - key: SUPABASE_PROJECT_REF
+        sync: false
+      - key: SUPABASE_S3_ACCESS_KEY_ID
+        sync: false
+      - key: SUPABASE_S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: SUPABASE_S3_REGION
+        value: us-east-1
 
   - type: redis
     name: rentabox-redis

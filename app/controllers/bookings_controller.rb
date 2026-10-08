@@ -101,7 +101,11 @@ class BookingsController < ApplicationController
   def require_can_book!
     return if current_user.can_book?
 
-    redirect_to onboarding_path, alert: 'Completa tu perfil profesional para reservar'
+    if current_user.banned?
+      redirect_to root_path, alert: 'Tu cuenta está suspendida. Contacta al administrador.'
+    else
+      redirect_to onboarding_path, alert: 'Completa tu perfil profesional para reservar'
+    end
   end
 
   def set_booking
