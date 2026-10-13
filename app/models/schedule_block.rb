@@ -40,12 +40,22 @@ class ScheduleBlock < ApplicationRecord
     Money.new(price_cents_on(date), 'CLP').format(no_cents_if_whole: true)
   end
 
+  def start_time_on(date)
+    override_for(date)&.start_time.presence || start_time
+  end
+
+  def end_time_on(date)
+    override_for(date)&.end_time.presence || end_time
+  end
+
   def starts_at_on(date)
-    Time.zone.local(date.year, date.month, date.day, start_time.hour, start_time.min, start_time.sec)
+    t = start_time_on(date)
+    Time.zone.local(date.year, date.month, date.day, t.hour, t.min, t.sec)
   end
 
   def ends_at_on(date)
-    Time.zone.local(date.year, date.month, date.day, end_time.hour, end_time.min, end_time.sec)
+    t = end_time_on(date)
+    Time.zone.local(date.year, date.month, date.day, t.hour, t.min, t.sec)
   end
 
   def overlaps?(other)

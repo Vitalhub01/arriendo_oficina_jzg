@@ -51,13 +51,14 @@ module Admin
         if params[:blocked] == '1' || params[:blocked] == true
           override.blocked = true
           override.price_cents = nil
+          override.start_time = nil
+          override.end_time = nil
           override.reason = params[:reason]
-        elsif params[:price_clp].present?
+        elsif date_override_payload?
           override.blocked = false
-          override.price_cents = (params[:price_clp].to_f * 100).round
-          override.reason = nil
+          apply_date_override_fields!(override)
         else
-          return respond_with_errors(['Indica precio o bloqueo'])
+          return respond_with_errors(['Indica precio, horario o bloqueo'])
         end
 
         if override.save
@@ -121,9 +122,24 @@ module Admin
           :day_of_week, :start_time, :end_time, :name, :position, :price_clp, :price_cents
         )
         if raw[:price_clp].present?
-          raw[:price_cents] = (raw.delete(:price_clp).to_f * 100).round
+          raw[:price_cents] = raw.delete(:price_clp).to_f.round
         end
         raw
+      end
+
+      def date_override_payload?
+        params[:price_clp].present? || params[:start_time].present? || params[:end_time].present?
+      end
+
+      def apply_date_override_fields!(override)
+        if params[:price_clp].present?
+          override.price_cents = params[:price_clp].to_f.round
+        end
+        if params[:start_time].present? && params[:end_time].present?
+          override.start_time = params[:start_time]
+          override.end_time = params[:end_time]
+        end
+        override.reason = nil
       end
 
       def respond_with_block(notice, json_status = :ok)
@@ -147,7 +163,7 @@ module Admin
           start_time: block.start_time.strftime('%H:%M'),
           end_time: block.end_time.strftime('%H:%M'),
           price_cents: block.price_cents,
-          price_clp: block.price_cents / 100.0,
+          price_clp: block.price_cents,
           name: block.name,
           position: block.position,
           duration_minutes: block.duration_minutes
@@ -160,7 +176,9 @@ module Admin
           date: override.date.iso8601,
           blocked: override.blocked,
           price_cents: override.price_cents,
-          price_clp: override.price_cents ? override.price_cents / 100.0 : nil
+          price_clp: override.price_cents,
+          start_time: override.start_time&.strftime('%H:%M'),
+          end_time: override.end_time&.strftime('%H:%M')
         }
       end
     end

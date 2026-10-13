@@ -9,7 +9,7 @@
     start_time: b.start_time.strftime('%H:%M'),
     end_time: b.end_time.strftime('%H:%M'),
     price_cents: b.price_cents,
-    price_clp: b.price_cents / 100.0,
+    price_clp: b.price_cents,
     name: b.name,
     duration_minutes: b.duration_minutes
   }
@@ -20,7 +20,9 @@
     date: o.date.iso8601,
     blocked: o.blocked,
     price_cents: o.price_cents,
-    price_clp: o.price_cents ? o.price_cents / 100.0 : nil
+    price_clp: o.price_cents,
+    start_time: o.start_time&.strftime('%H:%M'),
+    end_time: o.end_time&.strftime('%H:%M')
   }
 }.to_json %>
 
@@ -87,18 +89,20 @@
           <% @schedule_blocks.select { |b| b.day_of_week == day }.each do |block| %>
             <% override = @overrides[[block.id, date]] %>
             <% blocked = override&.blocked? %>
-            <% start_m = block.start_time.hour * 60 + block.start_time.min %>
-            <% end_m = block.end_time.hour * 60 + block.end_time.min %>
+            <% eff_start = override&.start_time || block.start_time %>
+            <% eff_end = override&.end_time || block.end_time %>
+            <% start_m = eff_start.hour * 60 + eff_start.min %>
+            <% end_m = eff_end.hour * 60 + eff_end.min %>
             <% top = ((start_m - calendar_start_hour * 60).to_f / calendar_minutes * 100) %>
             <% height = ((end_m - start_m).to_f / calendar_minutes * 100) %>
             <% price_label = blocked ? 'Bloqueado' : (override&.price_cents ? block.formatted_price_on(date) : block.formatted_price) %>
             <button type="button"
-                    class="absolute left-0.5 right-0.5 overflow-hidden rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight transition hover:ring-2 hover:ring-brand/40 <%= blocked ? 'border-red-200 bg-red-50 text-red-800 line-through' : 'border-brand/30 bg-brand/10 text-gray-900 hover:bg-brand/20' %> <%= 'ring-2 ring-amber-300' if override&.price_cents.present? && !blocked %>"
+                    class="absolute left-0.5 right-0.5 overflow-hidden rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight transition hover:ring-2 hover:ring-brand/40 <%= blocked ? 'border-red-200 bg-red-50 text-red-800 line-through' : 'border-brand/30 bg-brand/10 text-gray-900 hover:bg-brand/20' %> <%= 'ring-2 ring-amber-300' if !blocked && (override&.price_cents.present? || override&.start_time.present?) %>"
                     style="top: <%= top %>%; height: <%= [height, 3].max %>%; min-height: 28px;"
                     data-action="click->admin-schedule#openEdit"
                     data-block-id="<%= block.id %>"
                     data-date="<%= date.iso8601 %>">
-              <span class="font-semibold"><%= block.start_time.strftime('%H:%M') %>–<%= block.end_time.strftime('%H:%M') %></span>
+              <span class="font-semibold"><%= eff_start.strftime('%H:%M') %>–<%= eff_end.strftime('%H:%M') %></span>
               <span class="block truncate"><%= price_label %></span>
               <% unless blocked %>
                 <span class="block text-gray-500"><%= block.duration_minutes %> min</span>
@@ -172,12 +176,23 @@
                class="hidden">
         <p class="text-xs text-gray-600">Cambios solo para el día seleccionado en el calendario.</p>
         <input type="hidden" data-admin-schedule-target="occurrenceDate" value="">
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium">Inicio (solo este día)</label>
+            <input type="time" data-admin-schedule-target="dateStartTime" class="input-field mt-1 w-full">
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Fin (solo este día)</label>
+            <input type="time" data-admin-schedule-target="dateEndTime" class="input-field mt-1 w-full">
+          </div>
+        </div>
+        <p class="mt-1 text-xs text-gray-500" data-admin-schedule-target="dateTimeHint"></p>
         <div class="mt-4">
           <label class="block text-sm font-medium">Precio especial (CLP)</label>
-          <input type="number" data-admin-schedule-target="datePriceClp" class="input-field mt-1 w-full" min="1" step="1" placeholder="Ej: 12000">
+          <input type="number" data-admin-schedule-target="datePriceClp" class="input-field mt-1 w-full" min="1" step="1" placeholder="Opcional — deja vacío para usar plantilla">
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
-          <button type="button" class="btn-primary text-sm" data-action="admin-schedule#saveDatePrice">Guardar precio del día</button>
+          <button type="button" class="btn-primary text-sm" data-action="admin-schedule#saveDateOverride">Guardar cambios del día</button>
           <button type="button" class="btn-secondary text-sm" data-action="admin-schedule#blockDate">Bloquear este horario</button>
           <button type="button" class="text-sm text-gray-600 hover:underline" data-action="admin-schedule#clearDateOverride">Restaurar plantilla</button>
         </div>

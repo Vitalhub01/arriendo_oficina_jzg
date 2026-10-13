@@ -4,7 +4,8 @@ export default class extends Controller {
   static targets = [
     "dialog", "form", "blockId", "dayOfWeek", "name", "startTime", "endTime",
     "priceClp", "durationHint", "deleteButton", "error", "toast", "dialogTitle",
-    "dialogSubtitle", "occurrenceDate", "datePriceClp", "dateStatus",
+    "dialogSubtitle", "occurrenceDate", "datePriceClp", "dateStartTime", "dateEndTime",
+    "dateTimeHint", "dateStatus",
     "tabBar", "tabDate", "tabTemplate", "panelDate", "panelTemplate"
   ]
   static values = {
@@ -40,7 +41,7 @@ export default class extends Controller {
     this.nameTarget.value = ""
     this.startTimeTarget.value = "09:00"
     this.endTimeTarget.value = this.minutesToTime(9 * 60 + this.slotDurationValue)
-    this.priceClpTarget.value = Math.round(this.defaultPriceValue / 100)
+    this.priceClpTarget.value = Math.round(this.defaultPriceValue)
     this.deleteButtonTarget.classList.add("hidden")
     this.dialogTitleTarget.textContent = `Nuevo bloque — ${this.dayName(day)}`
     this.dialogSubtitleTarget.textContent = date ? this.formatDateLabel(date) : ""
@@ -65,7 +66,7 @@ export default class extends Controller {
     this.nameTarget.value = block.name || ""
     this.startTimeTarget.value = block.start_time
     this.endTimeTarget.value = block.end_time
-    this.priceClpTarget.value = Math.round(block.price_clp)
+    this.priceClpTarget.value = block.price_clp ?? block.price_cents
     this.deleteButtonTarget.classList.remove("hidden")
 
     const dayLabel = this.dayName(block.day_of_week)
@@ -130,15 +131,35 @@ export default class extends Controller {
     this.occurrenceDateTarget.value = date
     const override = this.findOverride(blockId, date)
 
+    const templateStart = block.start_time
+    const templateEnd = block.end_time
+    const start = override?.start_time || templateStart
+    const end = override?.end_time || templateEnd
+
+    this.dateStartTimeTarget.value = start
+    this.dateEndTimeTarget.value = end
+    this.updateDateTimeHint(block, override)
+
     if (override?.blocked) {
       this.dateStatusTarget.textContent = "Este horario está bloqueado en esta fecha."
       this.datePriceClpTarget.value = ""
-    } else if (override?.price_clp) {
-      this.dateStatusTarget.textContent = `Precio especial: ${this.formatCLP(override.price_cents)}`
-      this.datePriceClpTarget.value = Math.round(override.price_clp)
+    } else if (override?.price_clp || override?.price_cents) {
+      const price = override.price_clp ?? override.price_cents
+      this.dateStatusTarget.textContent = `Precio especial: ${this.formatCLP(price)}`
+      this.datePriceClpTarget.value = Math.round(price)
     } else {
-      this.dateStatusTarget.textContent = `Usa plantilla: ${this.formatCLP(block.price_cents)}`
+      this.dateStatusTarget.textContent = `Precio de plantilla: ${this.formatCLP(block.price_cents)}`
       this.datePriceClpTarget.value = ""
+    }
+  }
+
+  updateDateTimeHint(block, override) {
+    const customTimes = override?.start_time || override?.end_time
+    const templateLabel = `${block.start_time} – ${block.end_time}`
+    if (customTimes) {
+      this.dateTimeHintTarget.textContent = `Plantilla semanal: ${templateLabel}. Ajusta arriba solo para este día.`
+    } else {
+      this.dateTimeHintTarget.textContent = `Igual que plantilla (${templateLabel}). Cambia inicio/fin si necesitas otra ventana solo hoy.`
     }
   }
 
@@ -244,19 +265,38 @@ export default class extends Controller {
       .sort((a, b) => this.parseTime(a.start_time) - this.parseTime(b.start_time))
   }
 
-  async saveDatePrice() {
+  async saveDateOverride() {
     const id = this.blockIdTarget.value
     const date = this.occurrenceDateTarget.value
-    const price = this.datePriceClpTarget.value
-    if (!id || !date || !price) {
-      this.showError(["Ingresa un precio para esta fecha"])
+    if (!id || !date) return
+
+    const block = this.blocksValue.find((b) => String(b.id) === String(id))
+    const price = this.datePriceClpTarget.value.trim()
+    const startTime = this.dateStartTimeTarget.value
+    const endTime = this.dateEndTimeTarget.value
+    const timesChanged = block && (startTime !== block.start_time || endTime !== block.end_time)
+
+    if (!price && !timesChanged) {
+      this.showError(["Indica un precio especial o cambia el horario para este día"])
       return
+    }
+
+    if (startTime && endTime && this.parseTime(endTime) <= this.parseTime(startTime)) {
+      this.showError(["La hora de fin debe ser posterior al inicio"])
+      return
+    }
+
+    const payload = { date, week_start: this.weekStartValue }
+    if (price) payload.price_clp = price
+    if (timesChanged) {
+      payload.start_time = startTime
+      payload.end_time = endTime
     }
 
     const response = await this.jsonRequest(
       `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${id}/override`,
       "POST",
-      { date, price_clp: price, week_start: this.weekStartValue }
+      payload
     )
 
     if (response.ok) {
@@ -333,12 +373,19 @@ export default class extends Controller {
       return { ok: true }
     }
 
-    let errors = ["Error al guardar"]
+    const bodyText = await response.text()
+    let errors = [`Error al guardar (${response.status})`]
     try {
-      const data = await response.json()
-      errors = data.errors || errors
+      const data = JSON.parse(bodyText)
+      if (data.errors?.length) {
+        errors = data.errors
+      } else if (data.error) {
+        errors = [data.error]
+      } else if (data.message) {
+        errors = [data.message]
+      }
     } catch (_e) {
-      /* ignore */
+      if (bodyText && bodyText.length < 280) errors = [bodyText]
     }
     return { ok: false, errors }
   }
