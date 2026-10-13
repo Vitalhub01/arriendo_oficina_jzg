@@ -10,3 +10,4 @@ pin '@rails/actioncable/src', to: '@rails--actioncable--src.js' # @8.1.300
 
 pin 'controllers', to: 'controllers/index.js', preload: true
 pin_all_from 'app/javascript/controllers', under: 'controllers'
+pin "leaflet" # @1.9.4
