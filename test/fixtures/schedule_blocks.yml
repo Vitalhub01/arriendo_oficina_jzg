@@ -1,0 +1,360 @@
+published_d0_h9:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 10:00:00"
+  price_cents: 15000
+  position: 0
+
+published_d0_h10:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 10:00:00"
+  end_time: "2000-01-01 11:00:00"
+  price_cents: 15000
+  position: 1
+
+published_d0_h11:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 11:00:00"
+  end_time: "2000-01-01 12:00:00"
+  price_cents: 15000
+  position: 2
+
+published_d0_h12:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 12:00:00"
+  end_time: "2000-01-01 13:00:00"
+  price_cents: 15000
+  position: 3
+
+published_d0_h13:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 13:00:00"
+  end_time: "2000-01-01 14:00:00"
+  price_cents: 15000
+  position: 4
+
+published_d0_h14:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 14:00:00"
+  end_time: "2000-01-01 15:00:00"
+  price_cents: 15000
+  position: 5
+
+published_d0_h15:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 15:00:00"
+  end_time: "2000-01-01 16:00:00"
+  price_cents: 15000
+  position: 6
+
+published_d0_h16:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 16:00:00"
+  end_time: "2000-01-01 17:00:00"
+  price_cents: 15000
+  position: 7
+
+published_d0_h17:
+  space: published_box
+  day_of_week: 0
+  start_time: "2000-01-01 17:00:00"
+  end_time: "2000-01-01 18:00:00"
+  price_cents: 15000
+  position: 8
+
+published_d1_h9:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 10:00:00"
+  price_cents: 15000
+  position: 0
+
+published_d1_h10:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 10:00:00"
+  end_time: "2000-01-01 11:00:00"
+  price_cents: 15000
+  position: 1
+
+published_d1_h11:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 11:00:00"
+  end_time: "2000-01-01 12:00:00"
+  price_cents: 15000
+  position: 2
+
+published_d1_h12:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 12:00:00"
+  end_time: "2000-01-01 13:00:00"
+  price_cents: 15000
+  position: 3
+
+published_d1_h13:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 13:00:00"
+  end_time: "2000-01-01 14:00:00"
+  price_cents: 15000
+  position: 4
+
+published_d1_h14:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 14:00:00"
+  end_time: "2000-01-01 15:00:00"
+  price_cents: 15000
+  position: 5
+
+published_d1_h15:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 15:00:00"
+  end_time: "2000-01-01 16:00:00"
+  price_cents: 15000
+  position: 6
+
+published_d1_h16:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 16:00:00"
+  end_time: "2000-01-01 17:00:00"
+  price_cents: 15000
+  position: 7
+
+published_d1_h17:
+  space: published_box
+  day_of_week: 1
+  start_time: "2000-01-01 17:00:00"
+  end_time: "2000-01-01 18:00:00"
+  price_cents: 15000
+  position: 8
+
+published_d2_h9:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 10:00:00"
+  price_cents: 15000
+  position: 0
+
+published_d2_h10:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 10:00:00"
+  end_time: "2000-01-01 11:00:00"
+  price_cents: 15000
+  position: 1
+
+published_d2_h11:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 11:00:00"
+  end_time: "2000-01-01 12:00:00"
+  price_cents: 15000
+  position: 2
+
+published_d2_h12:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 12:00:00"
+  end_time: "2000-01-01 13:00:00"
+  price_cents: 15000
+  position: 3
+
+published_d2_h13:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 13:00:00"
+  end_time: "2000-01-01 14:00:00"
+  price_cents: 15000
+  position: 4
+
+published_d2_h14:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 14:00:00"
+  end_time: "2000-01-01 15:00:00"
+  price_cents: 15000
+  position: 5
+
+published_d2_h15:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 15:00:00"
+  end_time: "2000-01-01 16:00:00"
+  price_cents: 15000
+  position: 6
+
+published_d2_h16:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 16:00:00"
+  end_time: "2000-01-01 17:00:00"
+  price_cents: 15000
+  position: 7
+
+published_d2_h17:
+  space: published_box
+  day_of_week: 2
+  start_time: "2000-01-01 17:00:00"
+  end_time: "2000-01-01 18:00:00"
+  price_cents: 15000
+  position: 8
+
+published_d3_h9:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 10:00:00"
+  price_cents: 15000
+  position: 0
+
+published_d3_h10:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 10:00:00"
+  end_time: "2000-01-01 11:00:00"
+  price_cents: 15000
+  position: 1
+
+published_d3_h11:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 11:00:00"
+  end_time: "2000-01-01 12:00:00"
+  price_cents: 15000
+  position: 2
+
+published_d3_h12:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 12:00:00"
+  end_time: "2000-01-01 13:00:00"
+  price_cents: 15000
+  position: 3
+
+published_d3_h13:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 13:00:00"
+  end_time: "2000-01-01 14:00:00"
+  price_cents: 15000
+  position: 4
+
+published_d3_h14:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 14:00:00"
+  end_time: "2000-01-01 15:00:00"
+  price_cents: 15000
+  position: 5
+
+published_d3_h15:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 15:00:00"
+  end_time: "2000-01-01 16:00:00"
+  price_cents: 15000
+  position: 6
+
+published_d3_h16:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 16:00:00"
+  end_time: "2000-01-01 17:00:00"
+  price_cents: 15000
+  position: 7
+
+published_d3_h17:
+  space: published_box
+  day_of_week: 3
+  start_time: "2000-01-01 17:00:00"
+  end_time: "2000-01-01 18:00:00"
+  price_cents: 15000
+  position: 8
+
+published_d4_h9:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 09:00:00"
+  end_time: "2000-01-01 10:00:00"
+  price_cents: 15000
+  position: 0
+
+published_d4_h10:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 10:00:00"
+  end_time: "2000-01-01 11:00:00"
+  price_cents: 15000
+  position: 1
+
+published_d4_h11:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 11:00:00"
+  end_time: "2000-01-01 12:00:00"
+  price_cents: 15000
+  position: 2
+
+published_d4_h12:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 12:00:00"
+  end_time: "2000-01-01 13:00:00"
+  price_cents: 15000
+  position: 3
+
+published_d4_h13:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 13:00:00"
+  end_time: "2000-01-01 14:00:00"
+  price_cents: 15000
+  position: 4
+
+published_d4_h14:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 14:00:00"
+  end_time: "2000-01-01 15:00:00"
+  price_cents: 15000
+  position: 5
+
+published_d4_h15:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 15:00:00"
+  end_time: "2000-01-01 16:00:00"
+  price_cents: 15000
+  position: 6
+
+published_d4_h16:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 16:00:00"
+  end_time: "2000-01-01 17:00:00"
+  price_cents: 15000
+  position: 7
+
+published_d4_h17:
+  space: published_box
+  day_of_week: 4
+  start_time: "2000-01-01 17:00:00"
+  end_time: "2000-01-01 18:00:00"
+  price_cents: 15000
+  position: 8
+

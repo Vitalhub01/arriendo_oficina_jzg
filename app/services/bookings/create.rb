@@ -11,12 +11,13 @@ module Bookings
     def call
       slot_count = resolve_slot_count
       start_at, end_at = parse_times(slot_count)
+      duration_minutes = ((end_at - start_at) / 60).to_i
 
       booking = @space.bookings.build(
         profesional: @profesional,
         start_at: start_at,
         end_at: end_at,
-        duration_minutes: slot_count * @space.slot_duration_minutes,
+        duration_minutes: duration_minutes,
         booking_type: :slot_based,
         reschedule_credit: find_reschedule_credit
       )
@@ -52,8 +53,14 @@ module Bookings
       date = Date.parse(@params[:date].to_s)
       hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
       start_at = Time.zone.local(date.year, date.month, date.day, hour, min)
-      end_at = start_at + (slot_count * @space.slot_duration_minutes).minutes
 
+      blocks = ScheduleBlockResolver.consecutive_blocks_from(@space, start_at, slot_count)
+      if blocks.any?
+        end_at = blocks.last.ends_at_on(date)
+        return [start_at, end_at]
+      end
+
+      end_at = start_at + (slot_count * @space.slot_duration_minutes).minutes
       [start_at, end_at]
     end
 

@@ -5,7 +5,9 @@ module Admin
     class AvailabilitiesController < Admin::BaseController
       before_action :set_space
 
-      def show; end
+      def show
+        redirect_to admin_space_schedule_blocks_path(@space)
+      end
 
       private
 

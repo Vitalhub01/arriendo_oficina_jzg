@@ -34,11 +34,29 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     sign_in @admin
 
     patch admin_space_path(@published), params: { space: { status: 'suspended' } }
-    assert_redirected_to admin_space_path(@published)
+    assert_redirected_to edit_admin_space_path(@published)
     assert @published.reload.suspended?
 
     get spaces_path
     assert_no_match @published.title, response.body
+  end
+
+  test 'admin creates schedule block for space' do
+    sign_in @admin
+
+    assert_difference -> { @published.schedule_blocks.count }, 1 do
+      post admin_space_schedule_blocks_path(@published), params: {
+        schedule_block: {
+          day_of_week: 5,
+          start_time: '10:00',
+          end_time: '10:30',
+          price_clp: 8000,
+          name: 'Sábado corto'
+        }
+      }
+    end
+
+    assert_redirected_to admin_space_schedule_blocks_path(@published)
   end
 
   test 'admin creates slot rate for space' do
@@ -143,7 +161,7 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
       }
     }
 
-    assert_redirected_to admin_space_path(space)
+    assert_redirected_to edit_admin_space_path(space)
     assert space.reload.photos.attached?
   end
 

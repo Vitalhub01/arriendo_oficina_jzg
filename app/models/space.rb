@@ -12,6 +12,8 @@ class Space < ApplicationRecord
   has_many :testimonials, foreign_key: :box_id, dependent: :destroy, inverse_of: :space
   has_many :jornada_definitions, dependent: :destroy, inverse_of: :space
   has_many :slot_rates, dependent: :destroy, inverse_of: :space
+  has_many :schedule_blocks, dependent: :destroy, inverse_of: :space
+  has_many :pricing_rules, dependent: :destroy, inverse_of: :space
   has_many_attached :photos
 
   enum :box_type, { clinical: 0, office: 1, workspace: 2 }
@@ -70,6 +72,20 @@ class Space < ApplicationRecord
   def price_per_slot_at(time)
     rate = slot_rates.ordered.find { |r| r.covers_time?(time) }
     rate&.price_per_slot_cents || default_price_per_slot_cents
+  end
+
+  def schedule_blocks_for_date(date)
+    day = (date.wday + 6) % 7
+    schedule_blocks.for_day(day).ordered
+  end
+
+  def price_for_interval(start_at, end_at)
+    blocks = ScheduleBlockResolver.blocks_for_exact_interval(self, start_at, end_at)
+    blocks.sum(&:price_cents)
+  end
+
+  def schedule_block_count_for_interval(start_at, end_at)
+    ScheduleBlockResolver.blocks_for_exact_interval(self, start_at, end_at).size
   end
 
   def slot_duration

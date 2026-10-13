@@ -5,13 +5,13 @@ module Admin
     before_action :set_pricing_rule, only: %i[show edit update destroy]
 
     def index
-      @pricing_rules = PricingRule.order(priority: :desc, created_at: :desc)
+      @pricing_rules = PricingRule.membership_discount.where(space_id: nil).order(priority: :desc, created_at: :desc)
     end
 
     def show; end
 
     def new
-      @pricing_rule = PricingRule.new
+      @pricing_rule = PricingRule.new(rule_type: :membership_discount)
     end
 
     def edit; end
@@ -28,7 +28,7 @@ module Admin
 
     def update
       if @pricing_rule.update(pricing_rule_params)
-        redirect_to admin_pricing_rule_path(@pricing_rule), notice: 'Regla de precio actualizada'
+        redirect_to edit_admin_pricing_rule_path(@pricing_rule), notice: 'Regla de precio actualizada'
       else
         render :edit, status: :unprocessable_content
       end

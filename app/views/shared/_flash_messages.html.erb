@@ -1,0 +1,17 @@
+<div id="flash-messages">
+  <% if notice %>
+    <div data-controller="flash" data-flash-dismiss-after-value="5000" role="status" class="mb-4 flex items-center justify-between gap-3 rounded-xl bg-green-50 p-3 text-green-800">
+      <span class="flex items-center gap-2">
+        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <%= notice %>
+      </span>
+      <button type="button" class="text-lg leading-none opacity-70 hover:opacity-100" data-action="flash#dismiss" aria-label="Cerrar">×</button>
+    </div>
+  <% end %>
+  <% if alert %>
+    <div data-controller="flash" data-flash-dismiss-after-value="8000" role="alert" class="mb-4 flex items-center justify-between gap-3 rounded-xl bg-red-50 p-3 text-red-800">
+      <span><%= alert %></span>
+      <button type="button" class="text-lg leading-none opacity-70 hover:opacity-100" data-action="flash#dismiss" aria-label="Cerrar">×</button>
+    </div>
+  <% end %>
+</div>

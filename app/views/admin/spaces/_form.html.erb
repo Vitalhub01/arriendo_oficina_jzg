@@ -1,13 +1,31 @@
-<h1 class="text-2xl font-bold"><%= @space.persisted? ? 'Editar espacio' : 'Nuevo espacio' %></h1>
+<% if @space.errors.any? %>
+  <div class="mb-4 rounded-xl bg-red-50 p-4 text-red-800">
+    <p class="font-medium">No se pudo guardar:</p>
+    <ul class="mt-2 list-disc pl-5 text-sm">
+      <% @space.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
 <%= form_with model: @space, url: @space.persisted? ? admin_space_path(@space) : admin_spaces_path, class: "mt-6 max-w-2xl space-y-4" do |f| %>
+  <% if @space.persisted? %>
+    <%= f.hidden_field :address %>
+    <%= f.hidden_field :commune %>
+    <%= f.hidden_field :city %>
+    <%= f.hidden_field :latitude %>
+    <%= f.hidden_field :longitude %>
+  <% end %>
   <%= f.label :title, class: "block text-sm font-medium" %>
   <%= f.text_field :title, class: "input-field" %>
   <%= f.label :description, class: "block text-sm font-medium" %>
   <%= f.text_area :description, rows: 4, class: "input-field" %>
   <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
   <%= f.collection_select :office_id, Office.all, :id, :name, {}, class: "input-field" %>
-  <%= f.label :price_per_hour_cents, "Precio por hora base (centavos)", class: "block text-sm font-medium" %>
-  <%= f.number_field :price_per_hour_cents, class: "input-field" %>
+  <%= f.label :price_per_hour_cents, "Precio por hora base (CLP)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_per_hour_cents, class: "input-field", min: 1, step: 1 %>
+  <p class="text-xs text-gray-500">Precio de referencia; los bloques del calendario tienen su propio precio por franja.</p>
   <%= f.label :slot_duration_minutes, "Duración de bloque (minutos)", class: "block text-sm font-medium" %>
   <%= f.number_field :slot_duration_minutes, class: "input-field", step: 30, min: 30 %>
   <p class="text-xs text-gray-500">Múltiplo de 30. Ej: 60 = 1 hora, 90 = 1h30.</p>

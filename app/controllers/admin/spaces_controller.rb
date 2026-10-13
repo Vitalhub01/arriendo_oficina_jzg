@@ -21,7 +21,7 @@ module Admin
       geocode_if_needed(@space)
 
       if @space.save
-        redirect_to admin_space_path(@space), notice: 'Espacio creado'
+        redirect_to edit_admin_space_path(@space), notice: 'Espacio creado'
       else
         render :new, status: :unprocessable_content
       end
@@ -32,7 +32,7 @@ module Admin
       geocode_if_needed(@space)
 
       if @space.save
-        redirect_to admin_space_path(@space), notice: 'Espacio actualizado'
+        redirect_to edit_admin_space_path(@space), notice: 'Espacio actualizado'
       else
         render :edit, status: :unprocessable_content
       end
@@ -50,13 +50,20 @@ module Admin
     end
 
     def space_params
-      params.expect(
-        space: [:title, :description, :address, :commune, :city, :office_id,
-                :latitude, :longitude, :box_type, :price_per_hour_cents,
-                :slot_duration_minutes, :minimum_slots,
-                :minimum_hours, :status, :capacity, :dimensions,
-                { amenities: {}, equipment: [], photos: [] }]
+      raw = params.require(:space).permit(
+        :title, :description, :address, :commune, :city, :office_id,
+        :latitude, :longitude, :box_type, :price_per_hour_cents,
+        :slot_duration_minutes, :minimum_slots,
+        :minimum_hours, :status, :capacity, :dimensions,
+        amenities: {}, equipment: [], photos: []
       )
+
+      photos = raw[:photos]
+      if photos.blank? || Array(photos).all?(&:blank?)
+        raw = raw.except(:photos)
+      end
+
+      raw
     end
 
     def geocode_if_needed(space)

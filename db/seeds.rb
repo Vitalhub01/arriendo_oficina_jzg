@@ -116,14 +116,42 @@ spaces_data = [
   end
 end
 
-PricingRule.find_or_create_by!(name: 'Descuento por volumen') do |r|
-  r.rule_type = :volume_discount
-  r.config = { 'min_slots' => 4, 'discount_percent' => 10 }
-  r.active = true
-  r.priority = 10
+Space.find_each do |space|
+  PricingRule.find_or_create_by!(name: 'Descuento por volumen', space_id: space.id) do |r|
+    r.rule_type = :volume_discount
+    r.config = { 'min_slots' => 4, 'discount_percent' => 10 }
+    r.active = true
+    r.priority = 10
+  end
+
+  next if space.schedule_blocks.exists?
+
+  (0..4).each do |d|
+    rule = AvailabilityRule.find_by(box_id: space.id, day_of_week: d)
+    next unless rule
+
+    slot_duration = space.slot_duration_minutes
+    current = rule.start_time
+    rule_end = rule.end_time
+    position = 0
+
+    while current + slot_duration.minutes <= rule_end
+      block_end = current + slot_duration.minutes
+      price = space.price_per_slot_at(Time.zone.local(2000, 1, 1, current.hour, current.min))
+
+      ScheduleBlock.find_or_create_by!(space: space, day_of_week: d, start_time: current) do |b|
+        b.end_time = block_end
+        b.price_cents = price
+        b.position = position
+      end
+
+      position += 1
+      current = block_end
+    end
+  end
 end
 
-PricingRule.find_or_create_by!(name: 'Descuento membresía') do |r|
+PricingRule.find_or_create_by!(name: 'Descuento membresía', space_id: nil) do |r|
   r.rule_type = :membership_discount
   r.config = { 'discount_percent' => 15 }
   r.active = true

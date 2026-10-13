@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_06_000005) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_07_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -257,6 +257,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_06_000005) do
     t.integer "priority", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "space_id"
+    t.index ["space_id"], name: "index_pricing_rules_on_space_id"
   end
 
   create_table "professional_profiles", force: :cascade do |t|
@@ -289,6 +291,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_06_000005) do
     t.index ["applied_booking_id"], name: "index_reschedule_credits_on_applied_booking_id"
     t.index ["source_booking_id"], name: "index_reschedule_credits_on_source_booking_id"
     t.index ["user_id"], name: "index_reschedule_credits_on_user_id"
+  end
+
+  create_table "schedule_blocks", force: :cascade do |t|
+    t.bigint "space_id", null: false
+    t.integer "day_of_week", null: false
+    t.time "start_time", null: false
+    t.time "end_time", null: false
+    t.integer "price_cents", null: false
+    t.string "name"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["space_id", "day_of_week", "position"], name: "index_schedule_blocks_on_space_id_and_day_of_week_and_position"
+    t.index ["space_id"], name: "index_schedule_blocks_on_space_id"
   end
 
   create_table "site_settings", force: :cascade do |t|
@@ -370,10 +386,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_06_000005) do
   add_foreign_key "payments", "bookings"
   add_foreign_key "payments", "memberships"
   add_foreign_key "payments", "users", column: "payer_id"
+  add_foreign_key "pricing_rules", "boxes", column: "space_id"
   add_foreign_key "professional_profiles", "users"
   add_foreign_key "reschedule_credits", "bookings", column: "applied_booking_id"
   add_foreign_key "reschedule_credits", "bookings", column: "source_booking_id"
   add_foreign_key "reschedule_credits", "users"
+  add_foreign_key "schedule_blocks", "boxes", column: "space_id"
   add_foreign_key "slot_rates", "boxes", column: "space_id"
   add_foreign_key "testimonials", "bookings"
   add_foreign_key "testimonials", "boxes"

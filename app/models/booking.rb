@@ -49,7 +49,12 @@ class Booking < ApplicationRecord
   end
 
   def slot_count
-    return 0 unless space && duration_minutes.to_i.positive?
+    return 0 unless space && start_at && end_at
+
+    count = space.schedule_block_count_for_interval(start_at, end_at)
+    return count if count.positive?
+
+    return 0 unless duration_minutes.to_i.positive?
 
     duration_minutes / space.slot_duration_minutes
   end
@@ -93,7 +98,8 @@ class Booking < ApplicationRecord
       space,
       profesional,
       start_at,
-      slot_count
+      slot_count,
+      end_at: end_at
     )
 
     self.total_amount_cents = result[:total_cents]

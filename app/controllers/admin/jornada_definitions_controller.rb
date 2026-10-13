@@ -28,7 +28,7 @@ module Admin
 
     def update
       if @jornada_definition.update(jornada_definition_params)
-        redirect_to admin_jornada_definition_path(@jornada_definition), notice: 'Jornada actualizada'
+        redirect_to edit_admin_jornada_definition_path(@jornada_definition), notice: 'Jornada actualizada'
       else
         render :edit, status: :unprocessable_content
       end

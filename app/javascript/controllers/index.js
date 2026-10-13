@@ -5,6 +5,8 @@ import GalleryController from "controllers/gallery_controller"
 import MapController from "controllers/map_controller"
 import MapIndexController from "controllers/map_index_controller"
 import SearchSheetController from "controllers/search_sheet_controller"
+import FlashController from "controllers/flash_controller"
+import AdminScheduleController from "controllers/admin_schedule_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -13,6 +15,8 @@ application.register("gallery", GalleryController)
 application.register("map", MapController)
 application.register("map-index", MapIndexController)
 application.register("search-sheet", SearchSheetController)
+application.register("flash", FlashController)
+application.register("admin-schedule", AdminScheduleController)
 window.Stimulus = application
 
 export { application }

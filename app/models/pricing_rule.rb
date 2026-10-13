@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PricingRule < ApplicationRecord
+  belongs_to :space, optional: true, inverse_of: :pricing_rules
+
   enum :rule_type, {
     volume_discount: 0,
     membership_discount: 1,
@@ -8,8 +10,17 @@ class PricingRule < ApplicationRecord
   }
 
   validates :name, :rule_type, presence: true
+  validate :volume_discount_requires_space
 
   scope :active_rules, -> { where(active: true).order(priority: :desc, created_at: :desc) }
+  scope :for_space, ->(space) { where(space_id: [nil, space.id]) }
+
+  def volume_discount_requires_space
+    return unless volume_discount?
+    return if space_id.present?
+
+    errors.add(:space_id, 'es obligatorio para descuentos por volumen')
+  end
 
   def apply(context)
     return empty_result unless active?

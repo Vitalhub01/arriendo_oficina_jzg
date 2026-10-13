@@ -40,6 +40,8 @@ Rails.application.routes.draw do
     resource :office, only: %i[edit update], controller: 'office'
     resources :spaces do
       resource :availability, only: [:show], controller: 'spaces/availabilities'
+      resources :schedule_blocks, controller: 'spaces/schedule_blocks', except: [:show]
+      resources :volume_pricing_rules, controller: 'spaces/volume_pricing_rules', only: %i[create update destroy]
       resources :slot_rates, controller: 'spaces/slot_rates', except: [:show]
       resources :availability_rules, controller: 'spaces/availability_rules', except: %i[show edit update]
       resources :availability_blocks, controller: 'spaces/availability_blocks', except: %i[show edit update]

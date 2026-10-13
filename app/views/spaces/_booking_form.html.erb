@@ -1,29 +1,29 @@
+<% blocks_by_day = space.schedule_blocks.ordered.group_by(&:day_of_week).transform_values do |blocks|
+  blocks.map do |b|
+    {
+      start: b.start_time.strftime('%H:%M'),
+      end: b.end_time.strftime('%H:%M'),
+      price: b.price_cents,
+      duration: b.duration_minutes
+    }
+  end
+end %>
 <div data-controller="booking-form"
-     data-booking-form-slot-duration-value="<%= space.slot_duration_minutes %>"
      data-booking-form-minimum-slots-value="<%= space.minimum_slots %>"
-     data-booking-form-default-price-value="<%= space.default_price_per_slot_cents %>"
-     data-booking-form-rates-value="<%= space.slot_rates.ordered.map { |r| { start: r.start_time.strftime('%H:%M'), end: r.end_time.strftime('%H:%M'), price: r.price_per_slot_cents } }.to_json %>">
-  <p class="text-2xl font-bold"><%= format_clp(space.default_price_per_slot_cents) %> <span class="text-base font-normal text-gray-500">/ bloque (<%= space.slot_duration_minutes %> min)</span></p>
-  <p class="mt-1 text-sm text-gray-500">Mínimo <%= space.minimum_slots %> bloque(s)</p>
-
-  <% if space.slot_rates.any? %>
-    <div class="mt-3 space-y-1 text-sm text-gray-600">
-      <% space.slot_rates.ordered.each do |rate| %>
-        <p><%= rate.name %>: <%= rate.start_time.strftime('%H:%M') %>–<%= rate.end_time.strftime('%H:%M') %> — <%= rate.formatted_price %>/bloque</p>
-      <% end %>
-    </div>
-  <% end %>
+     data-booking-form-blocks-by-day-value="<%= blocks_by_day.to_json %>">
+  <p class="text-2xl font-bold text-gray-900">Reserva por bloques</p>
+  <p class="mt-1 text-sm text-gray-500">Mínimo <%= space.minimum_slots %> bloque(s) contiguos según la agenda del espacio.</p>
 
   <% if user_signed_in? && current_user.can_book? %>
     <div class="mt-4">
       <%= form_with url: space_bookings_path(space), method: :post, local: true, class: "space-y-4" do %>
         <div>
           <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
-          <%= date_field_tag :date, @prefill_date || Date.current, class: "input-field", required: true %>
+          <%= date_field_tag :date, @prefill_date || Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#refreshStarts" } %>
         </div>
         <div>
           <%= label_tag :start_time, "Hora inicio", class: "mb-1 block text-sm font-medium" %>
-          <%= time_field_tag :start_time, @prefill_start_time || "09:00", class: "input-field", required: true, data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal input->booking-form#updateTotal" } %>
+          <%= select_tag :start_time, options_for_select([]), class: "input-field", required: true, data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal" } %>
         </div>
         <%= render "spaces/booking_slots_fields", space: space %>
         <% if current_user.reschedule_credits.usable.any? %>

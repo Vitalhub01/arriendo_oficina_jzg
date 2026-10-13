@@ -9,24 +9,32 @@ class PricingEngineTest < ActiveSupport::TestCase
     @start_at = next_monday_at(hour: 10)
   end
 
-  test 'calculates default price per slot' do
-    result = PricingEngine.calculate(@space, @user, @start_at, 2)
+  test 'calculates price from schedule blocks' do
+    result = PricingEngine.calculate(@space, @user, @start_at, 2, end_at: @start_at + 2.hours)
 
-    assert_equal @space.default_price_per_slot_cents * 2, result[:subtotal_cents]
+    assert_equal 30_000, result[:subtotal_cents]
   end
 
-  test 'uses slot rate for time period' do
-    SlotRate.create!(
-      space: @space,
-      name: 'Mañana',
-      start_time: Time.zone.parse('2000-01-01 08:00'),
-      end_time: Time.zone.parse('2000-01-01 13:00'),
-      price_per_slot_cents: 10_000,
-      position: 0
+  test 'uses block-specific prices' do
+    @space.schedule_blocks.for_day(0).where(start_time: Time.zone.parse('2000-01-01 10:00:00')).update_all(price_cents: 10_000)
+
+    result = PricingEngine.calculate(@space, @user, @start_at, 1, end_at: @start_at + 1.hour)
+
+    assert_equal 10_000, result[:subtotal_cents]
+  end
+
+  test 'applies per-space volume discount' do
+    @space.pricing_rules.create!(
+      name: 'Volumen test',
+      rule_type: :volume_discount,
+      config: { 'min_slots' => 2, 'discount_percent' => 10 },
+      active: true,
+      priority: 10
     )
 
-    result = PricingEngine.calculate(@space, @user, @start_at, 2)
+    result = PricingEngine.calculate(@space, @user, @start_at, 2, end_at: @start_at + 2.hours)
 
-    assert_equal 20_000, result[:subtotal_cents]
+    assert_equal 30_000, result[:subtotal_cents]
+    assert_equal 3000, result[:discount_cents]
   end
 end

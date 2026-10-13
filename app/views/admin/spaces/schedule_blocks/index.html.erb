@@ -1,0 +1,150 @@
+<% calendar_start_hour = 7 %>
+<% calendar_end_hour = 21 %>
+<% calendar_minutes = (calendar_end_hour - calendar_start_hour) * 60 %>
+<% blocks_json = @schedule_blocks.map { |b|
+  {
+    id: b.id,
+    day_of_week: b.day_of_week,
+    start_time: b.start_time.strftime('%H:%M'),
+    end_time: b.end_time.strftime('%H:%M'),
+    price_cents: b.price_cents,
+    price_clp: b.price_cents / 100.0,
+    name: b.name,
+    duration_minutes: b.duration_minutes
+  }
+}.to_json %>
+
+<div data-controller="admin-schedule"
+     data-admin-schedule-blocks-value="<%= blocks_json %>"
+     data-admin-schedule-space-id-value="<%= @space.id %>"
+     data-admin-schedule-default-price-value="<%= @space.default_price_per_slot_cents %>"
+     data-admin-schedule-slot-duration-value="<%= @space.slot_duration_minutes %>"
+     data-admin-schedule-csrf-value="<%= form_authenticity_token %>"
+     data-admin-schedule-calendar-start-value="<%= calendar_start_hour %>"
+     data-admin-schedule-calendar-end-value="<%= calendar_end_hour %>">
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold">Calendario y precios — <%= @space.title %></h1>
+      <p class="mt-1 text-sm text-gray-600">Cada bloque es una unidad reservable con su precio y duración.</p>
+    </div>
+    <%= link_to "← Espacios", admin_spaces_path, class: "text-sm text-brand hover:underline" %>
+  </div>
+
+  <div id="schedule-toast" class="hidden mt-4 rounded-xl bg-green-50 p-3 text-green-800" role="status" data-admin-schedule-target="toast">
+    Cambios guardados
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    <% AvailabilityRule::DAY_NAMES.each_with_index do |name, day| %>
+      <button type="button"
+              class="btn-secondary text-sm"
+              data-action="admin-schedule#openNew"
+              data-day="<%= day %>">
+        + Bloque <%= name %>
+      </button>
+    <% end %>
+    <%= link_to "Días bloqueados (feriados)", admin_space_availability_blocks_path(@space), class: "btn-secondary text-sm" %>
+    <%= link_to "Duración por defecto (#{@space.slot_duration_minutes} min)", edit_admin_space_path(@space), class: "text-sm text-brand hover:underline" %>
+  </div>
+
+  <div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white">
+    <div class="grid min-w-[900px] grid-cols-[3rem_repeat(7,1fr)]">
+      <div class="border-b border-r border-gray-100 bg-gray-50"></div>
+      <% AvailabilityRule::DAY_NAMES.each do |name| %>
+        <div class="border-b border-r border-gray-100 bg-gray-50 py-2 text-center text-xs font-semibold text-gray-700"><%= name %></div>
+      <% end %>
+
+      <div class="relative border-r border-gray-100" style="height: <%= calendar_minutes %>px;">
+        <% (calendar_start_hour...calendar_end_hour).each do |h| %>
+          <div class="absolute right-1 text-[10px] text-gray-400" style="top: <%= (h - calendar_start_hour) * 60 %>px;"><%= sprintf('%02d:00', h) %></div>
+        <% end %>
+      </div>
+
+      <% 7.times do |day| %>
+        <div class="relative border-r border-gray-100 bg-white"
+             style="height: <%= calendar_minutes %>px;"
+             data-admin-schedule-target="dayColumn"
+             data-day="<%= day %>">
+          <% @schedule_blocks.select { |b| b.day_of_week == day }.each do |block| %>
+            <% start_m = block.start_time.hour * 60 + block.start_time.min %>
+            <% end_m = block.end_time.hour * 60 + block.end_time.min %>
+            <% top = ((start_m - calendar_start_hour * 60).to_f / calendar_minutes * 100) %>
+            <% height = ((end_m - start_m).to_f / calendar_minutes * 100) %>
+            <button type="button"
+                    class="absolute left-0.5 right-0.5 overflow-hidden rounded-md border border-brand/30 bg-brand/10 px-1 py-0.5 text-left text-[10px] leading-tight text-gray-900 hover:bg-brand/20"
+                    style="top: <%= top %>%; height: <%= height %>%;"
+                    data-action="admin-schedule#openEdit"
+                    data-block-id="<%= block.id %>">
+              <span class="font-semibold"><%= block.start_time.strftime('%H:%M') %>–<%= block.end_time.strftime('%H:%M') %></span>
+              <span class="block truncate"><%= block.formatted_price %></span>
+              <span class="block text-gray-500"><%= block.duration_minutes %> min</span>
+            </button>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mt-8 card p-4">
+    <h2 class="font-semibold">Descuento por volumen (esta sala)</h2>
+    <p class="mt-1 text-sm text-gray-600">Se aplica al reservar varios bloques contiguos en una sola reserva.</p>
+    <% if @volume_rules.any? %>
+      <ul class="mt-4 space-y-3">
+        <% @volume_rules.each do |rule| %>
+          <li class="rounded-lg bg-gray-50 p-3">
+            <%= form_with model: rule, url: admin_space_volume_pricing_rule_path(@space, rule), method: :patch, class: "grid gap-3 md:grid-cols-4" do |f| %>
+              <%= f.text_field :name, class: "input-field", placeholder: "Nombre" %>
+              <%= number_field_tag "pricing_rule[config][min_slots]", rule.config['min_slots'], class: "input-field", placeholder: "Mín. bloques" %>
+              <%= number_field_tag "pricing_rule[config][discount_percent]", rule.config['discount_percent'], class: "input-field", placeholder: "% descuento" %>
+              <div class="flex items-center gap-2">
+                <%= f.check_box :active %>
+                <%= f.submit "Guardar", class: "btn-primary text-sm" %>
+                <%= button_to "Eliminar", admin_space_volume_pricing_rule_path(@space, rule), method: :delete, class: "text-sm text-red-600", form: { data: { turbo_confirm: "¿Eliminar?" } } %>
+              </div>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+    <%= form_with model: @volume_rule, url: admin_space_volume_pricing_rules_path(@space), class: "mt-4 grid gap-3 md:grid-cols-4" do |f| %>
+      <%= f.text_field :name, class: "input-field", placeholder: "Nombre", value: "Descuento por volumen" %>
+      <%= number_field_tag "pricing_rule[config][min_slots]", 4, class: "input-field", placeholder: "Mín. bloques" %>
+      <%= number_field_tag "pricing_rule[config][discount_percent]", 10, class: "input-field", placeholder: "% descuento" %>
+      <%= f.submit "Agregar descuento", class: "btn-primary text-sm" %>
+    <% end %>
+  </div>
+
+  <dialog data-admin-schedule-target="dialog" class="w-full max-w-md rounded-xl p-6 backdrop:bg-black/40">
+    <h2 class="text-lg font-semibold" data-admin-schedule-target="dialogTitle">Bloque</h2>
+    <form data-admin-schedule-target="form" class="mt-4 space-y-3" data-action="submit->admin-schedule#save">
+      <input type="hidden" data-admin-schedule-target="blockId" name="block_id" value="">
+      <input type="hidden" data-admin-schedule-target="dayOfWeek" name="day_of_week" value="">
+      <div>
+        <label class="block text-sm font-medium">Nombre (opcional)</label>
+        <input type="text" data-admin-schedule-target="name" class="input-field w-full" name="name">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Inicio</label>
+          <input type="time" data-admin-schedule-target="startTime" class="input-field w-full" name="start_time" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Fin</label>
+          <input type="time" data-admin-schedule-target="endTime" class="input-field w-full" name="end_time" required>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Precio (CLP)</label>
+        <input type="number" data-admin-schedule-target="priceClp" class="input-field w-full" name="price_clp" min="1" step="1" required>
+      </div>
+      <p class="text-xs text-gray-500" data-admin-schedule-target="durationHint"></p>
+      <div class="flex flex-wrap gap-2 pt-2">
+        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-secondary" data-action="admin-schedule#closeDialog">Cancelar</button>
+        <button type="button" class="text-sm text-red-600" data-admin-schedule-target="deleteButton" data-action="admin-schedule#destroy">Eliminar</button>
+      </div>
+      <p class="text-sm text-red-600 hidden" data-admin-schedule-target="error"></p>
+    </form>
+  </dialog>
+</div>

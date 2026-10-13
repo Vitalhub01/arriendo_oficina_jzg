@@ -187,7 +187,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_match 'Fuera del horario ofrecido', response.body
+    assert_match 'Horario no disponible', response.body
   end
 
   test 'rejects booking during availability block' do

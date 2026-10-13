@@ -24,6 +24,8 @@ draft_box:
   box_type: 1
   price_per_hour_cents: 10000
   minimum_hours: 1
+  slot_duration_minutes: 60
+  minimum_slots: 1
   status: 0
   amenities: <%= {}.to_json %>
   equipment: <%= [].to_json %>
