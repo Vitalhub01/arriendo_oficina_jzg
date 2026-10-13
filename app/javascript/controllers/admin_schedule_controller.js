@@ -248,6 +248,53 @@ export default class extends Controller {
     return response.ok
   }
 
+  isBlockedOnDate(blockId, date) {
+    const override = this.findOverride(blockId, date)
+    return override?.blocked === true
+  }
+
+  effectiveTimesForBlock(block, date) {
+    if (this.isBlockedOnDate(block.id, date)) return null
+    const override = this.findOverride(block.id, date)
+    return {
+      start: override?.start_time || block.start_time,
+      end: override?.end_time || block.end_time
+    }
+  }
+
+  formatBlockIntervalOnDate(block, date) {
+    const times = this.effectiveTimesForBlock(block, date)
+    if (!times) return ""
+    return `${times.start}–${times.end}`
+  }
+
+  findOverlappingOnDate(date, startTime, endTime, excludeBlockId) {
+    const block = this.blocksValue.find((b) => String(b.id) === String(excludeBlockId))
+    if (!block) return []
+
+    const start = this.parseTime(startTime)
+    const end = this.parseTime(endTime)
+    if (end <= start) return []
+
+    return this.blocksValue
+      .filter((other) => {
+        if (String(other.id) === String(excludeBlockId)) return false
+        if (other.day_of_week !== block.day_of_week) return false
+
+        const times = this.effectiveTimesForBlock(other, date)
+        if (!times) return false
+
+        const otherStart = this.parseTime(times.start)
+        const otherEnd = this.parseTime(times.end)
+        return start < otherEnd && end > otherStart
+      })
+      .sort((a, b) => {
+        const ta = this.effectiveTimesForBlock(a, date)
+        const tb = this.effectiveTimesForBlock(b, date)
+        return this.parseTime(ta.start) - this.parseTime(tb.start)
+      })
+  }
+
   findOverlapping(dayOfWeek, startTime, endTime, excludeId) {
     const start = this.parseTime(startTime)
     const end = this.parseTime(endTime)
@@ -291,6 +338,19 @@ export default class extends Controller {
     if (timesChanged) {
       payload.start_time = startTime
       payload.end_time = endTime
+
+      const overlapping = this.findOverlappingOnDate(date, startTime, endTime, id)
+      if (overlapping.length > 0) {
+        const labels = overlapping
+          .map((b) => this.formatBlockIntervalOnDate(b, date))
+          .join(", ")
+        const message = overlapping.length === 1
+          ? `Este horario se solapa en este día con ${labels}. ¿Quitar esa franja solo para esta fecha y guardar?`
+          : `Este horario se solapa en este día con: ${labels}. ¿Quitar esas franjas solo para esta fecha y guardar?`
+
+        if (!confirm(message)) return
+        payload.block_overlapping_ids = overlapping.map((b) => b.id)
+      }
     }
 
     const response = await this.jsonRequest(
@@ -301,6 +361,25 @@ export default class extends Controller {
 
     if (response.ok) {
       this.reloadWithToast()
+    } else if (response.errors?.some((e) => e.includes("solapa"))) {
+      const overlapping = this.findOverlappingOnDate(date, startTime, endTime, id)
+      if (overlapping.length === 0) {
+        this.showError(response.errors)
+        return
+      }
+      const labels = overlapping.map((b) => this.formatBlockIntervalOnDate(b, date)).join(", ")
+      if (!confirm(`Aún hay solapamiento con ${labels}. ¿Quitar esas franjas solo para esta fecha y reintentar?`)) {
+        this.showError(response.errors)
+        return
+      }
+      payload.block_overlapping_ids = overlapping.map((b) => b.id)
+      const retry = await this.jsonRequest(
+        `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${id}/override`,
+        "POST",
+        payload
+      )
+      if (retry.ok) this.reloadWithToast()
+      else this.showError(retry.errors)
     } else {
       this.showError(response.errors)
     }

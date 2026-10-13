@@ -55,6 +55,10 @@ module Admin
           override.end_time = nil
           override.reason = params[:reason]
         elsif date_override_payload?
+          overlap_error = ensure_date_overlap_resolved!(date, override)
+          return respond_with_errors([overlap_error]) if overlap_error
+
+          block_overlapping_on_date!(date)
           override.blocked = false
           apply_date_override_fields!(override)
         else
@@ -140,6 +144,62 @@ module Admin
           override.end_time = params[:end_time]
         end
         override.reason = nil
+      end
+
+      def ensure_date_overlap_resolved!(date, _override)
+        return unless params[:start_time].present? && params[:end_time].present?
+
+        overlapping = overlapping_blocks_on_date(
+          date, @schedule_block, params[:start_time], params[:end_time]
+        )
+        return if overlapping.empty?
+
+        ids = Array(params[:block_overlapping_ids]).map(&:to_i).reject(&:zero?)
+        return if overlapping.all? { |block| ids.include?(block.id) }
+
+        labels = overlapping.map { |b| format_interval_on_date(b, date) }.join(', ')
+        "se solapa con otro horario este día (#{labels})"
+      end
+
+      def overlapping_blocks_on_date(date, block, start_time, end_time)
+        day = (date.wday + 6) % 7
+        range_start = time_on_date(date, start_time)
+        range_end = time_on_date(date, end_time)
+        return [] if range_end <= range_start
+
+        @space.schedule_blocks.for_day(day).where.not(id: block.id).select do |other|
+          next false if other.blocked_on?(date)
+
+          other_start = other.starts_at_on(date)
+          other_end = other.ends_at_on(date)
+          range_start < other_end && range_end > other_start
+        end
+      end
+
+      def block_overlapping_on_date!(date)
+        ids = Array(params[:block_overlapping_ids]).map(&:to_i).reject(&:zero?)
+        return if ids.empty?
+
+        ids.each do |block_id|
+          other = @space.schedule_blocks.find_by(id: block_id)
+          next unless other
+
+          other_override = other.overrides.find_or_initialize_by(date: date, space: @space)
+          other_override.blocked = true
+          other_override.price_cents = nil
+          other_override.start_time = nil
+          other_override.end_time = nil
+          other_override.save!
+        end
+      end
+
+      def time_on_date(date, time_value)
+        time = time_value.is_a?(String) ? Time.zone.parse(time_value) : time_value
+        Time.zone.local(date.year, date.month, date.day, time.hour, time.min, time.sec)
+      end
+
+      def format_interval_on_date(block, date)
+        "#{block.start_time_on(date).strftime('%H:%M')}–#{block.end_time_on(date).strftime('%H:%M')}"
       end
 
       def respond_with_block(notice, json_status = :ok)
