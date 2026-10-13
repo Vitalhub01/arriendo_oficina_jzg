@@ -70,7 +70,6 @@ Rails.application.configure do
     if ENV['REDIS_URL'].present?
       :sidekiq
     else
-      Rails.logger.warn('[ActiveJob] REDIS_URL unset; using :inline adapter on web') if defined?(Rails.logger)
       :inline
     end
 
