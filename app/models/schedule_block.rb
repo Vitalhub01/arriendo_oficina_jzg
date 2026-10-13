@@ -2,6 +2,7 @@
 
 class ScheduleBlock < ApplicationRecord
   belongs_to :space, inverse_of: :schedule_blocks
+  has_many :overrides, class_name: 'ScheduleBlockOverride', dependent: :destroy, inverse_of: :schedule_block
 
   validates :day_of_week, :start_time, :end_time, :price_cents, presence: true
   validates :price_cents, numericality: { greater_than: 0, only_integer: true }
@@ -18,6 +19,25 @@ class ScheduleBlock < ApplicationRecord
 
   def formatted_price
     Money.new(price_cents, 'CLP').format(no_cents_if_whole: true)
+  end
+
+  def override_for(date)
+    overrides.find_by(date: date.to_date)
+  end
+
+  def blocked_on?(date)
+    override_for(date)&.blocked?
+  end
+
+  def price_cents_on(date)
+    override = override_for(date)
+    return price_cents unless override&.price_cents.present?
+
+    override.price_cents
+  end
+
+  def formatted_price_on(date)
+    Money.new(price_cents_on(date), 'CLP').format(no_cents_if_whole: true)
   end
 
   def starts_at_on(date)

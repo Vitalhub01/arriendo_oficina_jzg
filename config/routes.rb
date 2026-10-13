@@ -40,7 +40,12 @@ Rails.application.routes.draw do
     resource :office, only: %i[edit update], controller: 'office'
     resources :spaces do
       resource :availability, only: [:show], controller: 'spaces/availabilities'
-      resources :schedule_blocks, controller: 'spaces/schedule_blocks', except: [:show]
+      resources :schedule_blocks, controller: 'spaces/schedule_blocks', except: [:show] do
+        member do
+          post :override, action: :upsert_override
+          delete :override, action: :destroy_override
+        end
+      end
       resources :volume_pricing_rules, controller: 'spaces/volume_pricing_rules', only: %i[create update destroy]
       resources :slot_rates, controller: 'spaces/slot_rates', except: [:show]
       resources :availability_rules, controller: 'spaces/availability_rules', except: %i[show edit update]

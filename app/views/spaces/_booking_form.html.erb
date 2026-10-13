@@ -1,6 +1,7 @@
 <% blocks_by_day = space.schedule_blocks.ordered.group_by(&:day_of_week).transform_values do |blocks|
   blocks.map do |b|
     {
+      id: b.id,
       start: b.start_time.strftime('%H:%M'),
       end: b.end_time.strftime('%H:%M'),
       price: b.price_cents,
@@ -8,9 +9,18 @@
     }
   end
 end %>
+<% block_overrides = space.schedule_block_overrides.where('date >= ?', Date.current).map { |o|
+  {
+    schedule_block_id: o.schedule_block_id,
+    date: o.date.iso8601,
+    blocked: o.blocked,
+    price: o.price_cents
+  }
+} %>
 <div data-controller="booking-form"
      data-booking-form-minimum-slots-value="<%= space.minimum_slots %>"
-     data-booking-form-blocks-by-day-value="<%= blocks_by_day.to_json %>">
+     data-booking-form-blocks-by-day-value="<%= blocks_by_day.to_json %>"
+     data-booking-form-overrides-value="<%= block_overrides.to_json %>">
   <p class="text-2xl font-bold text-gray-900">Reserva por bloques</p>
   <p class="mt-1 text-sm text-gray-500">Mínimo <%= space.minimum_slots %> bloque(s) contiguos según la agenda del espacio.</p>
 

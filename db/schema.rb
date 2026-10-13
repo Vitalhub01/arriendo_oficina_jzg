@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_07_000003) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_08_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -293,6 +293,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_07_000003) do
     t.index ["user_id"], name: "index_reschedule_credits_on_user_id"
   end
 
+  create_table "schedule_block_overrides", force: :cascade do |t|
+    t.bigint "schedule_block_id", null: false
+    t.bigint "space_id", null: false
+    t.date "date", null: false
+    t.boolean "blocked", default: false, null: false
+    t.integer "price_cents"
+    t.string "reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["schedule_block_id", "date"], name: "index_schedule_block_overrides_on_schedule_block_id_and_date", unique: true
+    t.index ["schedule_block_id"], name: "index_schedule_block_overrides_on_schedule_block_id"
+    t.index ["space_id", "date"], name: "index_schedule_block_overrides_on_space_id_and_date"
+    t.index ["space_id"], name: "index_schedule_block_overrides_on_space_id"
+  end
+
   create_table "schedule_blocks", force: :cascade do |t|
     t.bigint "space_id", null: false
     t.integer "day_of_week", null: false
@@ -391,6 +406,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_07_000003) do
   add_foreign_key "reschedule_credits", "bookings", column: "applied_booking_id"
   add_foreign_key "reschedule_credits", "bookings", column: "source_booking_id"
   add_foreign_key "reschedule_credits", "users"
+  add_foreign_key "schedule_block_overrides", "boxes", column: "space_id"
+  add_foreign_key "schedule_block_overrides", "schedule_blocks"
   add_foreign_key "schedule_blocks", "boxes", column: "space_id"
   add_foreign_key "slot_rates", "boxes", column: "space_id"
   add_foreign_key "testimonials", "bookings"

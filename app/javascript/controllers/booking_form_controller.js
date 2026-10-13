@@ -4,7 +4,8 @@ export default class extends Controller {
   static targets = ["slotCount", "total", "startTime", "durationLabel", "date"]
   static values = {
     minimumSlots: Number,
-    blocksByDay: Object
+    blocksByDay: Object,
+    overrides: Array
   }
 
   connect() {
@@ -23,10 +24,14 @@ export default class extends Controller {
     const previous = select.value
     select.innerHTML = ""
 
+    const dateIso = this.dateTarget.value
     blocks.forEach((block) => {
+      if (this.isBlockedOnDate(block, dateIso)) return
+
       const option = document.createElement("option")
+      const price = this.priceForBlock(block, dateIso)
       option.value = block.start
-      option.textContent = `${block.start} – ${block.end} (${this.formatCLP(block.price)})`
+      option.textContent = `${block.start} – ${block.end} (${this.formatCLP(price)})`
       select.appendChild(option)
     })
 
@@ -67,6 +72,7 @@ export default class extends Controller {
     const blocks = this.blocksForStart(startTime)
     if (blocks.length === 0) return 0
 
+    const dateIso = this.hasDateTarget ? this.dateTarget.value : ""
     const startIndex = blocks.findIndex((b) => b.start === startTime)
     if (startIndex < 0) return 0
 
@@ -74,10 +80,25 @@ export default class extends Controller {
     for (let i = 0; i < slotCount; i++) {
       const block = blocks[startIndex + i]
       if (!block) return 0
+      if (this.isBlockedOnDate(block, dateIso)) return 0
       if (i > 0 && blocks[startIndex + i - 1].end !== block.start) return 0
-      total += block.price
+      total += this.priceForBlock(block, dateIso)
     }
     return total
+  }
+
+  priceForBlock(block, dateIso) {
+    const override = this.overridesValue.find(
+      (o) => o.schedule_block_id === block.id && o.date === dateIso
+    )
+    if (override?.price) return override.price
+    return block.price
+  }
+
+  isBlockedOnDate(block, dateIso) {
+    return this.overridesValue.some(
+      (o) => o.schedule_block_id === block.id && o.date === dateIso && o.blocked
+    )
   }
 
   totalDurationMinutes(slotCount, startTime) {

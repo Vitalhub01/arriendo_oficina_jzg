@@ -47,7 +47,10 @@ class PricingEngine
     return space.price_for_interval(start_at, interval_end) if interval_end
 
     blocks = ScheduleBlockResolver.consecutive_blocks_from(space, start_at, slot_count)
-    return blocks.sum(&:price_cents) if blocks.any?
+    if blocks.any?
+      date = start_at.to_date
+      return blocks.sum { |block| block.price_cents_on(date) }
+    end
 
     slot_count.times.sum do |index|
       slot_start = start_at + (index * space.slot_duration_minutes.minutes)

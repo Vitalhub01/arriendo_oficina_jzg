@@ -13,6 +13,7 @@ class Space < ApplicationRecord
   has_many :jornada_definitions, dependent: :destroy, inverse_of: :space
   has_many :slot_rates, dependent: :destroy, inverse_of: :space
   has_many :schedule_blocks, dependent: :destroy, inverse_of: :space
+  has_many :schedule_block_overrides, dependent: :destroy, inverse_of: :space
   has_many :pricing_rules, dependent: :destroy, inverse_of: :space
   has_many_attached :photos
 
@@ -76,12 +77,13 @@ class Space < ApplicationRecord
 
   def schedule_blocks_for_date(date)
     day = (date.wday + 6) % 7
-    schedule_blocks.for_day(day).ordered
+    schedule_blocks.for_day(day).ordered.reject { |block| block.blocked_on?(date) }
   end
 
   def price_for_interval(start_at, end_at)
     blocks = ScheduleBlockResolver.blocks_for_exact_interval(self, start_at, end_at)
-    blocks.sum(&:price_cents)
+    date = start_at.to_date
+    blocks.sum { |block| block.price_cents_on(date) }
   end
 
   def schedule_block_count_for_interval(start_at, end_at)

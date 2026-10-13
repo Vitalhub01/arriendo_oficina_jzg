@@ -35,7 +35,7 @@ class AvailabilityScheduleBuilder
       Slot.new(
         starts_at: slot_start,
         ends_at: slot_end,
-        price_cents: block.price_cents,
+        price_cents: block.price_cents_on(date),
         available: slot_available?(slot_start, slot_end)
       )
     end
