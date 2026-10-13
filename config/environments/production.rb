@@ -64,7 +64,15 @@ Rails.application.configure do
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 
-  config.active_job.queue_adapter = :sidekiq
+  # Sidekiq needs REDIS_URL on every process that enqueues jobs (web + worker).
+  # Without Redis on web, run purge/mail jobs inline so uploads do not 500.
+  config.active_job.queue_adapter =
+    if ENV['REDIS_URL'].present?
+      :sidekiq
+    else
+      Rails.logger.warn('[ActiveJob] REDIS_URL unset; using :inline adapter on web') if defined?(Rails.logger)
+      :inline
+    end
 
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :smtp
