@@ -41,7 +41,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-bold">Calendario y precios — <%= @space.title %></h1>
-      <p class="mt-1 text-sm text-gray-600">Haz clic en un horario para editarlo, bloquear solo esa fecha o cambiar el precio del día.</p>
+      <p class="mt-1 text-sm text-gray-600">Usa el lápiz para editar o el basurero para quitar un horario (solo ese día o toda la plantilla).</p>
     </div>
     <%= link_to "← Espacios", admin_spaces_path, class: "text-sm text-brand hover:underline" %>
   </div>
@@ -51,13 +51,9 @@
   </div>
 
   <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-    <div class="flex flex-wrap gap-2">
-      <% AvailabilityRule::DAY_NAMES.each_with_index do |name, day| %>
-        <button type="button" class="btn-secondary text-sm" data-action="admin-schedule#openNew" data-day="<%= day %>">
-          + <%= name %>
-        </button>
-      <% end %>
-    </div>
+    <button type="button" class="btn-primary text-sm" data-action="admin-schedule#openNew">
+      Agregar horario
+    </button>
     <div class="flex items-center gap-2 text-sm">
       <%= link_to "← Semana", admin_space_schedule_blocks_path(@space, week_start: @week_start - 1.week), class: "text-brand hover:underline" %>
       <span class="text-gray-600"><%= l(@week_start, format: :short) %> – <%= l(@week_start + 6.days, format: :short) %></span>
@@ -87,6 +83,7 @@
              data-day="<%= day %>"
              data-date="<%= date.iso8601 %>">
           <% @schedule_blocks.select { |b| b.day_of_week == day }.each do |block| %>
+            <% next unless block.active_on?(date) %>
             <% override = @overrides[[block.id, date]] %>
             <% blocked = override&.blocked? %>
             <% eff_start = override&.start_time || block.start_time %>
@@ -96,18 +93,34 @@
             <% top = ((start_m - calendar_start_hour * 60).to_f / calendar_minutes * 100) %>
             <% height = ((end_m - start_m).to_f / calendar_minutes * 100) %>
             <% price_label = blocked ? 'Bloqueado' : (override&.price_cents ? block.formatted_price_on(date) : block.formatted_price) %>
-            <button type="button"
-                    class="absolute left-0.5 right-0.5 overflow-hidden rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight transition hover:ring-2 hover:ring-brand/40 <%= blocked ? 'border-red-200 bg-red-50 text-red-800 line-through' : 'border-brand/30 bg-brand/10 text-gray-900 hover:bg-brand/20' %> <%= 'ring-2 ring-amber-300' if !blocked && (override&.price_cents.present? || override&.start_time.present?) %>"
-                    style="top: <%= top %>%; height: <%= [height, 3].max %>%; min-height: 28px;"
-                    data-action="click->admin-schedule#openEdit"
-                    data-block-id="<%= block.id %>"
-                    data-date="<%= date.iso8601 %>">
-              <span class="font-semibold"><%= eff_start.strftime('%H:%M') %>–<%= eff_end.strftime('%H:%M') %></span>
-              <span class="block truncate"><%= price_label %></span>
-              <% unless blocked %>
-                <span class="block text-gray-500"><%= block.duration_minutes %> min</span>
-              <% end %>
-            </button>
+            <div role="button" tabindex="0"
+                 class="absolute left-0.5 right-0.5 cursor-pointer overflow-hidden rounded-md border text-left text-[10px] leading-tight transition hover:ring-2 hover:ring-brand/40 <%= blocked ? 'border-red-200 bg-red-50 text-red-800' : 'border-brand/30 bg-brand/10 text-gray-900 hover:bg-brand/20' %> <%= 'ring-2 ring-amber-300' if !blocked && (override&.price_cents.present? || override&.start_time.present?) %>"
+                 style="top: <%= top %>%; height: <%= [height, 3].max %>%; min-height: 28px;"
+                 data-action="click->admin-schedule#openEdit keydown->admin-schedule#openEditKey"
+                 data-block-id="<%= block.id %>"
+                 data-date="<%= date.iso8601 %>">
+              <div class="pointer-events-none absolute top-0 right-0 z-10 flex items-center gap-0.5 px-0.5 py-0.5">
+                <span class="rounded p-0.5 text-gray-500" title="Editar" aria-hidden="true">
+                  <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125L16.862 4.487"/></svg>
+                </span>
+                <button type="button"
+                        class="pointer-events-auto rounded p-0.5 text-gray-500 hover:bg-red-50 hover:text-red-600"
+                        title="Eliminar"
+                        aria-label="Eliminar horario"
+                        data-action="click->admin-schedule#promptDelete"
+                        data-block-id="<%= block.id %>"
+                        data-date="<%= date.iso8601 %>">
+                  <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                </button>
+              </div>
+              <div class="px-1 pb-0.5 pr-9 pt-0.5 <%= 'line-through' if blocked %>">
+                <span class="font-semibold"><%= eff_start.strftime('%H:%M') %>–<%= eff_end.strftime('%H:%M') %></span>
+                <span class="block truncate"><%= price_label %></span>
+                <% unless blocked %>
+                  <span class="block text-gray-500"><%= block.duration_minutes %> min</span>
+                <% end %>
+              </div>
+            </div>
           <% end %>
         </div>
       <% end %>
@@ -205,6 +218,14 @@
         <form data-admin-schedule-target="form" class="mt-4 space-y-3" data-action="submit->admin-schedule#save">
           <input type="hidden" data-admin-schedule-target="blockId" value="">
           <input type="hidden" data-admin-schedule-target="dayOfWeek" value="">
+          <div data-admin-schedule-target="newDayField" class="hidden">
+            <label class="block text-sm font-medium">Día de la semana</label>
+            <select data-admin-schedule-target="newDay" data-action="change->admin-schedule#syncNewDay" class="input-field mt-1 w-full">
+              <% AvailabilityRule::DAY_NAMES.each_with_index do |name, day| %>
+                <option value="<%= day %>"><%= name %></option>
+              <% end %>
+            </select>
+          </div>
           <div>
             <label class="block text-sm font-medium">Nombre (opcional)</label>
             <input type="text" data-admin-schedule-target="name" class="input-field w-full">
@@ -227,12 +248,29 @@
           <div class="flex flex-wrap gap-2 pt-1">
             <button type="submit" class="btn-primary">Guardar plantilla</button>
             <button type="button" class="btn-secondary" data-action="admin-schedule#closeDialog">Cerrar</button>
-            <button type="button" class="text-sm text-red-600 hover:underline" data-admin-schedule-target="deleteButton" data-action="admin-schedule#destroy">Eliminar plantilla</button>
           </div>
         </form>
       </section>
     </div>
 
     <p class="px-6 pb-4 text-sm text-red-600 hidden" data-admin-schedule-target="error"></p>
+  </dialog>
+
+  <dialog data-admin-schedule-target="deleteDialog" class="fixed inset-0 z-[60] m-auto w-[min(100%,24rem)] rounded-xl border-0 bg-white p-0 shadow-xl backdrop:bg-black/50 open:block">
+    <div class="px-6 py-5">
+      <h2 class="text-lg font-semibold text-gray-900">Eliminar horario</h2>
+      <p class="mt-2 text-sm text-gray-600" data-admin-schedule-target="deleteDialogMessage"></p>
+      <div class="mt-6 flex flex-col gap-2">
+        <button type="button" class="btn-primary w-full text-sm" data-action="admin-schedule#confirmDeleteOnlyDate">
+          Solo esta fecha
+        </button>
+        <button type="button" class="btn-secondary w-full text-sm" data-action="admin-schedule#confirmDeleteFromDateForward">
+          Esta fecha y todas las siguientes
+        </button>
+        <button type="button" class="mt-1 w-full text-sm text-gray-600 hover:underline" data-action="admin-schedule#closeDeleteDialog">
+          Cancelar
+        </button>
+      </div>
+    </div>
   </dialog>
 </div>

@@ -4,7 +4,7 @@ module Admin
   module Spaces
     class ScheduleBlocksController < Admin::BaseController
       before_action :set_space
-      before_action :set_schedule_block, only: %i[update destroy upsert_override destroy_override]
+      before_action :set_schedule_block, only: %i[update destroy upsert_override destroy_override end_series_from_date]
       before_action :set_week_start
 
       def index
@@ -41,6 +41,28 @@ module Admin
         respond_to do |format|
           format.html { redirect_to schedule_index_path, notice: 'Bloque eliminado de la plantilla semanal' }
           format.json { head :no_content }
+        end
+      end
+
+      def end_series_from_date
+        from_date = Date.parse(params.require(:from_date))
+        new_until = from_date - 1.day
+        current_until = @schedule_block.effective_until
+        effective_until = if current_until.present?
+                            [current_until, new_until].min
+                          else
+                            new_until
+                          end
+
+        if @schedule_block.update(effective_until: effective_until)
+          respond_to do |format|
+            format.html do
+              redirect_to schedule_index_path(week_start: @week_start), notice: 'Horario finalizado desde la fecha indicada'
+            end
+            format.json { render json: serialize_block(@schedule_block) }
+          end
+        else
+          respond_with_errors(@schedule_block.errors.full_messages)
         end
       end
 

@@ -77,7 +77,7 @@ class Space < ApplicationRecord
 
   def schedule_blocks_for_date(date)
     day = (date.wday + 6) % 7
-    schedule_blocks.for_day(day).ordered.reject { |block| block.blocked_on?(date) }
+    schedule_blocks.for_day(day).ordered.reject { |block| !block.active_on?(date) || block.blocked_on?(date) }
   end
 
   def price_for_interval(start_at, end_at)

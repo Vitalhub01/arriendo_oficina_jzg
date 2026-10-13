@@ -3,10 +3,11 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [
     "dialog", "form", "blockId", "dayOfWeek", "name", "startTime", "endTime",
-    "priceClp", "durationHint", "deleteButton", "error", "toast", "dialogTitle",
+    "priceClp", "durationHint", "newDay", "newDayField", "error", "toast", "dialogTitle",
     "dialogSubtitle", "occurrenceDate", "datePriceClp", "dateStartTime", "dateEndTime",
     "dateTimeHint", "dateStatus",
-    "tabBar", "tabDate", "tabTemplate", "panelDate", "panelTemplate"
+    "tabBar", "tabDate", "tabTemplate", "panelDate", "panelTemplate",
+    "deleteDialog", "deleteDialogMessage"
   ]
   static values = {
     blocks: Array,
@@ -32,19 +33,21 @@ export default class extends Controller {
     this.activeTab = "template"
   }
 
-  openNew(event) {
-    const day = parseInt(event.currentTarget.dataset.day, 10)
-    const date = this.weekDatesValue[day] || ""
+  openNew() {
+    const day = this.defaultNewDayIndex()
+    if (this.hasNewDayTarget) {
+      this.newDayTarget.value = String(day)
+      this.newDayFieldTarget.classList.remove("hidden")
+    }
+    this.dayOfWeekTarget.value = day
 
     this.blockIdTarget.value = ""
-    this.dayOfWeekTarget.value = day
     this.nameTarget.value = ""
     this.startTimeTarget.value = "09:00"
     this.endTimeTarget.value = this.minutesToTime(9 * 60 + this.slotDurationValue)
     this.priceClpTarget.value = Math.round(this.defaultPriceValue)
-    this.deleteButtonTarget.classList.add("hidden")
-    this.dialogTitleTarget.textContent = `Nuevo bloque — ${this.dayName(day)}`
-    this.dialogSubtitleTarget.textContent = date ? this.formatDateLabel(date) : ""
+    this.dialogTitleTarget.textContent = "Nuevo horario"
+    this.dialogSubtitleTarget.textContent = "Elige el día y la ventana horaria en la plantilla semanal"
     this.setDateTabAvailable(false)
     this.selectTab("template")
     this.updateDurationHint()
@@ -52,9 +55,24 @@ export default class extends Controller {
     this.dialogTarget.showModal()
   }
 
-  openEdit(event) {
+  syncNewDay() {
+    this.dayOfWeekTarget.value = this.newDayTarget.value
+  }
+
+  defaultNewDayIndex() {
+    return (new Date().getDay() + 6) % 7
+  }
+
+  openEditKey(event) {
+    if (event.key !== "Enter" && event.key !== " ") return
     event.preventDefault()
-    event.stopPropagation()
+    this.openEdit(event)
+  }
+
+  openEdit(event) {
+    if (event.type === "click") {
+      event.preventDefault()
+    }
 
     const id = parseInt(event.currentTarget.dataset.blockId, 10)
     const date = event.currentTarget.dataset.date || ""
@@ -67,7 +85,9 @@ export default class extends Controller {
     this.startTimeTarget.value = block.start_time
     this.endTimeTarget.value = block.end_time
     this.priceClpTarget.value = block.price_clp ?? block.price_cents
-    this.deleteButtonTarget.classList.remove("hidden")
+    if (this.hasNewDayFieldTarget) {
+      this.newDayFieldTarget.classList.add("hidden")
+    }
 
     const dayLabel = this.dayName(block.day_of_week)
     this.dialogTitleTarget.textContent = `${block.start_time} – ${block.end_time}`
@@ -186,6 +206,9 @@ export default class extends Controller {
   async save(event) {
     event.preventDefault()
     const id = this.blockIdTarget.value
+    if (!id && this.hasNewDayTarget) {
+      this.dayOfWeekTarget.value = this.newDayTarget.value
+    }
     const dayOfWeek = parseInt(this.dayOfWeekTarget.value, 10)
     const startTime = this.startTimeTarget.value
     const endTime = this.endTimeTarget.value
@@ -391,8 +414,12 @@ export default class extends Controller {
     if (!id || !date) return
     if (!confirm("¿Bloquear este horario solo en esta fecha? No se podrá reservar.")) return
 
+    await this.blockDateFor(id, date)
+  }
+
+  async blockDateFor(blockId, date) {
     const response = await this.jsonRequest(
-      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${id}/override`,
+      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${blockId}/override`,
       "POST",
       { date, blocked: "1", week_start: this.weekStartValue }
     )
@@ -401,6 +428,62 @@ export default class extends Controller {
       this.reloadWithToast()
     } else {
       this.showError(response.errors)
+    }
+  }
+
+  promptDelete(event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const el = event.currentTarget
+    const blockId = el.dataset.blockId
+    const date = el.dataset.date
+    if (!blockId || !date) return
+
+    this.pendingDeleteBlockId = blockId
+    this.pendingDeleteDate = date
+
+    const block = this.blocksValue.find((b) => String(b.id) === String(blockId))
+    const dayLabel = block ? this.dayName(block.day_of_week) : ""
+    const dateLabel = this.formatDateLabel(date)
+    const timeLabel = block ? `${block.start_time}–${block.end_time}` : ""
+
+    this.deleteDialogMessageTarget.textContent =
+      `Horario ${timeLabel} el ${dayLabel} ${dateLabel}. Elige qué ocurrencias quitar.`
+
+    this.deleteDialogTarget.showModal()
+  }
+
+  closeDeleteDialog() {
+    this.deleteDialogTarget.close()
+    this.pendingDeleteBlockId = null
+    this.pendingDeleteDate = null
+  }
+
+  async confirmDeleteOnlyDate() {
+    const blockId = this.pendingDeleteBlockId
+    const date = this.pendingDeleteDate
+    this.closeDeleteDialog()
+    if (!blockId || !date) return
+    await this.blockDateFor(blockId, date)
+  }
+
+  async confirmDeleteFromDateForward() {
+    const blockId = this.pendingDeleteBlockId
+    const date = this.pendingDeleteDate
+    this.closeDeleteDialog()
+    if (!blockId || !date) return
+
+    const response = await this.jsonRequest(
+      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${blockId}/end_series`,
+      "POST",
+      { from_date: date, week_start: this.weekStartValue }
+    )
+
+    if (response.ok) {
+      this.reloadWithToast()
+    } else {
+      this.showError(response.errors || ["No se pudo finalizar el horario"])
     }
   }
 
@@ -422,18 +505,17 @@ export default class extends Controller {
     }
   }
 
-  async destroy() {
-    const id = this.blockIdTarget.value
-    if (!id || !confirm("¿Eliminar esta plantilla de todos los días de la semana?")) return
-
+  async destroyBlock(blockId) {
     const response = await this.jsonRequest(
-      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${id}`,
+      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${blockId}`,
       "DELETE",
       {}
     )
 
     if (response.ok) {
       this.reloadWithToast()
+    } else {
+      this.showError(response.errors || ["No se pudo eliminar"])
     }
   }
 

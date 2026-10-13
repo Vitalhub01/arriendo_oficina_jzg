@@ -44,6 +44,7 @@ Rails.application.routes.draw do
         member do
           post :override, action: :upsert_override
           delete :override, action: :destroy_override
+          post :end_series, action: :end_series_from_date
         end
       end
       resources :volume_pricing_rules, controller: 'spaces/volume_pricing_rules', only: %i[create update destroy]

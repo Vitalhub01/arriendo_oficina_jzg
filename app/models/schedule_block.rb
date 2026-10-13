@@ -29,6 +29,11 @@ class ScheduleBlock < ApplicationRecord
     override_for(date)&.blocked?
   end
 
+  def active_on?(date)
+    d = date.to_date
+    effective_until.blank? || d <= effective_until
+  end
+
   def price_cents_on(date)
     override = override_for(date)
     return price_cents unless override&.price_cents.present?

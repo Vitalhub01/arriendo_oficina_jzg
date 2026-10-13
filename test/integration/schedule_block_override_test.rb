@@ -60,4 +60,22 @@ class ScheduleBlockOverrideTest < ActionDispatch::IntegrationTest
     assert second.overrides.find_by(date: @date)&.blocked?
     assert_not second.blocked_on?(@date + 7.days)
   end
+
+  test 'end series from date hides block on and after that date' do
+    sign_in @admin
+    day = (@date.wday + 6) % 7
+    block = @space.schedule_blocks.for_day(day).first!
+    prior_week = @date - 7.days
+
+    post end_series_admin_space_schedule_block_path(@space, block),
+         params: { from_date: @date.iso8601, week_start: Date.current.beginning_of_week(:monday).iso8601 },
+         as: :json
+
+    assert_response :success
+    block.reload
+    assert_equal @date - 1.day, block.effective_until
+    assert block.active_on?(prior_week)
+    assert_not block.active_on?(@date)
+    assert_not block.active_on?(@date + 7.days)
+  end
 end
