@@ -5,6 +5,12 @@ class User < ApplicationRecord
 
   enum :role, { admin: 0, profesional: 1, profesional_suscrito: 2 }
 
+  ROLE_LABELS = {
+    'admin' => 'Administrador',
+    'profesional' => 'Profesional',
+    'profesional_suscrito' => 'Profesional con membresía'
+  }.freeze
+
   has_one :professional_profile, dependent: :destroy
   has_many :bookings, foreign_key: :renter_id, dependent: :destroy, inverse_of: :profesional
   has_many :booking_series, foreign_key: :renter_id, dependent: :destroy, inverse_of: :renter
@@ -16,6 +22,10 @@ class User < ApplicationRecord
   has_many :reschedule_credits, dependent: :destroy
 
   validates :name, presence: true
+
+  def role_label
+    ROLE_LABELS[role] || role.to_s.humanize
+  end
 
   def admin?
     role == 'admin'

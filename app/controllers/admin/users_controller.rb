@@ -3,36 +3,27 @@
 module Admin
   class UsersController < Admin::BaseController
     before_action :set_user, only: %i[edit update]
+    before_action :guard_self_admin_change, only: :update
 
     def index
-      @users = User.where(role: %i[owner admin]).order(:name)
-    end
-
-    def new
-      @user = User.new(role: :owner)
+      scope = User.order(:name)
+      scope = scope.where(role: params[:role]) if User.roles.key?(params[:role].to_s)
+      if params[:q].present?
+        term = "%#{User.sanitize_sql_like(params[:q].strip)}%"
+        scope = scope.where('name ILIKE ? OR email ILIKE ?', term, term)
+      end
+      @pagy, @users = pagy(scope)
     end
 
     def edit; end
 
-    def create
-      @user = User.new(user_params)
-      assign_role(@user)
-      temp_password = user_params[:password].presence || SecureRandom.hex(8)
-      @user.password = temp_password
-
-      if @user.save
-        redirect_to admin_users_path, notice: "Dueño creado. Contraseña: #{temp_password}"
-      else
-        render :new, status: :unprocessable_content
-      end
-    end
-
     def update
       @user.assign_attributes(user_params)
-      assign_role(@user) if params.dig(:user, :role).present?
+      apply_role! if params.dig(:user, :role).present?
+      apply_ban_flag!
 
       if @user.save
-        redirect_to admin_users_path, notice: 'Usuario actualizado'
+        redirect_to admin_users_path, notice: 'Permisos actualizados'
       else
         render :edit, status: :unprocessable_content
       end
@@ -45,12 +36,38 @@ module Admin
     end
 
     def user_params
-      params.expect(user: %i[name email password password_confirmation])
+      params.expect(user: %i[name email])
     end
 
-    def assign_role(user)
+    def apply_role!
       role = params.dig(:user, :role).to_s
-      user.role = %w[owner admin].include?(role) ? role : :owner
+      return unless User.roles.key?(role)
+
+      @user.role = role
+    end
+
+    def apply_ban_flag!
+      return unless params[:user].key?(:banned)
+
+      if ActiveModel::Type::Boolean.new.cast(params[:user][:banned])
+        @user.banned_at ||= Time.current
+      else
+        @user.banned_at = nil
+      end
+    end
+
+    def guard_self_admin_change
+      return unless @user.id == current_user.id
+
+      new_role = params.dig(:user, :role).to_s
+      if new_role.present? && new_role != 'admin'
+        redirect_to edit_admin_user_path(@user), alert: 'No puedes quitarte el rol de administrador'
+        return
+      end
+
+      return unless ActiveModel::Type::Boolean.new.cast(params.dig(:user, :banned))
+
+      redirect_to edit_admin_user_path(@user), alert: 'No puedes bloquear tu propia cuenta'
     end
   end
 end

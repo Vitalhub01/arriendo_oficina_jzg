@@ -54,6 +54,7 @@ Rails.application.routes.draw do
     end
     resources :jornada_definitions
     resources :pricing_rules
+    resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
     resources :bookings, only: %i[index show update]
     resources :testimonials, only: %i[index update]

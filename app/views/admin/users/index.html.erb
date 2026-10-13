@@ -1,18 +1,74 @@
-<div class="flex items-center justify-between">
-  <h1 class="text-2xl font-bold">Dueños</h1>
-  <%= link_to "Nuevo dueño", new_admin_user_path, class: "btn-primary" %>
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold">Usuarios y permisos</h1>
+    <p class="mt-1 text-sm text-gray-600">Asigna roles y gestiona el acceso al sitio.</p>
+  </div>
 </div>
 
-<table class="mt-6 w-full text-left text-sm">
-  <thead><tr class="border-b"><th class="py-2">Nombre</th><th>Email</th><th>Rol</th><th></th></tr></thead>
-  <tbody>
-    <% @users.each do |user| %>
-      <tr class="border-b">
-        <td class="py-3"><%= user.name %></td>
-        <td><%= user.email %></td>
-        <td><%= user.role %></td>
-        <td><%= link_to "Editar", edit_admin_user_path(user), class: "text-brand hover:underline" %></td>
+<%= form_with url: admin_users_path, method: :get, class: "mt-6 flex flex-wrap items-end gap-3", data: { turbo_frame: "_top" } do %>
+  <div class="min-w-[12rem] flex-1">
+    <label class="block text-sm font-medium text-gray-700">Buscar</label>
+    <input type="search" name="q" value="<%= params[:q] %>" placeholder="Nombre o email" class="input-field mt-1 w-full">
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700">Rol</label>
+    <select name="role" class="input-field mt-1">
+      <option value="">Todos</option>
+      <% User.roles.each_key do |role| %>
+        <option value="<%= role %>" <%= 'selected' if params[:role] == role %>><%= User::ROLE_LABELS[role] %></option>
+      <% end %>
+    </select>
+  </div>
+  <button type="submit" class="btn-secondary">Filtrar</button>
+  <% if params[:q].present? || params[:role].present? %>
+    <%= link_to "Limpiar", admin_users_path, class: "text-sm text-brand hover:underline" %>
+  <% end %>
+<% end %>
+
+<div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+  <table class="w-full min-w-[640px] text-left text-sm">
+    <thead class="border-b border-gray-100 bg-gray-50 text-gray-600">
+      <tr>
+        <th class="px-4 py-3 font-medium">Nombre</th>
+        <th class="px-4 py-3 font-medium">Email</th>
+        <th class="px-4 py-3 font-medium">Rol</th>
+        <th class="px-4 py-3 font-medium">Estado</th>
+        <th class="px-4 py-3 font-medium">Último acceso</th>
+        <th class="px-4 py-3 font-medium"></th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% @users.each do |user| %>
+        <tr class="border-b border-gray-100 last:border-0">
+          <td class="px-4 py-3 font-medium text-gray-900">
+            <%= user.name %>
+            <% if user.id == current_user.id %>
+              <span class="ml-1 text-xs font-normal text-gray-500">(tú)</span>
+            <% end %>
+          </td>
+          <td class="px-4 py-3 text-gray-700"><%= user.email %></td>
+          <td class="px-4 py-3">
+            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium <%= user.admin? ? 'bg-violet-100 text-violet-800' : 'bg-gray-100 text-gray-800' %>">
+              <%= user.role_label %>
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <% if user.banned? %>
+              <span class="text-red-600">Bloqueado</span>
+            <% else %>
+              <span class="text-green-700">Activo</span>
+            <% end %>
+          </td>
+          <td class="px-4 py-3 text-gray-500">
+            <%= user.last_sign_in_at ? l(user.last_sign_in_at, format: :short) : '—' %>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <%= link_to "Permisos", edit_admin_user_path(user), class: "text-brand hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%== pagy_nav(@pagy) if @pagy.pages > 1 %>

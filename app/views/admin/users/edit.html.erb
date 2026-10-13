@@ -1,7 +1,58 @@
-<h1 class="text-2xl font-bold">Editar usuario</h1>
-<%= form_with model: [:admin, @user], class: "mt-6 max-w-md space-y-4" do |f| %>
-  <%= f.label :name %><%= f.text_field :name, class: "input-field" %>
-  <%= f.label :email %><%= f.email_field :email, class: "input-field" %>
-  <%= f.label :role %><%= f.select :role, User.roles.keys, {}, class: "input-field" %>
-  <%= f.submit "Guardar", class: "btn-primary" %>
-<% end %>
+<div class="max-w-lg">
+  <%= link_to "← Usuarios", admin_users_path, class: "text-sm text-brand hover:underline" %>
+  <h1 class="mt-2 text-2xl font-bold">Permisos de <%= @user.name %></h1>
+  <p class="mt-1 text-sm text-gray-600"><%= @user.email %></p>
+
+  <% if @user.errors.any? %>
+    <div class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+      <%= @user.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <%= form_with model: [:admin, @user], class: "mt-6 space-y-4" do |f| %>
+    <div>
+      <%= f.label :name, "Nombre", class: "block text-sm font-medium" %>
+      <%= f.text_field :name, class: "input-field mt-1 w-full", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :email, class: "block text-sm font-medium" %>
+      <%= f.email_field :email, class: "input-field mt-1 w-full", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :role, "Rol", class: "block text-sm font-medium" %>
+      <%= f.select :role,
+            User.roles.keys.map { |r| [User::ROLE_LABELS[r], r] },
+            {},
+            class: "input-field mt-1 w-full",
+            disabled: @user.id == current_user.id %>
+      <% if @user.id == current_user.id %>
+        <p class="mt-1 text-xs text-gray-500">No puedes cambiar tu propio rol de administrador.</p>
+      <% else %>
+        <p class="mt-1 text-xs text-gray-500">
+          <strong>Administrador:</strong> panel admin y Sidekiq.
+          <strong>Profesional:</strong> reservas tras verificación.
+          <strong>Con membresía:</strong> descuentos de plan activo.
+        </p>
+      <% end %>
+    </div>
+
+    <div class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+      <%= hidden_field_tag 'user[banned]', '0', disabled: @user.id == current_user.id %>
+      <%= check_box_tag 'user[banned]', '1', @user.banned?,
+            id: 'user_banned',
+            class: 'mt-1',
+            disabled: @user.id == current_user.id %>
+      <div>
+        <%= label_tag 'user_banned', 'Cuenta bloqueada', class: "text-sm font-medium" %>
+        <p class="text-xs text-gray-600">No podrá iniciar sesión ni reservar.</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 pt-2">
+      <%= f.submit "Guardar cambios", class: "btn-primary" %>
+      <%= link_to "Cancelar", admin_users_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>
