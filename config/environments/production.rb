@@ -44,7 +44,7 @@ Rails.application.configure do
   config.active_storage.variant_processor = :vips
 
   config.action_controller.default_url_options = {
-    host: ENV.fetch('APP_HOST', 'arriendodebox.cl'),
+    host: ENV.fetch('APP_HOST', 'arriendo-oficina-jzg.onrender.com'),
     protocol: 'https'
   }
 
@@ -75,7 +75,7 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.default_url_options = { host: ENV.fetch('APP_HOST', 'arriendodebox.cl') }
+  config.action_mailer.default_url_options = { host: ENV.fetch('APP_HOST', 'arriendo-oficina-jzg.onrender.com') }
   config.action_mailer.smtp_settings = {
     address: ENV.fetch('SMTP_ADDRESS', 'smtp.sendgrid.net'),
     port: ENV.fetch('SMTP_PORT', 587).to_i,
