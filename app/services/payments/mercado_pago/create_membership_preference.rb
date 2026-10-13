@@ -25,7 +25,7 @@ module Payments
         response = sdk.preference.create(preference)
 
         if response[:status] == 201
-          init_point = response.dig(:response, 'init_point')
+          init_point = CheckoutUrl.from_preference(response[:response])
           payment = Payment.create!(
             payer: @user,
             membership: membership,
@@ -37,7 +37,7 @@ module Payments
           Result.new(success: true, init_point: init_point, payment: payment)
         else
           membership.destroy
-          failure('No se pudo crear la preferencia de pago')
+          failure(PreferenceOptions.error_from_response(response) || 'No se pudo crear la preferencia de pago')
         end
       rescue StandardError => e
         failure(e.message)
@@ -46,6 +46,7 @@ module Payments
       private
 
       def build_preference(membership)
+        success_url = "#{app_host}/membership"
         {
           items: [{
             title: "Membresía #{@plan.name}",
@@ -56,12 +57,11 @@ module Payments
           payer: { email: @user.email },
           external_reference: "membership-#{membership.id}",
           back_urls: {
-            success: "#{app_host}/membership",
-            failure: "#{app_host}/membership",
-            pending: "#{app_host}/membership"
-          },
-          auto_return: 'approved'
-        }
+            success: success_url,
+            failure: success_url,
+            pending: success_url
+          }
+        }.merge(PreferenceOptions.auto_return_for(success_url))
       end
 
       def membership_expires_at

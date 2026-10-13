@@ -36,15 +36,14 @@ module Payments
             failure: failure_url,
             pending: pending_url
           },
-          auto_return: 'approved',
           external_reference: @booking.id.to_s,
           notification_url: webhook_url
-        }
+        }.merge(PreferenceOptions.auto_return_for(success_url))
 
         response = sdk.preference.create(preference_data)
         preference = response[:response]
 
-        if preference && preference['id']
+        if response[:status] == 201 && preference && preference['id']
           payment = Payment.create!(
             booking: @booking,
             payer: @payer,
@@ -53,9 +52,9 @@ module Payments
             amount_cents: @booking.total_amount_cents,
             status: :pending
           )
-          Result.new(success: true, payment: payment, init_point: preference['init_point'])
+          Result.new(success: true, payment: payment, init_point: CheckoutUrl.from_preference(preference))
         else
-          failure('Error al crear preferencia de pago')
+          failure(PreferenceOptions.error_from_response(response) || 'Error al crear preferencia de pago')
         end
       rescue StandardError => e
         failure(e.message)
@@ -75,13 +74,9 @@ module Payments
       def existing_init_point(payment)
         sdk = ::Mercadopago::SDK.new(access_token)
         response = sdk.preference.get(payment.mercadopago_preference_id)
-        response.dig(:response, 'init_point') || sandbox_init_point(response[:response])
+        CheckoutUrl.from_preference(response[:response])
       rescue StandardError
         nil
-      end
-
-      def sandbox_init_point(preference)
-        preference&.dig('sandbox_init_point')
       end
 
       def access_token

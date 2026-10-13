@@ -17,7 +17,10 @@ module IntegrationHelpers
   def with_mercadopago_stub(preference_id: 'TEST-pref-1', init_point: 'https://sandbox.mercadopago.cl/checkout', &)
     fake_pref = Object.new
     fake_pref.define_singleton_method(:create) do |_data|
-      { response: { 'id' => preference_id, 'init_point' => init_point, 'sandbox_init_point' => init_point } }
+      {
+        status: 201,
+        response: { 'id' => preference_id, 'init_point' => init_point, 'sandbox_init_point' => init_point }
+      }
     end
     fake_pref.define_singleton_method(:get) do |_id|
       { response: { 'id' => preference_id, 'init_point' => init_point, 'sandbox_init_point' => init_point } }
