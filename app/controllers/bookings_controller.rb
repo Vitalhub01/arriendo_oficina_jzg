@@ -39,7 +39,7 @@ class BookingsController < ApplicationController
       if result.booking.confirmed?
         redirect_to result.booking, notice: 'Reserva confirmada con tu crédito'
       else
-        redirect_to checkout_booking_path(result.booking)
+        redirect_to checkout_booking_path(result.booking), status: :see_other
       end
     else
       load_space_show_vars

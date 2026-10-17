@@ -5,7 +5,7 @@ require 'test_helper'
 class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
   setup do
     @space = boxes(:published_box)
-    @week_start = Date.current.beginning_of_week(:monday)
+    @week_start = 1.week.from_now.to_date.beginning_of_week(:monday)
   end
 
   test 'builds slots from schedule blocks' do

@@ -29,9 +29,13 @@ class AvailabilityScheduleBuilder
     blocks = box.schedule_blocks.for_day(day_of_week).ordered
     return [] if blocks.empty?
 
-    blocks.map do |block|
+    blocks.filter_map do |block|
+      next if date < Date.current
+
       slot_start = block.starts_at_on(date)
       slot_end = block.ends_at_on(date)
+      next if slot_start < Time.current
+
       Slot.new(
         starts_at: slot_start,
         ends_at: slot_end,

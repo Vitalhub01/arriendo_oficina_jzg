@@ -5,7 +5,9 @@ export default class extends Controller {
   static values = {
     minimumSlots: Number,
     blocksByDay: Object,
-    overrides: Array
+    overrides: Array,
+    today: String,
+    nowTime: String
   }
 
   connect() {
@@ -13,47 +15,70 @@ export default class extends Controller {
     this.updateTotal()
   }
 
-  refreshStarts() {
-    if (!this.hasStartTimeTarget || !this.hasDateTarget) return
+  selectSlot(event) {
+    const { date, startTime } = event.currentTarget.dataset
+    if (!date || !startTime) return
 
-    const date = new Date(this.dateTarget.value + "T12:00:00")
-    const day = (date.getDay() + 6) % 7
-    const blocks = this.blocksByDayValue[String(day)] || []
-
-    const select = this.startTimeTarget
-    const previous = select.value
-    select.innerHTML = ""
-
-    const dateIso = this.dateTarget.value
-    blocks.forEach((block) => {
-      if (this.isBlockedOnDate(block, dateIso)) return
-
-      const option = document.createElement("option")
-      const price = this.priceForBlock(block, dateIso)
-      option.value = block.start
-      option.textContent = `${block.start} – ${block.end} (${this.formatCLP(price)})`
-      select.appendChild(option)
+    this.dateTargets.forEach((field) => {
+      field.value = date
     })
+    this.refreshStarts()
+    this.startTimeTargets.forEach((select) => {
+      select.value = startTime
+    })
+    this.updateTotal()
 
-    if (blocks.length === 0) {
-      const option = document.createElement("option")
-      option.value = ""
-      option.textContent = "Sin bloques este día"
-      select.appendChild(option)
-    } else if (previous && blocks.some((b) => b.start === previous)) {
-      select.value = previous
+    const mobileSheet = document.getElementById("booking-form-mobile")
+    if (mobileSheet && window.matchMedia("(max-width: 1023px)").matches) {
+      mobileSheet.classList.remove("hidden")
+      mobileSheet.scrollIntoView({ behavior: "smooth", block: "start" })
     }
   }
 
+  refreshStarts() {
+    if (!this.hasStartTimeTarget || !this.hasDateTarget) return
+
+    const dateValue = this.dateTargets[0]?.value
+    if (!dateValue) return
+
+    const date = new Date(dateValue + "T12:00:00")
+    const day = (date.getDay() + 6) % 7
+    const blocks = this.blocksByDayValue[String(day)] || []
+    const dateIso = dateValue
+    const selectableBlocks = blocks.filter((block) => !this.isBlockedOnDate(block, dateIso) && !this.isPastBlock(block, dateIso))
+
+    this.startTimeTargets.forEach((select) => {
+      const previous = select.value
+      select.innerHTML = ""
+
+      selectableBlocks.forEach((block) => {
+        const option = document.createElement("option")
+        const price = this.priceForBlock(block, dateIso)
+        option.value = block.start
+        option.textContent = `${block.start} – ${block.end} (${this.formatCLP(price)})`
+        select.appendChild(option)
+      })
+
+      if (selectableBlocks.length === 0) {
+        const option = document.createElement("option")
+        option.value = ""
+        option.textContent = "Sin bloques disponibles"
+        select.appendChild(option)
+      } else if (previous && selectableBlocks.some((b) => b.start === previous)) {
+        select.value = previous
+      }
+    })
+  }
+
   updateTotal() {
-    const slotCount = parseInt(this.slotCountTarget.value || this.minimumSlotsValue, 10)
-    const startTime = this.hasStartTimeTarget ? this.startTimeTarget.value : ""
+    const slotCount = parseInt(this.slotCountTargets[0]?.value || this.minimumSlotsValue, 10)
+    const startTime = this.hasStartTimeTarget ? this.startTimeTargets[0]?.value : ""
     const total = this.calculateTotal(slotCount, startTime)
     const durationMinutes = this.totalDurationMinutes(slotCount, startTime)
 
-    if (this.hasTotalTarget) {
-      this.totalTarget.textContent = this.formatCLP(total)
-    }
+    this.totalTargets.forEach((el) => {
+      el.textContent = this.formatCLP(total)
+    })
 
     if (this.hasDurationLabelTarget) {
       const hours = Math.floor(durationMinutes / 60)
@@ -64,7 +89,9 @@ export default class extends Controller {
       } else if (hours > 0) {
         label = `Duración: ${hours} hora(s)`
       }
-      this.durationLabelTarget.textContent = label
+      this.durationLabelTargets.forEach((el) => {
+        el.textContent = label
+      })
     }
   }
 
@@ -72,7 +99,7 @@ export default class extends Controller {
     const blocks = this.blocksForStart(startTime)
     if (blocks.length === 0) return 0
 
-    const dateIso = this.hasDateTarget ? this.dateTarget.value : ""
+    const dateIso = this.hasDateTarget ? this.dateTargets[0]?.value : ""
     const startIndex = blocks.findIndex((b) => b.start === startTime)
     if (startIndex < 0) return 0
 
@@ -81,6 +108,7 @@ export default class extends Controller {
       const block = blocks[startIndex + i]
       if (!block) return 0
       if (this.isBlockedOnDate(block, dateIso)) return 0
+      if (this.isPastBlock(block, dateIso)) return 0
       if (i > 0 && blocks[startIndex + i - 1].end !== block.start) return 0
       total += this.priceForBlock(block, dateIso)
     }
@@ -101,6 +129,19 @@ export default class extends Controller {
     )
   }
 
+  isPastBlock(block, dateIso) {
+    if (this.hasTodayValue && this.hasNowTimeValue) {
+      if (dateIso > this.todayValue) return false
+      if (dateIso < this.todayValue) return true
+      return block.start < this.nowTimeValue
+    }
+
+    const [year, month, day] = dateIso.split("-").map(Number)
+    const [hour, minute] = block.start.split(":").map(Number)
+    const startAt = new Date(year, month - 1, day, hour, minute, 0, 0)
+    return startAt <= new Date()
+  }
+
   totalDurationMinutes(slotCount, startTime) {
     const blocks = this.blocksForStart(startTime)
     const startIndex = blocks.findIndex((b) => b.start === startTime)
@@ -117,20 +158,32 @@ export default class extends Controller {
 
   blocksForStart(_startTime) {
     if (!this.hasDateTarget) return []
-    const date = new Date(this.dateTarget.value + "T12:00:00")
+    const dateValue = this.dateTargets[0]?.value
+    if (!dateValue) return []
+    const date = new Date(dateValue + "T12:00:00")
     const day = (date.getDay() + 6) % 7
     return this.blocksByDayValue[String(day)] || []
   }
 
   increment() {
-    this.slotCountTarget.value = parseInt(this.slotCountTarget.value || this.minimumSlotsValue, 10) + 1
+    const field = this.slotCountTargets[0]
+    if (!field) return
+    const next = parseInt(field.value || this.minimumSlotsValue, 10) + 1
+    this.slotCountTargets.forEach((el) => {
+      el.value = next
+    })
     this.updateTotal()
   }
 
   decrement() {
-    const current = parseInt(this.slotCountTarget.value || this.minimumSlotsValue, 10)
+    const field = this.slotCountTargets[0]
+    if (!field) return
+    const current = parseInt(field.value || this.minimumSlotsValue, 10)
     if (current > this.minimumSlotsValue) {
-      this.slotCountTarget.value = current - 1
+      const next = current - 1
+      this.slotCountTargets.forEach((el) => {
+        el.value = next
+      })
       this.updateTotal()
     }
   }

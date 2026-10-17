@@ -41,7 +41,12 @@ class SpacesController < ApplicationController
     @week_start = parse_week_start
     @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
     render partial: 'spaces/availability_schedule',
-           locals: { space: @space, schedule: @schedule, week_start: @week_start }
+           locals: {
+             space: @space,
+             schedule: @schedule,
+             week_start: @week_start,
+             interactive: user_signed_in? && current_user.can_book?
+           }
   end
 
   private

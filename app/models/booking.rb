@@ -20,6 +20,7 @@ class Booking < ApplicationRecord
   validates :total_amount_cents, numericality: { greater_than_or_equal_to: 0 }
   validate :minimum_slots_met, on: :create
   validate :availability_check, on: :create
+  validate :start_at_not_in_past, on: :create
 
   before_validation :set_payment_expires_at, on: :create
   before_validation :set_duration_and_amount, on: :create
@@ -123,6 +124,12 @@ class Booking < ApplicationRecord
     unless checker.consecutive_slots_available?(start_at, slot_count)
       errors.add(:base, checker.error_message || 'Horario no disponible')
     end
+  end
+
+  def start_at_not_in_past
+    return unless start_at
+
+    errors.add(:base, 'El horario seleccionado ya pasó') if start_at < Time.current
   end
 
   def apply_reschedule_credit_deduction

@@ -1,39 +1,22 @@
-<% blocks_by_day = space.schedule_blocks.ordered.group_by(&:day_of_week).transform_values do |blocks|
-  blocks.map do |b|
-    {
-      id: b.id,
-      start: b.start_time.strftime('%H:%M'),
-      end: b.end_time.strftime('%H:%M'),
-      price: b.price_cents,
-      duration: b.duration_minutes
-    }
-  end
-end %>
-<% block_overrides = space.schedule_block_overrides.where('date >= ?', Date.current).map { |o|
-  {
-    schedule_block_id: o.schedule_block_id,
-    date: o.date.iso8601,
-    blocked: o.blocked,
-    price: o.price_cents
-  }
-} %>
-<div data-controller="booking-form"
-     data-booking-form-minimum-slots-value="<%= space.minimum_slots %>"
-     data-booking-form-blocks-by-day-value="<%= blocks_by_day.to_json %>"
-     data-booking-form-overrides-value="<%= block_overrides.to_json %>">
+<div>
   <p class="text-2xl font-bold text-gray-900">Reserva por bloques</p>
   <p class="mt-1 text-sm text-gray-500">Mínimo <%= space.minimum_slots %> bloque(s) contiguos según la agenda del espacio.</p>
 
   <% if user_signed_in? && current_user.can_book? %>
+    <% booking_date = (@prefill_date || Date.current).to_date %>
     <div class="mt-4">
-      <%= form_with url: space_bookings_path(space), method: :post, local: true, class: "space-y-4" do %>
+      <%= form_with url: space_bookings_path(space), method: :post, class: "space-y-4", data: { turbo: false } do %>
         <div>
           <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
-          <%= date_field_tag :date, @prefill_date || Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#refreshStarts" } %>
+          <%= date_field_tag :date, booking_date, min: Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#refreshStarts" } %>
         </div>
         <div>
           <%= label_tag :start_time, "Hora inicio", class: "mb-1 block text-sm font-medium" %>
-          <%= select_tag :start_time, options_for_select([]), class: "input-field", required: true, data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal" } %>
+          <%= select_tag :start_time,
+                options_for_select(space_booking_start_time_options(space, booking_date), @prefill_start_time),
+                class: "input-field",
+                required: true,
+                data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal" } %>
         </div>
         <%= render "spaces/booking_slots_fields", space: space %>
         <% if current_user.reschedule_credits.usable.any? %>

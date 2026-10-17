@@ -4,6 +4,15 @@
 <% content_for :og_image, url_for(@space.photos.first) if @space.photos.attached? %>
 <% content_for :json_ld, space_offer_json_ld(@space) %>
 <% content_for :body_class, "pb-24 lg:pb-0" %>
+<% booking_interactive = user_signed_in? && current_user.can_book? %>
+<% if booking_interactive %>
+  <div data-controller="booking-form"
+       data-booking-form-minimum-slots-value="<%= @space.minimum_slots %>"
+       data-booking-form-blocks-by-day-value="<%= space_booking_blocks_by_day(@space).to_json %>"
+       data-booking-form-overrides-value="<%= space_booking_block_overrides(@space).to_json %>"
+       data-booking-form-today-value="<%= Date.current.iso8601 %>"
+       data-booking-form-now-time-value="<%= Time.zone.now.strftime('%H:%M') %>">
+<% end %>
 <div class="mx-auto max-w-7xl px-4 py-6">
   <% if @errors.present? %>
     <div class="mb-4 rounded-xl bg-red-50 p-4 text-red-800">
@@ -59,7 +68,7 @@
       <section>
         <h2 class="text-xl font-semibold">Horarios disponibles</h2>
         <%= turbo_frame_tag "availability_schedule" do %>
-          <%= render "spaces/availability_schedule", space: @space, schedule: @schedule, week_start: @week_start %>
+          <%= render "spaces/availability_schedule", space: @space, schedule: @schedule, week_start: @week_start, interactive: booking_interactive %>
         <% end %>
       </section>
     </div>
@@ -100,3 +109,6 @@
     document.getElementById('booking-form-mobile').classList.remove('hidden');
   });
 </script>
+<% if booking_interactive %>
+  </div>
+<% end %>

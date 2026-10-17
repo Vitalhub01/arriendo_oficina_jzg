@@ -80,6 +80,16 @@ class Space < ApplicationRecord
     schedule_blocks.for_day(day).ordered.reject { |block| !block.active_on?(date) || block.blocked_on?(date) }
   end
 
+  def bookable_schedule_blocks_on(date)
+    parsed = date.to_date
+    return [] if parsed < Date.current
+
+    now = Time.current
+    schedule_blocks_for_date(parsed).select do |block|
+      block.starts_at_on(parsed) > now
+    end
+  end
+
   def price_for_interval(start_at, end_at)
     blocks = ScheduleBlockResolver.blocks_for_exact_interval(self, start_at, end_at)
     date = start_at.to_date

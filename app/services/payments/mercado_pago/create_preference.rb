@@ -15,11 +15,10 @@ module Payments
 
         existing = reusable_pending_payment
         if existing
-          return Result.new(
-            success: true,
-            payment: existing,
-            init_point: existing_init_point(existing)
-          )
+          init_point = existing_init_point(existing)
+          if init_point.present?
+            return Result.new(success: true, payment: existing, init_point: init_point)
+          end
         end
 
         sdk = ::Mercadopago::SDK.new(access_token)
