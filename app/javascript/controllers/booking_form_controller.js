@@ -45,7 +45,12 @@ export default class extends Controller {
     const day = (date.getDay() + 6) % 7
     const blocks = this.blocksByDayValue[String(day)] || []
     const dateIso = dateValue
-    const selectableBlocks = blocks.filter((block) => !this.isBlockedOnDate(block, dateIso) && !this.isPastBlock(block, dateIso))
+    const selectableBlocks = blocks.filter(
+      (block) =>
+        this.isActiveOnDate(block, dateIso) &&
+        !this.isBlockedOnDate(block, dateIso) &&
+        !this.isPastBlock(block, dateIso)
+    )
 
     this.startTimeTargets.forEach((select) => {
       const previous = select.value
@@ -107,6 +112,7 @@ export default class extends Controller {
     for (let i = 0; i < slotCount; i++) {
       const block = blocks[startIndex + i]
       if (!block) return 0
+      if (!this.isActiveOnDate(block, dateIso)) return 0
       if (this.isBlockedOnDate(block, dateIso)) return 0
       if (this.isPastBlock(block, dateIso)) return 0
       if (i > 0 && blocks[startIndex + i - 1].end !== block.start) return 0
@@ -127,6 +133,11 @@ export default class extends Controller {
     return this.overridesValue.some(
       (o) => o.schedule_block_id === block.id && o.date === dateIso && o.blocked
     )
+  }
+
+  isActiveOnDate(block, dateIso) {
+    if (!block.effective_until) return true
+    return dateIso <= block.effective_until
   }
 
   isPastBlock(block, dateIso) {

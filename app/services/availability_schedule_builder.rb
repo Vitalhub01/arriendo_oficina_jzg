@@ -25,8 +25,8 @@ class AvailabilityScheduleBuilder
 
   attr_reader :box
 
-  def slots_for(date, day_of_week)
-    blocks = box.schedule_blocks.for_day(day_of_week).ordered
+  def slots_for(date, _day_of_week)
+    blocks = box.schedule_blocks_for_date(date)
     return [] if blocks.empty?
 
     blocks.filter_map do |block|

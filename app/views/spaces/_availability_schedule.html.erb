@@ -3,7 +3,12 @@
   <div class="flex items-center justify-between">
     <% prev_week = week_start - 1.week %>
     <% next_week = week_start + 1.week %>
-    <%= link_to "← Semana anterior", availability_space_path(space, week_start: prev_week), class: "text-sm font-medium text-rose-600 hover:underline", data: { turbo_frame: "availability_schedule" } %>
+    <% show_prev_week = (prev_week + 6.days) >= Date.current %>
+    <% if show_prev_week %>
+      <%= link_to "← Semana anterior", availability_space_path(space, week_start: prev_week), class: "text-sm font-medium text-rose-600 hover:underline", data: { turbo_frame: "availability_schedule" } %>
+    <% else %>
+      <span class="text-sm text-gray-300">← Semana anterior</span>
+    <% end %>
     <span class="text-sm text-gray-600"><%= l(week_start, format: :short) %> — <%= l(week_start + 6.days, format: :short) %></span>
     <%= link_to "Semana siguiente →", availability_space_path(space, week_start: next_week), class: "text-sm font-medium text-rose-600 hover:underline", data: { turbo_frame: "availability_schedule" } %>
   </div>
@@ -45,6 +50,13 @@
       <% end %>
     </div>
   </div>
+  <% slots_in_week = schedule.sum { |day| day[:slots].size } %>
+  <% if slots_in_week.zero? %>
+    <p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+      No hay horarios visibles en esta semana (días pasados, fin de plantilla o sin agenda).
+      <%= link_to "Ver semana siguiente →", availability_space_path(space, week_start: next_week), class: "font-medium text-rose-700 hover:underline", data: { turbo_frame: "availability_schedule" } %>
+    </p>
+  <% end %>
   <% if interactive %>
     <p class="mt-3 text-xs text-gray-500">Haz clic en un bloque disponible para elegir fecha y hora en el formulario de reserva.</p>
   <% end %>

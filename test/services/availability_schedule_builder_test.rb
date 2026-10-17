@@ -41,4 +41,14 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
     assert_equal 30, ((monday[:slots][0].ends_at - monday[:slots][0].starts_at) / 60).to_i
     assert_equal 15, ((monday[:slots][1].ends_at - monday[:slots][1].starts_at) / 60).to_i
   end
+
+  test 'omits slots after effective_until on template block' do
+    future_monday = @week_start
+    @space.schedule_blocks.for_day(0).update_all(effective_until: future_monday - 1.day)
+
+    schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
+    monday = schedule.find { |day| day[:date] == future_monday }
+
+    assert_empty monday[:slots]
+  end
 end

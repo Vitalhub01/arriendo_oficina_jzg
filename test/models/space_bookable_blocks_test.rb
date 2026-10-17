@@ -36,4 +36,11 @@ class SpaceBookableBlocksTest < ActiveSupport::TestCase
     blocks = @space.bookable_schedule_blocks_on(future_monday)
     assert_equal @space.schedule_blocks_for_date(future_monday).size, blocks.size
   end
+
+  test 'preferred_schedule_week_start advances when current week has no upcoming slots' do
+    travel_to Time.zone.local(2026, 6, 19, 20, 0, 0) do # viernes noche
+      week = @space.preferred_schedule_week_start
+      assert_equal Date.new(2026, 6, 22), week
+    end
+  end
 end

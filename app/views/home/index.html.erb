@@ -64,11 +64,15 @@
       <%= link_to "Ver todos →", spaces_path, class: "text-sm font-medium uppercase tracking-wide text-brand hover:underline" %>
     </div>
 
-    <div class="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-      <% @spaces.each do |space| %>
-        <%= render "shared/space_card", space: space %>
-      <% end %>
-    </div>
+    <% if @spaces.any? %>
+      <div class="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        <% @spaces.each do |space| %>
+          <%= render "shared/space_card", space: space %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-12 text-center text-gray-600">Pronto publicaremos espacios en el catálogo.</p>
+    <% end %>
   </section>
 
   <section class="bg-gray-50">

@@ -90,6 +90,28 @@ class Space < ApplicationRecord
     end
   end
 
+  def schedule_slots_in_week?(week_start)
+    week = week_start.to_date.beginning_of_week(:monday)
+    now = Time.current
+
+    (0..6).any? do |offset|
+      date = week + offset.days
+      next false if date < Date.current
+
+      schedule_blocks_for_date(date).any? { |block| block.starts_at_on(date) > now }
+    end
+  end
+
+  def preferred_schedule_week_start
+    week = Date.current.beginning_of_week(:monday)
+    return week if schedule_slots_in_week?(week)
+
+    next_week = week + 1.week
+    return next_week if schedule_slots_in_week?(next_week)
+
+    week
+  end
+
   def price_for_interval(start_at, end_at)
     blocks = ScheduleBlockResolver.blocks_for_exact_interval(self, start_at, end_at)
     date = start_at.to_date

@@ -10,7 +10,9 @@ class SpacesController < ApplicationController
     @spaces = @spaces.by_max_price(params[:max_price]) if params[:max_price].present?
     @spaces = @spaces.order(created_at: :desc)
 
+    @filtered_by_availability = false
     if params[:date].present? && (params[:slot_count].present? || params[:hours].present?)
+      @filtered_by_availability = true
       slot_count = (params[:slot_count] || params[:hours]).to_i
       start_at, end_at = availability_window(
         date: params[:date],
@@ -29,7 +31,7 @@ class SpacesController < ApplicationController
   def show
     @space = Space.published_spaces.find(params.expect(:id))
     authorize @space
-    @week_start = parse_week_start
+    @week_start = schedule_week_start(@space)
     @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
     @prefill_date = params[:date]
     @prefill_slot_count = params[:slot_count] || params[:hours]
@@ -38,7 +40,7 @@ class SpacesController < ApplicationController
 
   def availability
     @space = Space.published_spaces.find(params.expect(:id))
-    @week_start = parse_week_start
+    @week_start = schedule_week_start(@space)
     @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
     render partial: 'spaces/availability_schedule',
            locals: {
@@ -51,14 +53,14 @@ class SpacesController < ApplicationController
 
   private
 
-  def parse_week_start
+  def schedule_week_start(space)
     if params[:week_start].present?
       Date.parse(params[:week_start]).beginning_of_week(:monday)
     else
-      Date.current.beginning_of_week(:monday)
+      space.preferred_schedule_week_start
     end
   rescue ArgumentError
-    Date.current.beginning_of_week(:monday)
+    space.preferred_schedule_week_start
   end
 
   def availability_window(date:, slot_count:, start_time:, slot_duration_minutes: nil)

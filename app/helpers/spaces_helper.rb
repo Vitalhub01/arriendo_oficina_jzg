@@ -9,7 +9,8 @@ module SpacesHelper
           start: b.start_time.strftime('%H:%M'),
           end: b.end_time.strftime('%H:%M'),
           price: b.price_cents,
-          duration: b.duration_minutes
+          duration: b.duration_minutes,
+          effective_until: b.effective_until&.iso8601
         }
       end
     end

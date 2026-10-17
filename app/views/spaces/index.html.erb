@@ -11,9 +11,22 @@
     </p>
   </div>
 
-  <div class="mt-14 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-    <% @spaces.each do |space| %>
-      <%= render "shared/space_card", space: space %>
-    <% end %>
-  </div>
+  <% if @spaces.any? %>
+    <div class="mt-14 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+      <% @spaces.each do |space| %>
+        <%= render "shared/space_card", space: space %>
+      <% end %>
+    </div>
+  <% elsif @filtered_by_availability %>
+    <div class="mx-auto mt-14 max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-950">
+      <p class="font-medium">Ningún espacio coincide con esa fecha y horario.</p>
+      <p class="mt-2 text-sm text-amber-900/90">Prueba un día entre lunes y viernes, en horario de agenda, o revisa el catálogo completo.</p>
+      <%= link_to "Ver todos los espacios", spaces_path, class: "btn-primary mt-6 inline-flex" %>
+    </div>
+  <% else %>
+    <div class="mx-auto mt-14 max-w-lg rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center text-gray-700">
+      <p class="font-medium">Aún no hay espacios publicados.</p>
+      <p class="mt-2 text-sm">Cuando el administrador publique espacios, aparecerán aquí.</p>
+    </div>
+  <% end %>
 </section>

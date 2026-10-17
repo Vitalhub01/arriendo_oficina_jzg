@@ -13,6 +13,11 @@ maintain_booking_series:
   class: "MaintainBookingSeriesJob"
   queue: default
 
+maintain_schedule_blocks:
+  cron: "30 3 * * *"
+  class: "MaintainScheduleBlocksJob"
+  queue: default
+
 expire_memberships:
   cron: "0 4 * * *"
   class: "Memberships::ExpireJob"
