@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-require 'open-uri'
-
 Rails.logger.debug 'Seeding Oficina JZG...'
+
+VITALHUB_OFFICE_PHOTOS = (1..5).map do |n|
+  Rails.root.join("app/assets/images/vitalhub_office_#{n}.jpg")
+end.freeze
 
 admin = User.find_or_create_by!(email: 'admin@jzg.cl') do |u|
   u.name = 'Administrador JZG'
@@ -35,8 +37,6 @@ office = Office.find_or_create_by!(name: 'Oficina JZG') do |o|
   o.longitude = -70.6156
 end
 
-placeholder_url = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80'
-
 spaces_data = [
   {
     title: 'Box de Atención 1',
@@ -64,7 +64,7 @@ spaces_data = [
   }
 ]
 
-  spaces_data.each do |data|
+  spaces_data.each_with_index do |data, photo_index|
   space = Space.find_or_initialize_by(title: data[:title], office: office)
   space.assign_attributes(
     description: 'Espacio profesional equipado para atención por bloques configurables.',
@@ -86,13 +86,13 @@ spaces_data = [
   )
   space.save!
 
-  unless space.photos.attached?
-    space.photos.attach(
-      io: URI.open(placeholder_url),
-      filename: 'cover.jpg',
-      content_type: 'image/jpeg'
-    )
-  end
+  photo_path = VITALHUB_OFFICE_PHOTOS[photo_index % VITALHUB_OFFICE_PHOTOS.size]
+  space.photos.purge
+  space.photos.attach(
+    io: File.open(photo_path),
+    filename: File.basename(photo_path),
+    content_type: 'image/jpeg'
+  )
 
   space.update!(status: :published)
 
