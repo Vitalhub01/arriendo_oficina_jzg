@@ -87,6 +87,26 @@ class Space < ApplicationRecord
     published_spaces.includes(:slot_rates).filter_map(&:flexible_block_unit_price_cents).min
   end
 
+  def morning_block_price_cents
+    slot_rates.find_by(name: 'Mañana')&.block_price_cents_effective
+  end
+
+  def afternoon_block_price_cents
+    slot_rates.find_by(name: 'Tarde')&.block_price_cents_effective
+  end
+
+  def self.home_min_morning_block_price_cents
+    published_spaces.includes(:slot_rates).filter_map(&:morning_block_price_cents).min
+  end
+
+  def self.home_min_afternoon_block_price_cents
+    published_spaces.includes(:slot_rates).filter_map(&:afternoon_block_price_cents).min
+  end
+
+  def self.home_min_hourly_price_cents
+    published_spaces.minimum(:price_per_hour_cents)
+  end
+
   def self.home_min_jornada_price_cents
     JornadaDefinition.active.where(space_id: published_spaces.select(:id)).minimum(:price_cents)
   end

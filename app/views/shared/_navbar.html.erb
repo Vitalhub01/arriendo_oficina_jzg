@@ -16,6 +16,9 @@
       <%= link_to site_nav_text('nav_link_membership'), membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
       <% if user_signed_in? %>
         <%= link_to site_nav_text('nav_link_bookings'), bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <% if current_user.eligible_for_free_testimonial? %>
+          <%= link_to site_nav_text('nav_link_comment'), new_user_testimonial_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <% end %>
         <%= link_to edit_profile_path,
             class: "inline-flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand",
             title: (current_user.profile_complete? ? nil : "Perfil incompleto: completa tu profesión y datos personales") do %>

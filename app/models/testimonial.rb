@@ -10,8 +10,10 @@ class Testimonial < ApplicationRecord
   validates :booking_id, uniqueness: true, allow_nil: true
   validate :booking_must_be_completed, if: :booking_id?
   validate :author_present
+  validate :only_one_general_per_professional, if: -> { booking_id.nil? && profesional_id.present? }
 
   scope :visible, -> { where(visible: true) }
+  scope :general, -> { where(booking_id: nil) }
 
   def display_author
     author_name.presence || profesional&.name
@@ -29,5 +31,13 @@ class Testimonial < ApplicationRecord
     return if booking&.completed?
 
     errors.add(:booking, 'debe estar completada para dejar testimonio')
+  end
+
+  def only_one_general_per_professional
+    scope = Testimonial.general.where(profesional_id: profesional_id)
+    scope = scope.where.not(id: id) if persisted?
+    return unless scope.exists?
+
+    errors.add(:base, 'Ya enviaste un comentario')
   end
 end

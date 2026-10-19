@@ -1,0 +1,33 @@
+<%# locals: morning_cents:, afternoon_cents: %>
+<% block_price_cycle = []
+   if morning_cents
+     block_price_cycle << { label: 'Mañana', amount: format_clp(morning_cents) }
+   end
+   if afternoon_cents
+     block_price_cycle << { label: 'Tarde', amount: format_clp(afternoon_cents) }
+   end
+   block_price_cycle.uniq! { |item| [item[:label], item[:amount]] } %>
+<div class="text-4xl font-medium tracking-tight text-gray-900">
+  <% if block_price_cycle.any? %>
+    <% first = block_price_cycle.first %>
+    <div
+      class="inline-flex flex-wrap items-baseline gap-x-2 gap-y-1"
+      <% if block_price_cycle.size > 1 %>
+        data-controller="price-cycle"
+        data-price-cycle-items-value="<%= block_price_cycle.to_json %>"
+      <% end %>
+    >
+      <span
+        class="transition-all duration-300 ease-out"
+        <% if block_price_cycle.size > 1 %>data-price-cycle-target="amount"<% end %>
+      ><%= first[:amount] %></span>
+      <span class="text-base font-normal text-gray-500">/ bloque</span>
+      <span
+        class="text-xs font-medium uppercase tracking-widest text-brand transition-opacity duration-300 ease-out"
+        <% if block_price_cycle.size > 1 %>data-price-cycle-target="period"<% end %>
+      ><%= first[:label] %></span>
+    </div>
+  <% else %>
+    <span class="text-2xl">Consultar</span>
+  <% end %>
+</div>

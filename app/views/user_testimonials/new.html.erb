@@ -1,0 +1,44 @@
+<div class="mx-auto max-w-2xl px-4 py-8">
+  <h1 class="text-2xl font-bold">Tu comentario</h1>
+  <p class="mt-2 text-sm text-gray-600">Comparte tu experiencia con VitalHub. El texto es libre; opcionalmente puedes indicar una calificación.</p>
+
+  <% if @testimonial.persisted? %>
+    <div class="card mt-6 p-6">
+      <p class="text-sm font-medium text-gray-900">Comentario enviado</p>
+      <% if @testimonial.rating.present? %>
+        <p class="mt-2 text-amber-500" aria-label="<%= @testimonial.rating %> estrellas"><%= "★" * @testimonial.rating %></p>
+      <% end %>
+      <p class="mt-3 whitespace-pre-wrap text-gray-700"><%= @testimonial.body %></p>
+      <% unless @testimonial.visible? %>
+        <p class="mt-4 text-xs text-gray-500">Tu comentario está en revisión antes de mostrarse en la página de inicio.</p>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="card mt-6 p-6">
+      <%= form_with model: @testimonial, url: user_testimonial_path, class: "space-y-4" do |f| %>
+        <% if @testimonial.errors.any? %>
+          <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <ul class="list-disc pl-5">
+              <% @testimonial.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <%= f.label :body, "Comentario", class: "block text-sm font-medium" %>
+        <%= f.text_area :body, rows: 5, class: "input-field", required: true, placeholder: "Escribe aquí lo que quieras compartir…" %>
+
+        <%= f.label :rating, "Calificación (opcional)", class: "block text-sm font-medium" %>
+        <%= f.select :rating,
+                     options_for_select([['Sin calificación', '']] + (1..5).map { |n| ["#{n} estrellas", n] }, @testimonial.rating),
+                     {},
+                     class: "input-field" %>
+
+        <div class="pt-2">
+          <%= f.submit "Enviar comentario", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

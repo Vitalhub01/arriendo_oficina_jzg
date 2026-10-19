@@ -65,6 +65,14 @@ class User < ApplicationRecord
     professional_profile&.profile_complete?
   end
 
+  def eligible_for_free_testimonial?
+    bookings.exists?
+  end
+
+  def general_testimonial
+    testimonials.find_by(booking_id: nil)
+  end
+
   def active_for_authentication?
     super && !banned?
   end

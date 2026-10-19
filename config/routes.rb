@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   end
 
   resource :membership, only: %i[show create], controller: 'memberships'
+  resource :user_testimonial, only: %i[new create], path: 'comentario', controller: 'user_testimonials'
 
   get 'terminos', to: 'pages#terms', as: :terms
   get 'privacidad', to: 'pages#privacy', as: :privacy
