@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_20_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -366,6 +366,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_20_000001) do
     t.integer "position", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "block_price_cents"
     t.index ["space_id", "position"], name: "index_slot_rates_on_space_id_and_position"
     t.index ["space_id"], name: "index_slot_rates_on_space_id"
   end

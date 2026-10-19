@@ -5,7 +5,12 @@ class SlotRate < ApplicationRecord
 
   validates :name, :start_time, :end_time, :price_per_slot_cents, presence: true
   validates :price_per_slot_cents, numericality: { greater_than: 0, only_integer: true }
+  validates :block_price_cents, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
   validate :end_after_start
+
+  def block_price_cents_effective
+    block_price_cents.presence || price_per_slot_cents
+  end
 
   scope :ordered, -> { order(:position, :start_time) }
 

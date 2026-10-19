@@ -23,14 +23,10 @@
   <%= f.text_area :description, rows: 4, class: "input-field" %>
   <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
   <%= f.collection_select :office_id, Office.all, :id, :name, {}, class: "input-field" %>
-  <%= f.label :price_per_hour_cents, "Precio por hora (CLP)", class: "block text-sm font-medium" %>
-  <%= f.number_field :price_per_hour_cents, class: "input-field", min: 1, step: 1 %>
-  <p class="text-xs text-gray-500">Tarifa de cada hora suelta. El precio del bloque mañana/tarde y de la jornada completa se configuran aparte.</p>
+  <%= render "admin/spaces/pricing_fields", space: @space %>
   <% if @space.persisted? %>
     <p class="text-xs text-gray-600">
-      <%= link_to "Precios por bloque (mañana / tarde)", admin_space_schedule_blocks_path(@space), class: "text-brand hover:underline" %>
-      ·
-      <%= link_to "Precios jornada completa", admin_jornada_definitions_path, class: "text-brand hover:underline" %>
+      <%= link_to "Calendario y excepciones de precio", admin_space_schedule_blocks_path(@space), class: "text-brand hover:underline" %>
     </p>
   <% end %>
   <%= f.label :slot_duration_minutes, "Duración de cada hora en agenda (minutos)", class: "block text-sm font-medium" %>

@@ -1,0 +1,28 @@
+<% values = @pricing_values || space.admin_pricing_values %>
+<fieldset class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 space-y-4">
+  <legend class="px-1 text-sm font-semibold text-gray-900">Tarifas del espacio (CLP)</legend>
+  <p class="text-xs text-gray-600">Los precios por hora de mañana y tarde se usan como valor por defecto en cada franja de la agenda. Los bloques y la jornada son tarifas planas al reservar en ese modo.</p>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <%= label_tag 'pricing[morning_hourly_price_cents]', 'Precio hora en la mañana', class: 'block text-sm font-medium' %>
+      <%= number_field_tag 'pricing[morning_hourly_price_cents]', values[:morning_hourly_price_cents], class: 'input-field', min: 1, step: 1, required: true %>
+    </div>
+    <div>
+      <%= label_tag 'pricing[afternoon_hourly_price_cents]', 'Precio hora en la tarde', class: 'block text-sm font-medium' %>
+      <%= number_field_tag 'pricing[afternoon_hourly_price_cents]', values[:afternoon_hourly_price_cents], class: 'input-field', min: 1, step: 1, required: true %>
+    </div>
+    <div>
+      <%= label_tag 'pricing[morning_block_price_cents]', 'Precio bloque mañana', class: 'block text-sm font-medium' %>
+      <%= number_field_tag 'pricing[morning_block_price_cents]', values[:morning_block_price_cents], class: 'input-field', min: 1, step: 1, required: true %>
+    </div>
+    <div>
+      <%= label_tag 'pricing[afternoon_block_price_cents]', 'Precio bloque tarde', class: 'block text-sm font-medium' %>
+      <%= number_field_tag 'pricing[afternoon_block_price_cents]', values[:afternoon_block_price_cents], class: 'input-field', min: 1, step: 1, required: true %>
+    </div>
+    <div class="sm:col-span-2">
+      <%= label_tag 'pricing[jornada_price_cents]', 'Precio jornada (día completo)', class: 'block text-sm font-medium' %>
+      <%= number_field_tag 'pricing[jornada_price_cents]', values[:jornada_price_cents], class: 'input-field', min: 1, step: 1, required: true %>
+    </div>
+  </div>
+</fieldset>

@@ -44,7 +44,8 @@ module SpacesHelper
         name: rate.name,
         start: rate.start_time.strftime('%H:%M'),
         end: rate.end_time.strftime('%H:%M'),
-        price: rate.price_per_slot_cents
+        hourly_price: rate.price_per_slot_cents,
+        block_price: rate.block_price_cents_effective
       }
     end
   end

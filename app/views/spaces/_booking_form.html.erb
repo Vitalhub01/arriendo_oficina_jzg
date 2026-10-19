@@ -38,7 +38,13 @@
           <div>
             <%= label_tag :slot_rate_id, "Bloque del día", class: "mb-1 block text-sm font-medium" %>
             <%= select_tag :slot_rate_id,
-                  options_from_collection_for_select(space.slot_rates.ordered, :id, ->(r) { "#{r.name} (#{r.start_time.strftime('%H:%M')} – #{r.end_time.strftime('%H:%M')}) — #{r.formatted_price}" }),
+                  options_from_collection_for_select(
+                    space.slot_rates.ordered,
+                    :id,
+                    ->(r) {
+                      "#{r.name} (#{r.start_time.strftime('%H:%M')} – #{r.end_time.strftime('%H:%M')}) — #{Money.new(r.block_price_cents_effective, 'CLP').format(no_cents_if_whole: true)}"
+                    }
+                  ),
                   class: "input-field",
                   data: { booking_form_target: "slotRate", action: "change->booking-form#updateTotal" } %>
           </div>

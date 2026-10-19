@@ -52,7 +52,7 @@ module Admin
       end
 
       def slot_rate_params
-        params.expect(slot_rate: %i[name start_time end_time price_per_slot_cents position])
+        params.expect(slot_rate: %i[name start_time end_time price_per_slot_cents block_price_cents position])
       end
     end
   end

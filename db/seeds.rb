@@ -120,7 +120,8 @@ spaces_data.each_with_index do |data, photo_index|
     slot_rate.assign_attributes(
       start_time: Time.zone.parse("2000-01-01 #{rate[:start]}"),
       end_time: Time.zone.parse("2000-01-01 #{rate[:end]}"),
-      price_per_slot_cents: rate[:price],
+      price_per_slot_cents: data[:price],
+      block_price_cents: rate[:price],
       position: i
     )
     slot_rate.save!

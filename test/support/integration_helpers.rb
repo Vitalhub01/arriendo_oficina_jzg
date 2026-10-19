@@ -12,6 +12,7 @@ module IntegrationHelpers
       filename: 'cover.jpg',
       content_type: 'image/jpeg'
     )
+    box.save!(validate: false)
   end
 
   def attach_space_terms(space)
@@ -22,6 +23,16 @@ module IntegrationHelpers
       content_type: 'application/pdf'
     )
     space.save!(validate: false)
+  end
+
+  def admin_pricing_params(overrides = {})
+    {
+      morning_hourly_price_cents: 7_000,
+      afternoon_hourly_price_cents: 8_000,
+      morning_block_price_cents: 30_000,
+      afternoon_block_price_cents: 32_000,
+      jornada_price_cents: 55_000
+    }.merge(overrides)
   end
 
   def with_mercadopago_stub(preference_id: 'TEST-pref-1', init_point: 'https://sandbox.mercadopago.cl/checkout', &)

@@ -51,7 +51,7 @@ class PricingEngine
   attr_reader :space, :user, :start_at, :slot_count, :end_at, :booking_type, :jornada_definition, :slot_rate
 
   def base_subtotal
-    return slot_rate.price_per_slot_cents if block_period_booking?
+    return slot_rate.block_price_cents_effective if block_period_booking?
 
     interval_end = resolved_end_at
     return space.price_for_interval(start_at, interval_end) if interval_end

@@ -150,6 +150,24 @@ class Space < ApplicationRecord
     jornada_definitions.active.order(:position, :id).first
   end
 
+  def slot_rate_for_period(name)
+    slot_rates.find_by(name: name)
+  end
+
+  def admin_pricing_values
+    morning = slot_rate_for_period('Mañana')
+    afternoon = slot_rate_for_period('Tarde')
+    jornada = primary_jornada_definition
+
+    {
+      morning_hourly_price_cents: morning&.price_per_slot_cents || price_per_hour_cents,
+      afternoon_hourly_price_cents: afternoon&.price_per_slot_cents || price_per_hour_cents,
+      morning_block_price_cents: morning&.block_price_cents_effective || price_per_hour_cents,
+      afternoon_block_price_cents: afternoon&.block_price_cents_effective || price_per_hour_cents,
+      jornada_price_cents: jornada&.price_cents
+    }
+  end
+
   def slot_duration
     slot_duration_minutes.minutes
   end

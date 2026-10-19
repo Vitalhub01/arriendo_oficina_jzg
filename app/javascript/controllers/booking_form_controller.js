@@ -166,7 +166,7 @@ export default class extends Controller {
   updateBloqueTotal() {
     const rate = this.selectedSlotRate()
     const durationMinutes = rate ? this.minutesBetween(rate.start, rate.end) : 0
-    const total = rate?.price || 0
+    const total = rate?.block_price || 0
 
     this.bloqueTotalTargets.forEach((el) => {
       el.textContent = this.formatCLP(total)
