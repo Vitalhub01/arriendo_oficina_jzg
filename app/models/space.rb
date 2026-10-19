@@ -78,6 +78,19 @@ class Space < ApplicationRecord
     (price_per_hour_cents * (slot_duration_minutes / 60.0)).round
   end
 
+  # Precio de un bloque de agenda en reserva flexible (por hora / slots).
+  def flexible_block_unit_price_cents
+    slot_rates.minimum(:price_per_slot_cents) || default_price_per_slot_cents
+  end
+
+  def self.home_min_flexible_block_price_cents
+    published_spaces.includes(:slot_rates).filter_map(&:flexible_block_unit_price_cents).min
+  end
+
+  def self.home_min_jornada_price_cents
+    JornadaDefinition.active.where(space_id: published_spaces.select(:id)).minimum(:price_cents)
+  end
+
   def price_per_slot_at(time)
     rate = slot_rates.ordered.find { |r| r.covers_time?(time) }
     rate&.price_per_slot_cents || default_price_per_slot_cents

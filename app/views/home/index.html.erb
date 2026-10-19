@@ -87,8 +87,12 @@
           <p class="text-xs font-medium uppercase tracking-widest text-brand">Más flexible</p>
           <h3 class="mt-3 text-xl font-medium text-gray-900">Bloques a tu medida</h3>
           <p class="mt-4 text-4xl font-medium tracking-tight text-gray-900">
-            <%= @min_slot_price ? format_clp(@min_slot_price) : '$6.000' %>
-            <span class="text-base font-normal text-gray-500">/ bloque</span>
+            <% if @min_flexible_block_price_cents %>
+              <%= format_clp(@min_flexible_block_price_cents) %>
+              <span class="text-base font-normal text-gray-500">/ bloque</span>
+            <% else %>
+              <span class="text-2xl">Consultar</span>
+            <% end %>
           </p>
           <p class="mt-4 leading-relaxed text-gray-600">Elige la duración que necesites: puede ser más o menos de una hora. Ideal para coordinar con tus pacientes.</p>
           <%= link_to "Ver disponibilidad", spaces_path, class: "btn-primary mt-8 w-full justify-center" %>
@@ -97,8 +101,12 @@
           <p class="text-xs font-medium uppercase tracking-widest text-brand">Mejor valor</p>
           <h3 class="mt-3 text-xl font-medium text-gray-900">Día completo</h3>
           <p class="mt-4 text-4xl font-medium tracking-tight text-gray-900">
-            <%= @full_day_rate ? @full_day_rate.formatted_price : '$80.000' %>
-            <span class="text-base font-normal text-gray-500">/ día</span>
+            <% if @min_jornada_price_cents %>
+              <%= format_clp(@min_jornada_price_cents) %>
+              <span class="text-base font-normal text-gray-500">/ día</span>
+            <% else %>
+              <span class="text-2xl">Consultar</span>
+            <% end %>
           </p>
           <p class="mt-4 leading-relaxed text-gray-600">Arrienda el espacio todo el día para jornadas intensas o eventos con varios pacientes.</p>
           <%= link_to "Consultar día completo", spaces_path, class: "btn-primary mt-8 w-full justify-center" %>
