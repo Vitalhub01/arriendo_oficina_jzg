@@ -68,8 +68,8 @@
 
     <% if @spaces.any? %>
       <div class="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-        <% @spaces.each do |space| %>
-          <%= render "shared/space_card", space: space %>
+        <% @spaces.each_with_index do |space, index| %>
+          <%= render "shared/space_card", space: space, eager_image: index.zero? %>
         <% end %>
       </div>
     <% else %>

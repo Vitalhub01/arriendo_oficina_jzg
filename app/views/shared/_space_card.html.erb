@@ -2,7 +2,9 @@
   <%= link_to space_path(space), class: "block" do %>
     <div class="shop-product-card__media">
       <% if space.cover_photo %>
-        <%= image_tag space.cover_photo.variant(resize_to_limit: [800, 1000]), alt: space.title %>
+        <%= image_tag space.cover_photo.variant(resize_to_limit: [800, 1000]),
+            alt: space.title,
+            **image_loading_attrs(eager: local_assigns.fetch(:eager_image, false)) %>
       <% else %>
         <div class="flex h-full items-center justify-center text-sm text-gray-400">Sin foto</div>
       <% end %>

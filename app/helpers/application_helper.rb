@@ -11,6 +11,14 @@ module ApplicationHelper
     gallery_path(tag: item.tag_slug, photo_id: item.id)
   end
 
+  def image_loading_attrs(eager: false)
+    if eager
+      { loading: 'eager', fetchpriority: 'high', decoding: 'async' }
+    else
+      { loading: 'lazy', decoding: 'async' }
+    end
+  end
+
   def space_type_label(type)
     Space::BOX_TYPE_LABELS[type.to_s] || type
   end

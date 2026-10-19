@@ -15,7 +15,8 @@
           <div class="overflow-hidden rounded-lg bg-gray-100 shadow-sm ring-1 ring-black/5">
             <%= image_tag cover.image.variant(resize_to_limit: [800, 600]),
                 alt: cover.display_alt,
-                class: "aspect-[4/3] w-full object-cover transition duration-300 ease-out group-hover:scale-[1.04]" %>
+                class: "aspect-[4/3] w-full object-cover transition duration-300 ease-out group-hover:scale-[1.04]",
+                **image_loading_attrs(eager: false) %>
           </div>
           <p class="mt-3 text-sm font-medium text-gray-900 group-hover:text-brand transition-colors">
             <%= tag_label %>

@@ -29,7 +29,9 @@ class SpacesController < ApplicationController
   end
 
   def show
-    @space = Space.published_spaces.find(params.expect(:id))
+    @space = Space.published_spaces
+                  .includes(space_photos: { image_attachment: :blob })
+                  .find(params.expect(:id))
     authorize @space
     @week_start = schedule_week_start(@space)
     @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
@@ -39,7 +41,9 @@ class SpacesController < ApplicationController
   end
 
   def availability
-    @space = Space.published_spaces.find(params.expect(:id))
+    @space = Space.published_spaces
+                  .includes(space_photos: { image_attachment: :blob })
+                  .find(params.expect(:id))
     @week_start = schedule_week_start(@space)
     @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
     render partial: 'spaces/availability_schedule',
