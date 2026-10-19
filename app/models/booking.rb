@@ -30,6 +30,12 @@ class Booking < ApplicationRecord
   before_validation :apply_reschedule_credit_deduction, on: :create
 
   scope :upcoming, -> { where(start_at: Time.current..).order(:start_at) }
+  scope :starting_on_date, lambda { |date|
+    day = date.is_a?(Date) ? date : Date.parse(date.to_s)
+    range_start = Time.zone.local(day.year, day.month, day.day).beginning_of_day
+    where(start_at: range_start..range_start.end_of_day)
+  }
+  scope :excluding_cancelled, -> { where.not(status: :cancelled) }
   scope :active_statuses, -> { where(status: %i[pending_payment confirmed]) }
   scope :blocking_availability, lambda {
     where(status: :confirmed).or(

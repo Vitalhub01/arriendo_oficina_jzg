@@ -47,11 +47,16 @@ class User < ApplicationRecord
     banned_at.present?
   end
 
+  def professional_identity_verified?
+    professional_verified_at.present?
+  end
+
   def can_book?
     return true if admin?
     return false if banned?
+    return false if professional_profile&.rejected?
 
-    professional_profile&.verified? && professional_profile&.onboarding_completed?
+    professional_profile&.onboarding_completed?
   end
 
   def active_for_authentication?

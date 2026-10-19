@@ -215,6 +215,36 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert booking.manually_confirmed_at.present?
   end
 
+  test 'admin day contacts lists emails for bookings on date' do
+    sign_in @admin
+    slot_time = next_monday_at(hour: 9)
+    Booking.create!(
+      space: @published,
+      profesional: @renter,
+      start_at: slot_time,
+      end_at: slot_time + 2.hours,
+      hours: 2,
+      duration_minutes: 120,
+      total_amount_cents: 30_000,
+      status: :confirmed,
+      booking_type: :slot_based
+    )
+
+    get day_contacts_admin_bookings_path, params: { date: slot_time.to_date.iso8601 }
+    assert_response :success
+    assert_match @renter.email, response.body
+
+    get day_contacts_admin_bookings_path, params: { date: slot_time.to_date.iso8601, format: :csv }
+    assert_response :success
+    assert_match @renter.email, response.body
+
+    booking = Booking.find_by!(profesional: @renter, start_at: slot_time)
+    assert_not @renter.professional_identity_verified?
+    patch admin_booking_path(booking), params: { verify_profesional: true }
+    assert_redirected_to admin_booking_path(booking)
+    assert @renter.reload.professional_identity_verified?
+  end
+
   test 'admin creates booking for professional' do
     sign_in @admin
     slot_time = next_monday_at(hour: 10)

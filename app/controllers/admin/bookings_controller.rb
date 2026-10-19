@@ -5,25 +5,36 @@ module Admin
     before_action :set_booking, only: %i[show update]
 
     def index
-      @view = params[:view].presence_in(%w[list calendar]) || 'list'
-
-      if @view == 'calendar'
-        @spaces = Space.order(:title)
-        @week_start = parse_week_start
-        @calendar_space = Space.find_by(id: params[:space_id]) || @spaces.first
-        if @calendar_space
-          @calendar_days = Bookings::AdminCalendarBuilder.new(
-            space: @calendar_space,
-            week_start: @week_start
-          ).build
-        end
-        return
-      end
-
       scope = Booking.includes(:space, :profesional, :payment).order(start_at: :desc)
       scope = scope.where(status: params[:status]) if params[:status].present?
       scope = scope.where(box_id: params[:space_id]) if params[:space_id].present?
       @pagy, @bookings = pagy(scope)
+    end
+
+    def calendar
+      @spaces = Space.order(:title)
+      @week_start = parse_week_start
+      @calendar_space = Space.find_by(id: params[:space_id]) || @spaces.first
+      return unless @calendar_space
+
+      @calendar_days = Bookings::AdminCalendarBuilder.new(
+        space: @calendar_space,
+        week_start: @week_start
+      ).build
+    end
+
+    def day_contacts
+      @date = parse_contact_date
+      bookings = Booking.includes(:space, :profesional)
+                        .starting_on_date(@date)
+                        .excluding_cancelled
+                        .order(:start_at)
+      @bookings_by_user = bookings.group_by(&:profesional)
+
+      respond_to do |format|
+        format.html
+        format.csv { send_day_contacts_csv(@date, @bookings_by_user) }
+      end
     end
 
     def show; end
@@ -83,6 +94,12 @@ module Admin
         result = Bookings::ConfirmManually.new(booking: @booking, actor: current_user).call
         flash_key = result.success? ? :notice : :alert
         flash[flash_key] = result.success? ? 'Reserva confirmada manualmente' : result.errors.join(', ')
+      elsif params[:verify_profesional].present?
+        @booking.profesional.update!(professional_verified_at: Time.current)
+        flash[:notice] = 'Profesional marcado como verificado'
+      elsif params[:unverify_profesional].present?
+        @booking.profesional.update!(professional_verified_at: nil)
+        flash[:notice] = 'Verificación de profesional revocada'
       elsif params[:ban_profesional].present?
         if @booking.profesional_id == current_user.id
           flash[:alert] = 'No puedes bloquear tu propia cuenta'
@@ -118,6 +135,31 @@ module Admin
       else
         Date.current.beginning_of_week(:monday)
       end
+    end
+
+    def parse_contact_date
+      if params[:date].present?
+        Date.parse(params[:date])
+      else
+        Date.current
+      end
+    end
+
+    def send_day_contacts_csv(date, bookings_by_user)
+      require 'csv'
+      csv = CSV.generate(headers: true) do |rows|
+        rows << %w[nombre email verificado_profesional reservas espacios]
+        bookings_by_user.each do |user, user_bookings|
+          rows << [
+            user.name,
+            user.email,
+            user.professional_identity_verified? ? 'si' : 'no',
+            user_bookings.size,
+            user_bookings.map { |b| b.space.title }.uniq.join('; ')
+          ]
+        end
+      end
+      send_data csv, filename: "reservas-#{date.iso8601}.csv", type: 'text/csv; charset=utf-8'
     end
   end
 end

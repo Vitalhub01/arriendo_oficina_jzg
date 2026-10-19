@@ -1,19 +1,6 @@
 <div class="flex flex-wrap items-center justify-between gap-4">
-  <h1 class="text-2xl font-bold">Reservas</h1>
+  <h1 class="text-2xl font-bold">Reservas — Lista</h1>
   <%= link_to "Nueva reserva", new_admin_booking_path, class: "btn-primary" %>
 </div>
 
-<nav class="mt-6 flex gap-1 border-b border-gray-200" aria-label="Vistas de reservas">
-  <%= link_to "Lista",
-              admin_bookings_path(view: 'list'),
-              class: "px-4 py-2 text-sm font-medium border-b-2 -mb-px #{@view == 'list' ? 'border-brand text-brand' : 'border-transparent text-gray-600 hover:text-gray-900'}" %>
-  <%= link_to "Calendario",
-              admin_bookings_path(view: 'calendar', space_id: params[:space_id], week_start: params[:week_start]),
-              class: "px-4 py-2 text-sm font-medium border-b-2 -mb-px #{@view == 'calendar' ? 'border-brand text-brand' : 'border-transparent text-gray-600 hover:text-gray-900'}" %>
-</nav>
-
-<% if @view == 'calendar' %>
-  <%= render 'calendar' %>
-<% else %>
-  <%= render 'list' %>
-<% end %>
+<%= render 'list' %>

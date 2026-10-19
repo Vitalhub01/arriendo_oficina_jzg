@@ -21,6 +21,7 @@ module Admin
       @user.assign_attributes(user_params)
       apply_role! if params.dig(:user, :role).present?
       apply_ban_flag!
+      apply_professional_verified_flag!
 
       if @user.save
         redirect_to admin_users_path, notice: 'Permisos actualizados'
@@ -53,6 +54,16 @@ module Admin
         @user.banned_at ||= Time.current
       else
         @user.banned_at = nil
+      end
+    end
+
+    def apply_professional_verified_flag!
+      return unless params[:user].key?(:professional_verified)
+
+      if ActiveModel::Type::Boolean.new.cast(params[:user][:professional_verified])
+        @user.professional_verified_at ||= Time.current
+      else
+        @user.professional_verified_at = nil
       end
     end
 

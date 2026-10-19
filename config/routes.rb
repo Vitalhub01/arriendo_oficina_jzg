@@ -58,7 +58,12 @@ Rails.application.routes.draw do
     resources :discount_codes
     resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
-    resources :bookings, only: %i[index show new create update]
+    resources :bookings, only: %i[index show new create update] do
+      collection do
+        get :calendar
+        get :day_contacts
+      end
+    end
     resources :testimonials, only: %i[index update]
     resources :membership_plans
     resources :memberships, only: [:index]

@@ -33,6 +33,7 @@
         <th>Email</th>
         <th>Rol</th>
         <th>Estado</th>
+        <th>Prof. verificado</th>
         <th>Último acceso</th>
         <th class="admin-table__actions"></th>
       </tr>
@@ -57,6 +58,13 @@
               <span class="text-red-600">Bloqueado</span>
             <% else %>
               <span class="text-green-700">Activo</span>
+            <% end %>
+          </td>
+          <td>
+            <% if user.professional_identity_verified? %>
+              <span class="text-green-700">Sí</span>
+            <% else %>
+              <span class="text-gray-500">—</span>
             <% end %>
           </td>
           <td class="text-gray-500">

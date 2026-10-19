@@ -39,6 +39,22 @@
     </div>
 
     <div class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+      <%= hidden_field_tag 'user[professional_verified]', '0' %>
+      <%= check_box_tag 'user[professional_verified]', '1', @user.professional_identity_verified?,
+            id: 'user_professional_verified',
+            class: 'mt-1' %>
+      <div>
+        <%= label_tag 'user_professional_verified', 'Profesional verificado (identidad)', class: "text-sm font-medium" %>
+        <p class="text-xs text-gray-600">
+          Confirmación manual posterior a la reserva. No bloquea nuevas reservas si está desmarcado.
+          <% if @user.professional_verified_at %>
+            Verificado el <%= l(@user.professional_verified_at, format: :short) %>.
+          <% end %>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
       <%= hidden_field_tag 'user[banned]', '0', disabled: @user.id == current_user.id %>
       <%= check_box_tag 'user[banned]', '1', @user.banned?,
             id: 'user_banned',

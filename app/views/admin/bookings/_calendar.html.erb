@@ -9,8 +9,7 @@
   <p class="mt-6 text-sm text-gray-600">Selecciona un espacio para ver el calendario.</p>
 <% else %>
   <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
-    <%= form_with url: admin_bookings_path, method: :get, class: "flex flex-wrap items-end gap-3" do %>
-      <input type="hidden" name="view" value="calendar">
+    <%= form_with url: calendar_admin_bookings_path, method: :get, class: "flex flex-wrap items-end gap-3" do %>
       <input type="hidden" name="week_start" value="<%= @week_start.iso8601 %>">
       <div>
         <label class="block text-sm font-medium text-gray-700">Espacio</label>
@@ -24,11 +23,11 @@
 
     <div class="flex items-center gap-2 text-sm">
       <%= link_to "← Semana",
-                  admin_bookings_path(view: 'calendar', space_id: @calendar_space.id, week_start: @week_start - 1.week),
+                  calendar_admin_bookings_path(space_id: @calendar_space.id, week_start: @week_start - 1.week),
                   class: "text-brand hover:underline" %>
       <span class="text-gray-600"><%= l(@week_start, format: :short) %> – <%= l(@week_start + 6.days, format: :short) %></span>
       <%= link_to "Semana →",
-                  admin_bookings_path(view: 'calendar', space_id: @calendar_space.id, week_start: @week_start + 1.week),
+                  calendar_admin_bookings_path(space_id: @calendar_space.id, week_start: @week_start + 1.week),
                   class: "text-brand hover:underline" %>
     </div>
   </div>

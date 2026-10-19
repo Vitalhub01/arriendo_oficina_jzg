@@ -21,7 +21,27 @@ module AdminHelper
       path: :admin_professionals_path,
       match: ->(req) { req.path.start_with?('/admin/professionals') }
     },
-    { label: 'Reservas', path: :admin_bookings_path, match: ->(req) { req.path.start_with?('/admin/bookings') } },
+    {
+      label: 'Reservas',
+      match: ->(req) { req.path.start_with?('/admin/bookings') },
+      children: [
+        {
+          label: 'Lista',
+          path: :admin_bookings_path,
+          match: ->(req) { req.path == '/admin/bookings' }
+        },
+        {
+          label: 'Calendario',
+          path: :calendar_admin_bookings_path,
+          match: ->(req) { req.path == '/admin/bookings/calendar' }
+        },
+        {
+          label: 'Contactos del día',
+          path: :day_contacts_admin_bookings_path,
+          match: ->(req) { req.path == '/admin/bookings/day_contacts' }
+        }
+      ]
+    },
     {
       label: 'Membresías',
       path: :admin_memberships_path,
@@ -50,13 +70,19 @@ module AdminHelper
     }
   ].freeze
 
-  def admin_nav_link_classes(active)
-    base = 'block rounded-lg px-3 py-2 text-sm transition'
+  def admin_nav_link_classes(active, nested: false)
+    base = 'block rounded-lg text-sm transition'
+    base += nested ? ' px-3 py-1.5 pl-6' : ' px-3 py-2'
     if active
       "#{base} bg-brand font-medium text-white"
     else
       "#{base} text-white/90 hover:bg-gray-800 hover:text-white"
     end
+  end
+
+  def admin_nav_section_label_classes(active)
+    base = 'px-3 py-2 text-xs font-semibold uppercase tracking-wide'
+    active ? "#{base} text-white" : "#{base} text-white/60"
   end
 
   def admin_nav_active?(match_proc)

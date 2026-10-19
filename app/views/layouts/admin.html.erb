@@ -15,8 +15,19 @@
         <%= image_tag "logo_vital_hub.png", alt: "VitalHub", class: "h-9 w-auto" %>
         <nav class="mt-8 space-y-1">
           <% AdminHelper::NAV_ITEMS.each do |item| %>
-            <% active = admin_nav_active?(item[:match]) %>
-            <%= link_to item[:label], public_send(item[:path]), class: admin_nav_link_classes(active) %>
+            <% if item[:children] %>
+              <% section_active = admin_nav_active?(item[:match]) %>
+              <p class="<%= admin_nav_section_label_classes(section_active) %>"><%= item[:label] %></p>
+              <div class="mb-2 space-y-0.5">
+                <% item[:children].each do |child| %>
+                  <% child_active = admin_nav_active?(child[:match]) %>
+                  <%= link_to child[:label], public_send(child[:path]), class: admin_nav_link_classes(child_active, nested: true) %>
+                <% end %>
+              </div>
+            <% else %>
+              <% active = admin_nav_active?(item[:match]) %>
+              <%= link_to item[:label], public_send(item[:path]), class: admin_nav_link_classes(active) %>
+            <% end %>
           <% end %>
           <%= link_to "Ver sitio", root_path, class: "mt-2 block rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-gray-800 hover:text-white" %>
         </nav>

@@ -6,6 +6,17 @@
 <div class="card mt-6 p-6 text-sm">
   <p><strong>Espacio:</strong> <%= @booking.space.title %></p>
   <p><strong>Profesional:</strong> <%= @booking.profesional.name %> (<%= @booking.profesional.email %>)</p>
+  <p>
+    <strong>Verificación profesional:</strong>
+    <% if @booking.profesional.professional_identity_verified? %>
+      Verificado
+      <% if @booking.profesional.professional_verified_at %>
+        (<%= l(@booking.profesional.professional_verified_at, format: :short) %>)
+      <% end %>
+    <% else %>
+      Pendiente (puede reservar; verificar cuando corresponda)
+    <% end %>
+  </p>
   <p><strong>Fecha:</strong> <%= l(@booking.start_at, format: :long) %> — <%= l(@booking.end_at, format: "%H:%M") %></p>
   <p><strong>Duración:</strong> <%= @booking.formatted_duration %> (<%= @booking.slot_count %> hora(s))</p>
   <p><strong>Total:</strong> <%= @booking.formatted_total %></p>
@@ -28,6 +39,12 @@
     <%= button_to "Quitar de lista negra", admin_booking_path(@booking), method: :patch, params: { unban_profesional: true }, class: "btn-secondary" %>
   <% elsif @booking.profesional_id != current_user.id %>
     <%= button_to "Bloquear profesional (lista negra)", admin_booking_path(@booking), method: :patch, params: { ban_profesional: true }, class: "btn-secondary", data: { turbo_confirm: "¿Bloquear a este profesional en toda la plataforma?" } %>
+  <% end %>
+
+  <% if @booking.profesional.professional_identity_verified? %>
+    <%= button_to "Revocar verificación profesional", admin_booking_path(@booking), method: :patch, params: { unverify_profesional: true }, class: "btn-secondary", data: { turbo_confirm: "¿Quitar la verificación de este profesional?" } %>
+  <% else %>
+    <%= button_to "Marcar profesional verificado", admin_booking_path(@booking), method: :patch, params: { verify_profesional: true }, class: "btn-primary" %>
   <% end %>
 
   <%= link_to "Editar permisos del usuario", edit_admin_user_path(@booking.profesional), class: "btn-secondary" %>
