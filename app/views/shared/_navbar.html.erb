@@ -1,5 +1,5 @@
 <div class="shop-announcement py-2.5">
-  <p>Espacios de salud · Bloques flexibles o día completo · Reserva en línea</p>
+  <p><%= site_nav_text('nav_announcement') %></p>
 </div>
 
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
@@ -11,15 +11,15 @@
     <% end %>
 
     <nav class="hidden items-center gap-8 md:flex">
-      <%= link_to "Espacios", spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
-      <%= link_to "Galería", root_path(anchor: "galeria"), class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
-      <%= link_to "Membresía", membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+      <%= link_to site_nav_text('nav_link_spaces'), spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+      <%= link_to site_nav_text('nav_link_gallery'), root_path(anchor: "galeria"), class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+      <%= link_to site_nav_text('nav_link_membership'), membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
       <% if user_signed_in? %>
-        <%= link_to "Mis reservas", bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <%= link_to site_nav_text('nav_link_bookings'), bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
         <%= link_to edit_profile_path,
             class: "inline-flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand",
             title: (current_user.profile_complete? ? nil : "Perfil incompleto: completa tu profesión y datos personales") do %>
-          Perfil
+          <%= site_nav_text('nav_link_profile') %>
           <% unless current_user.profile_complete? %>
             <span class="relative flex h-2 w-2" aria-label="Perfil incompleto">
               <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60"></span>
@@ -28,13 +28,13 @@
           <% end %>
         <% end %>
         <% if current_user.admin? %>
-          <%= link_to "Admin", admin_root_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+          <%= link_to site_nav_text('nav_link_admin'), admin_root_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
         <% end %>
-        <%= link_to "Reservar", spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
-        <%= button_to "Salir", destroy_user_session_path, method: :delete, class: "text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-gray-900" %>
+        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
+        <%= button_to site_nav_text('nav_link_sign_out'), destroy_user_session_path, method: :delete, class: "text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-gray-900" %>
       <% else %>
-        <%= link_to "Ingresar", new_user_session_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 hover:text-brand" %>
-        <%= link_to "Reservar", spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
+        <%= link_to site_nav_text('nav_link_sign_in'), new_user_session_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 hover:text-brand" %>
+        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
       <% end %>
     </nav>
   </div>

@@ -1,0 +1,31 @@
+<%= form_with model: testimonial, url: testimonial.persisted? ? admin_testimonial_path(testimonial) : admin_testimonials_path, class: "space-y-4" do |f| %>
+  <% if testimonial.errors.any? %>
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+      <ul class="list-disc pl-5">
+        <% testimonial.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= f.label :author_name, "Nombre (autor)", class: "block text-sm font-medium" %>
+  <%= f.text_field :author_name, class: "input-field", placeholder: "Ej. María González" %>
+  <p class="text-xs text-gray-500">Para testimonios de clientes sin reserva en el sistema.</p>
+
+  <%= f.label :body, "Texto", class: "block text-sm font-medium" %>
+  <%= f.text_area :body, rows: 4, class: "input-field", required: true %>
+
+  <%= f.label :rating, "Estrellas (opcional)", class: "block text-sm font-medium" %>
+  <%= f.select :rating, options_for_select([['Sin calificación', '']] + (1..5).map { |n| ["#{n} estrellas", n] }, testimonial.rating), {}, class: "input-field" %>
+
+  <%= f.label :visible, class: "inline-flex items-center gap-2 text-sm font-medium" do %>
+    <%= f.check_box :visible %>
+    Visible en la página de inicio
+  <% end %>
+
+  <div class="flex gap-3 pt-2">
+    <%= f.submit "Guardar", class: "btn-primary" %>
+    <%= link_to "Cancelar", admin_testimonials_path, class: "text-sm text-gray-600 hover:text-gray-900" %>
+  </div>
+<% end %>

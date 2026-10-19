@@ -2,7 +2,7 @@
 
 module Admin
   class TestimonialsController < Admin::BaseController
-    before_action :set_testimonial, only: %i[update]
+    before_action :set_testimonial, only: %i[edit update destroy]
 
     def index
       @pagy, @testimonials = pagy(
@@ -10,12 +10,33 @@ module Admin
       )
     end
 
+    def new
+      @testimonial = Testimonial.new(visible: true)
+    end
+
+    def edit; end
+
+    def create
+      @testimonial = Testimonial.new(admin_testimonial_params)
+
+      if @testimonial.save
+        redirect_to admin_testimonials_path, notice: 'Testimonio creado'
+      else
+        render :new, status: :unprocessable_content
+      end
+    end
+
     def update
-      if @testimonial.update(testimonial_params)
+      if @testimonial.update(admin_testimonial_params)
         redirect_to admin_testimonials_path, notice: 'Testimonio actualizado'
       else
-        redirect_to admin_testimonials_path, alert: @testimonial.errors.full_messages.join(', ')
+        render :edit, status: :unprocessable_content
       end
+    end
+
+    def destroy
+      @testimonial.destroy
+      redirect_to admin_testimonials_path, notice: 'Testimonio eliminado'
     end
 
     private
@@ -24,8 +45,8 @@ module Admin
       @testimonial = Testimonial.find(params.expect(:id))
     end
 
-    def testimonial_params
-      params.expect(testimonial: %i[visible rating body])
+    def admin_testimonial_params
+      params.expect(testimonial: %i[author_name body rating visible])
     end
   end
 end

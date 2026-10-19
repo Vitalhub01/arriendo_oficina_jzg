@@ -36,6 +36,17 @@
     </div>
   </section>
 
+  <section class="space-y-4 rounded-xl border border-gray-200 bg-white p-6">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">Textos de navegación</h2>
+      <p class="mt-1 text-sm text-gray-600">Barra superior, menú principal y enlaces del pie de página.</p>
+    </div>
+    <% @nav_settings.each do |key, value| %>
+      <%= label_tag "site_nav_settings[#{key}]", SiteNavigationSettings::LABELS[key], class: "block text-sm font-medium" %>
+      <%= text_field_tag "site_nav_settings[#{key}]", value, class: "input-field" %>
+    <% end %>
+  </section>
+
   <section class="space-y-4">
     <h2 class="text-lg font-semibold text-gray-900">Opciones generales</h2>
     <% @settings.each do |key, value| %>

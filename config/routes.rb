@@ -74,7 +74,7 @@ Rails.application.routes.draw do
         get :day_contacts
       end
     end
-    resources :testimonials, only: %i[index update]
+    resources :testimonials, except: %i[show]
     resources :membership_plans
     resources :memberships, only: [:index]
     resources :faqs

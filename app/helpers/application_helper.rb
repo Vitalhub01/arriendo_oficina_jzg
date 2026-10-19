@@ -114,6 +114,10 @@ module ApplicationHelper
     branding.hero_image.attached? ? branding.hero_image : 'vitalhub_office_1.jpg'
   end
 
+  def site_nav_text(key)
+    SiteNavigationSettings.value(key.to_s)
+  end
+
   def site_logo_url
     branding_image_absolute_url(site_branding.logo, 'logo_vital_hub.png')
   end

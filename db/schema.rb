@@ -424,14 +424,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
   end
 
   create_table "testimonials", force: :cascade do |t|
-    t.bigint "box_id", null: false
-    t.bigint "profesional_id", null: false
-    t.bigint "booking_id", null: false
+    t.bigint "box_id"
+    t.bigint "profesional_id"
+    t.bigint "booking_id"
     t.integer "rating"
     t.text "body"
     t.boolean "visible", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "author_name"
     t.index ["booking_id"], name: "index_testimonials_on_booking_id", unique: true
     t.index ["box_id"], name: "index_testimonials_on_box_id"
     t.index ["profesional_id"], name: "index_testimonials_on_profesional_id"
