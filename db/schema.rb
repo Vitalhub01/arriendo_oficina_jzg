@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_18_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_18_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -102,9 +102,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_18_000001) do
     t.jsonb "pricing_breakdown", default: {}, null: false
     t.integer "duration_minutes", null: false
     t.datetime "manually_confirmed_at"
+    t.bigint "discount_code_id"
+    t.integer "promo_discount_cents", default: 0, null: false
     t.index ["booking_series_id"], name: "index_bookings_on_booking_series_id"
     t.index ["box_id", "start_at", "end_at"], name: "index_bookings_on_box_id_and_start_at_and_end_at"
     t.index ["box_id"], name: "index_bookings_on_box_id"
+    t.index ["discount_code_id"], name: "index_bookings_on_discount_code_id"
     t.index ["jornada_definition_id"], name: "index_bookings_on_jornada_definition_id"
     t.index ["renter_id", "status"], name: "index_bookings_on_renter_id_and_status"
     t.index ["renter_id"], name: "index_bookings_on_renter_id"
@@ -142,6 +145,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_18_000001) do
     t.index ["office_id"], name: "index_boxes_on_office_id"
     t.index ["owner_id"], name: "index_boxes_on_owner_id"
     t.index ["status"], name: "index_boxes_on_status"
+  end
+
+  create_table "discount_codes", force: :cascade do |t|
+    t.string "code", null: false
+    t.integer "discount_type", default: 0, null: false
+    t.integer "percent"
+    t.integer "amount_cents"
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.boolean "active", default: true, null: false
+    t.integer "max_uses"
+    t.integer "redemptions_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((code)::text)", name: "index_discount_codes_on_lower_code", unique: true
   end
 
   create_table "faqs", force: :cascade do |t|
@@ -390,6 +408,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_18_000001) do
   add_foreign_key "booking_series", "users", column: "renter_id"
   add_foreign_key "bookings", "booking_series"
   add_foreign_key "bookings", "boxes"
+  add_foreign_key "bookings", "discount_codes"
   add_foreign_key "bookings", "jornada_definitions"
   add_foreign_key "bookings", "reschedule_credits"
   add_foreign_key "bookings", "users", column: "renter_id"

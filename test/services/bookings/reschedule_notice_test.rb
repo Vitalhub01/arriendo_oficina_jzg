@@ -23,7 +23,7 @@ class BookingsRescheduleNoticeTest < ActiveSupport::TestCase
   end
 
   test 'uses space reschedule notice hours when set' do
-    future_start = 10.days.from_now.change(min: 0)
+    future_start = 48.hours.from_now.change(min: 0)
     @booking.update_columns(start_at: future_start, end_at: future_start + 2.hours)
 
     @box.update_column(:reschedule_notice_hours, 72)
