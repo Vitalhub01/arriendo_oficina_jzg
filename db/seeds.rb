@@ -42,6 +42,9 @@ spaces_data = [
     title: 'Box de Atención 1',
     box_type: :clinical,
     price: 6_000,
+    morning_block_price: 25_000,
+    afternoon_block_price: 28_000,
+    jornada_price: 48_000,
     capacity: 2,
     dimensions: '8m²',
     equipment: %w[Sillón Té WiFi Timbre independiente Iluminación regulable]
@@ -50,6 +53,9 @@ spaces_data = [
     title: 'Box de Atención 2',
     box_type: :clinical,
     price: 6_000,
+    morning_block_price: 25_000,
+    afternoon_block_price: 28_000,
+    jornada_price: 48_000,
     capacity: 2,
     dimensions: '10m²',
     equipment: %w[Sillón Camilla Té WiFi Timbre independiente]
@@ -58,13 +64,16 @@ spaces_data = [
     title: 'Sala de Reuniones',
     box_type: :workspace,
     price: 8_000,
+    morning_block_price: 35_000,
+    afternoon_block_price: 40_000,
+    jornada_price: 68_000,
     capacity: 10,
     dimensions: '15m²',
     equipment: %w[Pizarra Proyector Mesa WiFi Té]
   }
 ]
 
-  spaces_data.each_with_index do |data, photo_index|
+spaces_data.each_with_index do |data, photo_index|
   space = Space.find_or_initialize_by(title: data[:title], office: office)
   space.assign_attributes(
     description: 'Espacio profesional equipado para atención por bloques configurables.',
@@ -104,15 +113,35 @@ spaces_data = [
   end
 
   [
-    { name: 'Mañana', start: '08:00', end: '13:00', price: 12_500 },
-    { name: 'Tarde', start: '14:00', end: '19:00', price: 15_000 }
+    { name: 'Mañana', start: '08:00', end: '13:00', price: data[:morning_block_price] },
+    { name: 'Tarde', start: '14:00', end: '19:00', price: data[:afternoon_block_price] }
   ].each_with_index do |rate, i|
-    SlotRate.find_or_create_by!(space: space, name: rate[:name]) do |sr|
-      sr.start_time = Time.zone.parse("2000-01-01 #{rate[:start]}")
-      sr.end_time = Time.zone.parse("2000-01-01 #{rate[:end]}")
-      sr.price_per_slot_cents = rate[:price]
-      sr.position = i
-    end
+    slot_rate = SlotRate.find_or_initialize_by(space: space, name: rate[:name])
+    slot_rate.assign_attributes(
+      start_time: Time.zone.parse("2000-01-01 #{rate[:start]}"),
+      end_time: Time.zone.parse("2000-01-01 #{rate[:end]}"),
+      price_per_slot_cents: rate[:price],
+      position: i
+    )
+    slot_rate.save!
+  end
+
+  jornada = JornadaDefinition.find_or_initialize_by(space: space, name: 'Jornada completa')
+  jornada.assign_attributes(
+    office: office,
+    start_time: Time.zone.parse('2000-01-01 08:00'),
+    end_time: Time.zone.parse('2000-01-01 20:00'),
+    price_cents: data[:jornada_price],
+    active: true,
+    position: 0
+  )
+  jornada.save!
+
+  PricingRule.find_or_create_by!(name: 'Tarifa jornada completa', space_id: space.id) do |r|
+    r.rule_type = :jornada_rate
+    r.config = {}
+    r.active = true
+    r.priority = 5
   end
 end
 

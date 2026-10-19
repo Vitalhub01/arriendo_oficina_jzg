@@ -1,16 +1,34 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["slotCount", "total", "startTime", "durationLabel", "date"]
+  static targets = [
+    "slotCount",
+    "total",
+    "startTime",
+    "durationLabel",
+    "date",
+    "reservationMode",
+    "horaFields",
+    "bloqueFields",
+    "jornadaFields",
+    "slotRate",
+    "bloqueTotal",
+    "bloqueDurationLabel",
+    "jornadaTotal",
+    "jornadaDurationLabel"
+  ]
   static values = {
     minimumSlots: Number,
     blocksByDay: Object,
     overrides: Array,
     today: String,
-    nowTime: String
+    nowTime: String,
+    slotRates: Array,
+    jornada: Object
   }
 
   connect() {
+    this.modeChanged()
     this.refreshStarts()
     this.updateTotal()
   }
@@ -18,6 +36,13 @@ export default class extends Controller {
   selectSlot(event) {
     const { date, startTime } = event.currentTarget.dataset
     if (!date || !startTime) return
+
+    if (this.hasReservationModeTarget) {
+      this.reservationModeTargets.forEach((field) => {
+        field.value = "hora"
+      })
+      this.modeChanged()
+    }
 
     this.dateTargets.forEach((field) => {
       field.value = date
@@ -35,8 +60,47 @@ export default class extends Controller {
     }
   }
 
+  modeChanged() {
+    const mode = this.currentMode()
+
+    this.toggleSection(this.horaFieldsTargets, mode === "hora")
+    this.toggleSection(this.bloqueFieldsTargets, mode === "bloque")
+    this.toggleSection(this.jornadaFieldsTargets, mode === "jornada")
+
+    if (this.hasStartTimeTarget) {
+      this.startTimeTargets.forEach((el) => {
+        el.required = mode === "hora"
+        el.disabled = mode !== "hora"
+      })
+    }
+    if (this.hasSlotRateTarget) {
+      this.slotRateTargets.forEach((el) => {
+        el.required = mode === "bloque"
+        el.disabled = mode !== "bloque"
+      })
+    }
+    if (this.hasSlotCountTarget) {
+      this.slotCountTargets.forEach((el) => {
+        el.disabled = mode !== "hora"
+      })
+    }
+
+    this.updateTotal()
+  }
+
+  toggleSection(targets, visible) {
+    targets.forEach((el) => {
+      el.classList.toggle("hidden", !visible)
+    })
+  }
+
+  currentMode() {
+    return this.reservationModeTargets[0]?.value || "hora"
+  }
+
   refreshStarts() {
     if (!this.hasStartTimeTarget || !this.hasDateTarget) return
+    if (this.currentMode() !== "hora") return
 
     const dateValue = this.dateTargets[0]?.value
     if (!dateValue) return
@@ -76,6 +140,17 @@ export default class extends Controller {
   }
 
   updateTotal() {
+    const mode = this.currentMode()
+
+    if (mode === "bloque") {
+      this.updateBloqueTotal()
+      return
+    }
+    if (mode === "jornada") {
+      this.updateJornadaTotal()
+      return
+    }
+
     const slotCount = parseInt(this.slotCountTargets[0]?.value || this.minimumSlotsValue, 10)
     const startTime = this.hasStartTimeTarget ? this.startTimeTargets[0]?.value : ""
     const total = this.calculateTotal(slotCount, startTime)
@@ -85,19 +160,62 @@ export default class extends Controller {
       el.textContent = this.formatCLP(total)
     })
 
-    if (this.hasDurationLabelTarget) {
-      const hours = Math.floor(durationMinutes / 60)
-      const minutes = durationMinutes % 60
-      let label = `Duración: ${durationMinutes} min`
-      if (hours > 0 && minutes > 0) {
-        label = `Duración: ${hours}h ${minutes}min`
-      } else if (hours > 0) {
-        label = `Duración: ${hours} hora(s)`
-      }
-      this.durationLabelTargets.forEach((el) => {
-        el.textContent = label
-      })
+    this.updateDurationLabel(this.durationLabelTargets, durationMinutes)
+  }
+
+  updateBloqueTotal() {
+    const rate = this.selectedSlotRate()
+    const durationMinutes = rate ? this.minutesBetween(rate.start, rate.end) : 0
+    const total = rate?.price || 0
+
+    this.bloqueTotalTargets.forEach((el) => {
+      el.textContent = this.formatCLP(total)
+    })
+    this.updateDurationLabel(this.bloqueDurationLabelTargets, durationMinutes, rate?.name)
+  }
+
+  updateJornadaTotal() {
+    const jornada = this.jornadaValue
+    const durationMinutes = jornada?.start && jornada?.end
+      ? this.minutesBetween(jornada.start, jornada.end)
+      : 0
+    const total = jornada?.price || 0
+
+    this.jornadaTotalTargets.forEach((el) => {
+      el.textContent = this.formatCLP(total)
+    })
+    this.updateDurationLabel(this.jornadaDurationLabelTargets, durationMinutes, "Jornada completa")
+  }
+
+  selectedSlotRate() {
+    if (!this.hasSlotRateTarget) return null
+    const id = parseInt(this.slotRateTargets[0]?.value, 10)
+    return this.slotRatesValue.find((r) => r.id === id) || this.slotRatesValue[0]
+  }
+
+  updateDurationLabel(targets, durationMinutes, prefix) {
+    if (!targets?.length) return
+
+    const hours = Math.floor(durationMinutes / 60)
+    const minutes = durationMinutes % 60
+    let label = `Duración: ${durationMinutes} min`
+    if (hours > 0 && minutes > 0) {
+      label = `Duración: ${hours}h ${minutes}min`
+    } else if (hours > 0) {
+      label = `Duración: ${hours} hora(s)`
     }
+    if (prefix) {
+      label = `${prefix} · ${label}`
+    }
+    targets.forEach((el) => {
+      el.textContent = label
+    })
+  }
+
+  minutesBetween(start, end) {
+    const [sh, sm] = start.split(":").map(Number)
+    const [eh, em] = end.split(":").map(Number)
+    return (eh * 60 + em) - (sh * 60 + sm)
   }
 
   calculateTotal(slotCount, startTime) {
@@ -177,6 +295,7 @@ export default class extends Controller {
   }
 
   increment() {
+    if (this.currentMode() !== "hora") return
     const field = this.slotCountTargets[0]
     if (!field) return
     const next = parseInt(field.value || this.minimumSlotsValue, 10) + 1
@@ -187,6 +306,7 @@ export default class extends Controller {
   }
 
   decrement() {
+    if (this.currentMode() !== "hora") return
     const field = this.slotCountTargets[0]
     if (!field) return
     const current = parseInt(field.value || this.minimumSlotsValue, 10)

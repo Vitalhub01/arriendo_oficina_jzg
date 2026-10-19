@@ -36,4 +36,29 @@ module SpacesHelper
       }
     end
   end
+
+  def space_booking_slot_rates_payload(space)
+    space.slot_rates.ordered.map do |rate|
+      {
+        id: rate.id,
+        name: rate.name,
+        start: rate.start_time.strftime('%H:%M'),
+        end: rate.end_time.strftime('%H:%M'),
+        price: rate.price_per_slot_cents
+      }
+    end
+  end
+
+  def space_booking_jornada_payload(space)
+    jornada = space.primary_jornada_definition
+    return nil unless jornada
+
+    {
+      id: jornada.id,
+      name: jornada.name,
+      start: jornada.start_time.strftime('%H:%M'),
+      end: jornada.end_time.strftime('%H:%M'),
+      price: jornada.price_cents
+    }
+  end
 end

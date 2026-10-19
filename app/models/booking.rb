@@ -3,6 +3,8 @@
 class Booking < ApplicationRecord
   include OverlapCheckable
 
+  attr_accessor :reservation_slot_rate, :reservation_mode
+
   belongs_to :space, class_name: 'Space', foreign_key: :box_id, inverse_of: :bookings
   belongs_to :profesional, class_name: 'User', foreign_key: :renter_id, inverse_of: :bookings
   alias_attribute :profesional_id, :renter_id
@@ -90,7 +92,7 @@ class Booking < ApplicationRecord
     return unless start_at && end_at && space
 
     self.duration_minutes = ((end_at - start_at) / 60).to_i
-    self.booking_type = :slot_based
+    self.booking_type ||= :slot_based
     self.hours = (duration_minutes / 60.0).round if has_attribute?(:hours)
     apply_pricing
   end
@@ -101,15 +103,23 @@ class Booking < ApplicationRecord
       profesional,
       start_at,
       slot_count,
-      end_at: end_at
+      end_at: end_at,
+      booking_type: booking_type,
+      jornada_definition: jornada_definition,
+      slot_rate: reservation_slot_rate
     )
 
     self.total_amount_cents = result[:total_cents]
     self.discount_cents = result[:discount_cents]
-    self.pricing_breakdown = { breakdown: result[:breakdown], subtotal_cents: result[:subtotal_cents] }
+    self.pricing_breakdown = {
+      breakdown: result[:breakdown],
+      subtotal_cents: result[:subtotal_cents],
+      reservation_mode: reservation_mode
+    }
   end
 
   def minimum_slots_met
+    return unless slot_based?
     return unless space && duration_minutes.positive?
 
     slots = slot_count

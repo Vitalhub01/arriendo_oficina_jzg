@@ -21,6 +21,7 @@ module IntegrationHelpers
       filename: 'terminos.pdf',
       content_type: 'application/pdf'
     )
+    space.save!(validate: false)
   end
 
   def with_mercadopago_stub(preference_id: 'TEST-pref-1', init_point: 'https://sandbox.mercadopago.cl/checkout', &)

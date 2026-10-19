@@ -130,6 +130,26 @@ class Space < ApplicationRecord
     ScheduleBlockResolver.blocks_for_exact_interval(self, start_at, end_at).size
   end
 
+  def schedule_blocks_within_time_range(date, range_start_time, range_end_time)
+    schedule_blocks_for_date(date).select do |block|
+      block.start_time >= range_start_time && block.end_time <= range_end_time
+    end
+  end
+
+  def schedule_interval_for_slot_rate(date, slot_rate)
+    blocks = schedule_blocks_within_time_range(date, slot_rate.start_time, slot_rate.end_time)
+    interval_from_contiguous_blocks(date, blocks)
+  end
+
+  def schedule_interval_for_jornada(date, jornada_definition)
+    blocks = schedule_blocks_within_time_range(date, jornada_definition.start_time, jornada_definition.end_time)
+    interval_from_contiguous_blocks(date, blocks)
+  end
+
+  def primary_jornada_definition
+    jornada_definitions.active.order(:position, :id).first
+  end
+
   def slot_duration
     slot_duration_minutes.minutes
   end
@@ -160,6 +180,20 @@ class Space < ApplicationRecord
 
   def cover_photo
     photos.first
+  end
+
+  def interval_from_contiguous_blocks(date, blocks)
+    return nil if blocks.empty?
+
+    contiguous = blocks.each_cons(2).all? do |a, b|
+      a.ends_at_on(date) == b.starts_at_on(date)
+    end
+    return nil unless contiguous
+
+    {
+      start_at: blocks.first.starts_at_on(date),
+      end_at: blocks.last.ends_at_on(date)
+    }
   end
 
   private

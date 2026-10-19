@@ -11,7 +11,9 @@
        data-booking-form-blocks-by-day-value="<%= space_booking_blocks_by_day(@space).to_json %>"
        data-booking-form-overrides-value="<%= space_booking_block_overrides(@space).to_json %>"
        data-booking-form-today-value="<%= Date.current.iso8601 %>"
-       data-booking-form-now-time-value="<%= Time.zone.now.strftime('%H:%M') %>">
+       data-booking-form-now-time-value="<%= Time.zone.now.strftime('%H:%M') %>"
+       data-booking-form-slot-rates-value="<%= space_booking_slot_rates_payload(@space).to_json %>"
+       data-booking-form-jornada-value="<%= space_booking_jornada_payload(@space).to_json %>">
 <% end %>
 <div class="mx-auto max-w-7xl px-4 py-6">
   <% if @errors.present? %>

@@ -1,24 +1,68 @@
 <div>
-  <p class="text-2xl font-bold text-gray-900">Reserva por horas</p>
-  <p class="mt-1 text-sm text-gray-500">Elige un bloque de la mañana o de la tarde y cuántas horas continuas necesitas (mínimo <%= space.minimum_slots %>).</p>
+  <p class="text-2xl font-bold text-gray-900">Reservar espacio</p>
+  <p class="mt-1 text-sm text-gray-500">Elige si reservas por hora, por bloque (mañana o tarde) o jornada completa.</p>
 
   <% if user_signed_in? && current_user.can_book? %>
     <% booking_date = (@prefill_date || Date.current).to_date %>
     <div class="mt-4">
       <%= form_with url: space_bookings_path(space), method: :post, class: "space-y-4", data: { turbo: false } do %>
         <div>
+          <%= label_tag :reservation_mode, "Tipo de reserva", class: "mb-1 block text-sm font-medium" %>
+          <%= select_tag :reservation_mode,
+                options_for_select(
+                  [
+                    ["Hora", "hora"],
+                    ["Bloque (mañana / tarde)", "bloque"],
+                    ["Jornada (día completo)", "jornada"]
+                  ],
+                  @prefill_reservation_mode || "hora"
+                ),
+                class: "input-field",
+                data: { booking_form_target: "reservationMode", action: "change->booking-form#modeChanged" } %>
+        </div>
+        <div>
           <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
           <%= date_field_tag :date, booking_date, min: Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#refreshStarts" } %>
         </div>
-        <div>
-          <%= label_tag :start_time, "Bloque (mañana / tarde)", class: "mb-1 block text-sm font-medium" %>
-          <%= select_tag :start_time,
-                options_for_select(space_booking_start_time_options(space, booking_date), @prefill_start_time),
-                class: "input-field",
-                required: true,
-                data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal" } %>
+        <div data-booking-form-target="horaFields" class="space-y-4">
+          <div>
+            <%= label_tag :start_time, "Hora de inicio", class: "mb-1 block text-sm font-medium" %>
+            <%= select_tag :start_time,
+                  options_for_select(space_booking_start_time_options(space, booking_date), @prefill_start_time),
+                  class: "input-field",
+                  data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal" } %>
+          </div>
+          <%= render "spaces/booking_slots_fields", space: space %>
         </div>
-        <%= render "spaces/booking_slots_fields", space: space %>
+        <div data-booking-form-target="bloqueFields" class="hidden space-y-4">
+          <div>
+            <%= label_tag :slot_rate_id, "Bloque del día", class: "mb-1 block text-sm font-medium" %>
+            <%= select_tag :slot_rate_id,
+                  options_from_collection_for_select(space.slot_rates.ordered, :id, ->(r) { "#{r.name} (#{r.start_time.strftime('%H:%M')} – #{r.end_time.strftime('%H:%M')}) — #{r.formatted_price}" }),
+                  class: "input-field",
+                  data: { booking_form_target: "slotRate", action: "change->booking-form#updateTotal" } %>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <p class="text-sm text-gray-600">Total estimado</p>
+            <p class="text-xl font-bold" data-booking-form-target="bloqueTotal"></p>
+            <p class="mt-1 text-xs text-gray-500" data-booking-form-target="bloqueDurationLabel"></p>
+          </div>
+        </div>
+        <div data-booking-form-target="jornadaFields" class="hidden space-y-4">
+          <% jornada = space.primary_jornada_definition %>
+          <% if jornada %>
+            <p class="text-sm text-gray-700">
+              Jornada completa: <span class="font-medium"><%= jornada.start_time.strftime('%H:%M') %> – <%= jornada.end_time.strftime('%H:%M') %></span>
+            </p>
+          <% else %>
+            <p class="text-sm text-amber-700">Este espacio aún no tiene jornada completa configurada.</p>
+          <% end %>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <p class="text-sm text-gray-600">Total estimado</p>
+            <p class="text-xl font-bold" data-booking-form-target="jornadaTotal"></p>
+            <p class="mt-1 text-xs text-gray-500" data-booking-form-target="jornadaDurationLabel"></p>
+          </div>
+        </div>
         <% if current_user.reschedule_credits.usable.any? %>
           <div>
             <%= label_tag :reschedule_credit_id, "Usar crédito de reagendamiento", class: "mb-1 block text-sm font-medium" %>

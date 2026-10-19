@@ -1,16 +1,24 @@
 # frozen_string_literal: true
 
 class PricingEngine
-  def self.calculate(space, user, start_at, slot_count, end_at: nil)
-    new(space, user, start_at, slot_count, end_at: end_at).calculate
+  def self.calculate(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
+                     slot_rate: nil)
+    new(
+      space, user, start_at, slot_count, end_at: end_at, booking_type: booking_type,
+      jornada_definition: jornada_definition, slot_rate: slot_rate
+    ).calculate
   end
 
-  def initialize(space, user, start_at, slot_count, end_at: nil)
+  def initialize(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
+                 slot_rate: nil)
     @space = space
     @user = user
     @start_at = start_at
     @slot_count = slot_count.to_i
     @end_at = end_at
+    @booking_type = booking_type
+    @jornada_definition = jornada_definition
+    @slot_rate = slot_rate
   end
 
   def calculate
@@ -40,9 +48,11 @@ class PricingEngine
 
   private
 
-  attr_reader :space, :user, :start_at, :slot_count, :end_at
+  attr_reader :space, :user, :start_at, :slot_count, :end_at, :booking_type, :jornada_definition, :slot_rate
 
   def base_subtotal
+    return slot_rate.price_per_slot_cents if block_period_booking?
+
     interval_end = resolved_end_at
     return space.price_for_interval(start_at, interval_end) if interval_end
 
@@ -70,11 +80,26 @@ class PricingEngine
 
   def base_line(amount_cents)
     duration_label = format_duration
+    label = if block_period_booking?
+              "#{slot_rate.name} (#{duration_label})"
+            elsif jornada_booking?
+              "Jornada completa (#{duration_label})"
+            else
+              "#{slot_count} hora(s) (#{duration_label})"
+            end
     {
       type: 'base',
-      label: "#{slot_count} hora(s) (#{duration_label})",
+      label: label,
       amount_cents: amount_cents
     }
+  end
+
+  def block_period_booking?
+    booking_type.to_s == 'hourly' && slot_rate.present?
+  end
+
+  def jornada_booking?
+    booking_type.to_s == 'jornada'
   end
 
   def format_duration
@@ -104,6 +129,7 @@ class PricingEngine
   def rule_applies?(rule)
     case rule.rule_type
     when 'volume_discount'
+      return false if block_period_booking? || jornada_booking?
       return false if rule.space_id.present? && rule.space_id != space.id
 
       min_slots = rule.config['min_slots'].to_i
@@ -125,7 +151,9 @@ class PricingEngine
       slot_count: slot_count,
       hours: duration_hours,
       subtotal_cents: current_subtotal,
-      membership_discount_percent: current_membership_discount_percent
+      membership_discount_percent: current_membership_discount_percent,
+      booking_type: booking_type,
+      jornada_definition: jornada_definition || space.primary_jornada_definition
     }
   end
 

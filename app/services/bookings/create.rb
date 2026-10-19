@@ -13,19 +13,33 @@ module Bookings
       terms_error = validate_terms_acceptance
       return Result.new(success: false, errors: [terms_error]) if terms_error
 
-      slot_count = resolve_slot_count
-      start_at, end_at = parse_times(slot_count)
+      interval = ReservationInterval.new(space: @space, params: @params).resolve
+      return Result.new(success: false, errors: interval.errors) unless interval.success?
+
+      start_at = interval.start_at
+      end_at = interval.end_at
       duration_minutes = ((end_at - start_at) / 60).to_i
+      slot_count = availability_slot_count(start_at, end_at, duration_minutes)
+
+      checker = AvailabilityChecker.new(@space)
+      unless checker.consecutive_slots_available?(start_at, slot_count)
+        message = checker.error_message || 'Horario no disponible'
+        message = 'El horario seleccionado ya no está disponible' if message == 'Ya reservado'
+        return Result.new(success: false, errors: [message])
+      end
 
       booking = @space.bookings.build(
         profesional: @profesional,
         start_at: start_at,
         end_at: end_at,
         duration_minutes: duration_minutes,
-        booking_type: :slot_based,
+        booking_type: interval.booking_type,
+        jornada_definition: interval.jornada_definition,
         reschedule_credit: find_reschedule_credit,
         terms_accepted_at: (@space.terms_and_conditions.attached? ? Time.current : nil)
       )
+      booking.reservation_slot_rate = interval.slot_rate
+      booking.reservation_mode = interval.mode
 
       if booking.save
         mark_credit_applied!(booking) if booking.reschedule_credit_id.present?
@@ -50,31 +64,11 @@ module Bookings
       'Debes aceptar los términos y condiciones del espacio'
     end
 
-    def resolve_slot_count
-      if @params[:slot_count].present?
-        @params[:slot_count].to_i
-      elsif @params[:hours].present?
-        hours = @params[:hours].to_i
-        slots = (hours * 60.0 / @space.slot_duration_minutes).ceil
-        [slots, @space.minimum_slots].max
-      else
-        @space.minimum_slots
-      end
-    end
+    def availability_slot_count(start_at, end_at, duration_minutes)
+      count = @space.schedule_block_count_for_interval(start_at, end_at)
+      return count if count.positive?
 
-    def parse_times(slot_count)
-      date = Date.parse(@params[:date].to_s)
-      hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
-      start_at = Time.zone.local(date.year, date.month, date.day, hour, min)
-
-      blocks = ScheduleBlockResolver.consecutive_blocks_from(@space, start_at, slot_count)
-      if blocks.any?
-        end_at = blocks.last.ends_at_on(date)
-        return [start_at, end_at]
-      end
-
-      end_at = start_at + (slot_count * @space.slot_duration_minutes).minutes
-      [start_at, end_at]
+      (duration_minutes.to_f / @space.slot_duration_minutes).ceil
     end
 
     def find_reschedule_credit
