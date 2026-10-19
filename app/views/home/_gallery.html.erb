@@ -1,0 +1,34 @@
+<%# locals: (gallery_groups:) %>
+<section id="galeria" class="shop-section !py-12 md:!py-16">
+  <div class="mx-auto max-w-2xl text-center">
+    <p class="shop-eyebrow">Galería</p>
+    <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Conoce nuestros espacios</h2>
+    <p class="mt-3 text-sm text-gray-600">Elige un ambiente para ver todas sus fotos.</p>
+  </div>
+
+  <% if gallery_groups.any? %>
+    <div class="mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+      <% gallery_groups.each do |tag_label, items| %>
+        <% cover = items.first %>
+        <%= link_to gallery_path(tag: cover.tag_slug),
+            class: "group block text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-lg" do %>
+          <div class="overflow-hidden rounded-lg bg-gray-100 shadow-sm ring-1 ring-black/5">
+            <%= image_tag cover.image.variant(resize_to_limit: [800, 600]),
+                alt: cover.display_alt,
+                class: "aspect-[4/3] w-full object-cover transition duration-300 ease-out group-hover:scale-[1.04]" %>
+          </div>
+          <p class="mt-3 text-sm font-medium text-gray-900 group-hover:text-brand transition-colors">
+            <%= tag_label %>
+            <span class="font-normal text-gray-500">(<%= items.size %>)</span>
+          </p>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+      <% (2..5).each do |n| %>
+        <%= image_tag "vitalhub_office_#{n}.jpg", alt: "Espacio VitalHub #{n - 1}", class: "aspect-[4/3] w-full rounded-lg object-cover shadow-sm" %>
+      <% end %>
+    </div>
+  <% end %>
+</section>

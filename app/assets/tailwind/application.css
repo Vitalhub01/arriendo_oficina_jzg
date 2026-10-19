@@ -76,6 +76,14 @@
     @apply text-3xl font-medium tracking-tight text-gray-900 md:text-4xl lg:text-5xl;
   }
 
+  .gallery-masonry {
+    @apply columns-2 gap-3 sm:columns-3 md:gap-4 lg:columns-4;
+  }
+
+  .gallery-masonry__item {
+    @apply mb-3 break-inside-avoid md:mb-4;
+  }
+
   .shop-subheading {
     @apply text-lg leading-relaxed text-gray-600 md:text-xl;
   }

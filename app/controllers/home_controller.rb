@@ -12,6 +12,6 @@ class HomeController < ApplicationController
     @testimonials = Testimonial.visible.includes(:profesional).order(created_at: :desc).limit(6)
     @faqs = Faq.where(visible: true).order(:position)
     @social_contacts = SocialContact.visible.ordered.with_attached_icon
-    @gallery_items = GalleryItem.visible.ordered.with_attached_image
+    @gallery_groups = GalleryItem.grouped_by_tag(GalleryItem.visible.ordered.with_attached_image)
   end
 end

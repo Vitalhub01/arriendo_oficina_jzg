@@ -3,6 +3,8 @@
 class GalleryItem < ApplicationRecord
   has_one_attached :image
 
+  UNTAGGED_LABEL = 'General'
+
   TAG_SUGGESTIONS = [
     'Recepción',
     'Box clínico',
@@ -20,8 +22,30 @@ class GalleryItem < ApplicationRecord
 
   before_validation :assign_next_position, on: :create
 
+  def self.grouped_by_tag(scope = visible.ordered)
+    scope.group_by(&:tag_label).sort_by do |_label, items|
+      items.map(&:position).min || 0
+    end
+  end
+
+  def self.items_for_tag_slug(slug)
+    visible.ordered.select { |item| item.tag_slug == slug.to_s }
+  end
+
+  def tag_label
+    tag.presence || UNTAGGED_LABEL
+  end
+
+  def tag_slug
+    tag_label.parameterize
+  end
+
   def display_alt
     alt_text.presence || tag.presence || 'Espacio VitalHub'
+  end
+
+  def masonry_aspect_class
+    %w[aspect-[4/5] aspect-[3/4] aspect-square aspect-[5/4] aspect-[4/3]][id % 5]
   end
 
   private

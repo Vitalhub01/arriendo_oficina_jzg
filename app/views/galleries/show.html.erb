@@ -1,0 +1,77 @@
+<% content_for :title, "#{@tag_label} — Galería | VitalHub" %>
+<% content_for :meta_description, "Fotos de #{@tag_label} en VitalHub. Conoce nuestros espacios para profesionales de la salud." %>
+<% if @current_item.image.attached? %>
+  <% content_for :og_image, url_for(@current_item.image) %>
+<% end %>
+
+<% current_index = @items.index(@current_item) %>
+<% prev_item = current_index.positive? ? @items[current_index - 1] : nil %>
+<% next_item = current_index < @items.length - 1 ? @items[current_index + 1] : nil %>
+
+<div class="mx-auto max-w-6xl px-4 py-8 md:py-12"
+     data-controller="gallery-set"
+     data-gallery-set-prev-url-value="<%= prev_item ? gallery_photo_path(prev_item) : '' %>"
+     data-gallery-set-next-url-value="<%= next_item ? gallery_photo_path(next_item) : '' %>"
+     data-action="keydown@window->gallery-set#handleKey">
+  <p class="text-sm">
+    <%= link_to "← Volver al inicio", root_path(anchor: "galeria"), class: "text-brand hover:underline" %>
+  </p>
+
+  <header class="mt-4 border-b border-gray-200 pb-6">
+    <p class="shop-eyebrow">Galería</p>
+    <h1 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl"><%= @tag_label %></h1>
+    <p class="mt-2 text-sm text-gray-600">
+      <%= @items.size %> <%= @items.size == 1 ? 'foto' : 'fotos' %>
+      <% if @items.size > 1 %>
+        · Foto <%= current_index + 1 %> de <%= @items.size %>
+      <% end %>
+    </p>
+  </header>
+
+  <figure class="mt-8 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
+    <% if @current_item.image.attached? %>
+      <%= image_tag @current_item.image.variant(resize_to_limit: [1600, 1200]),
+          alt: @current_item.display_alt,
+          class: "max-h-[70vh] w-full object-contain bg-gray-50",
+          data: { gallery_set_target: "main" } %>
+    <% end %>
+    <% if @current_item.alt_text.present? %>
+      <figcaption class="border-t border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+        <%= @current_item.alt_text %>
+      </figcaption>
+    <% end %>
+  </figure>
+
+  <% if @items.size > 1 %>
+    <div class="mt-4 flex justify-between gap-4">
+      <% if prev_item %>
+        <%= link_to gallery_photo_path(prev_item), class: "btn-secondary !min-h-0 !px-4 !py-2 text-xs", data: { turbo_action: "replace" } do %>
+          ← Anterior
+        <% end %>
+      <% else %>
+        <span></span>
+      <% end %>
+      <% if next_item %>
+        <%= link_to gallery_photo_path(next_item), class: "btn-secondary !min-h-0 !px-4 !py-2 text-xs", data: { turbo_action: "replace" } do %>
+          Siguiente →
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="mt-10">
+      <h2 class="text-sm font-medium uppercase tracking-wide text-gray-500">Todas en este conjunto</h2>
+      <div class="gallery-masonry mt-4">
+        <% @items.each do |item| %>
+          <% active = item.id == @current_item.id %>
+          <%= link_to gallery_photo_path(item),
+              class: "gallery-masonry__item block overflow-hidden rounded-lg ring-2 transition #{active ? 'ring-brand' : 'ring-transparent hover:ring-brand/40'}",
+              data: { turbo_action: "replace", gallery_set_target: "thumb", gallery_set_id_param: item.id } do %>
+            <%= image_tag item.image.variant(resize_to_limit: [480, 640]),
+                alt: item.display_alt,
+                class: "w-full object-cover #{item.masonry_aspect_class}" %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,4 +1,4 @@
-<%# locals: (items:, create_url:, reorder_url:, update_url_template:, destroy_url_template:, show_tag: false, empty_message:) %>
+<%# locals: (items:, item_partial:, item_locals:, create_url:, reorder_url:, update_url_template:, destroy_url_template:, empty_message:, show_tag: false, datalist_id: nil) %>
 <div class="photo-manager rounded-xl border border-gray-200 bg-white p-4 md:p-6"
      data-controller="photo-manager"
      data-photo-manager-create-url-value="<%= create_url %>"
@@ -43,7 +43,7 @@
            data-action="change->photo-manager#handleFileSelect">
   </div>
 
-  <% if local_assigns[:datalist_id] %>
+  <% if datalist_id.present? %>
     <datalist id="<%= datalist_id %>">
       <% GalleryItem::TAG_SUGGESTIONS.each do |suggestion| %>
         <option value="<%= suggestion %>"></option>

@@ -7,6 +7,10 @@ module ApplicationHelper
     Money.new(cents, 'CLP').format(no_cents_if_whole: true)
   end
 
+  def gallery_photo_path(item)
+    gallery_path(tag: item.tag_slug, photo_id: item.id)
+  end
+
   def space_type_label(type)
     Space::BOX_TYPE_LABELS[type.to_s] || type
   end

@@ -34,6 +34,8 @@ Rails.application.routes.draw do
   get 'privacidad', to: 'pages#privacy', as: :privacy
   get 'cancelacion', to: 'pages#cancellation', as: :cancellation_policy
 
+  get 'galeria/:tag', to: 'galleries#show', as: :gallery
+
   get 'sitemap.xml', to: 'sitemaps#show', defaults: { format: :xml }
 
   namespace :admin do
