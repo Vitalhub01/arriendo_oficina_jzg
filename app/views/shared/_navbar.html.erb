@@ -12,6 +12,7 @@
 
     <nav class="hidden items-center gap-8 md:flex">
       <%= link_to "Espacios", spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+      <%= link_to "Galería", root_path(anchor: "galeria"), class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
       <%= link_to "Membresía", membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
       <% if user_signed_in? %>
         <%= link_to "Mis reservas", bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
