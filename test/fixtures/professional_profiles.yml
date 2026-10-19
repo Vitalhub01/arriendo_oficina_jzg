@@ -2,10 +2,16 @@ renter_profile:
   user: renter
   rut: 12345678-5
   validation_status: 2
+  age: 35
+  gender: F
+  profession: Psicólogo/a
   onboarding_completed: true
 
 profesional_profile:
   user: profesional
   rut: 87654321-0
   validation_status: 2
+  age: 40
+  gender: M
+  profession: Nutricionista
   onboarding_completed: true

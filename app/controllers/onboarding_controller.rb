@@ -5,12 +5,13 @@ class OnboardingController < ApplicationController
   before_action :set_professional_profile
 
   def show
-    redirect_to root_path if @professional_profile.onboarding_completed?
+    redirect_to edit_profile_path if @professional_profile.profile_complete?
   end
 
   def update
-    if @professional_profile.update(onboarding_params.merge(onboarding_completed: true))
-      redirect_to root_path, notice: 'Perfil completado. Ya puedes reservar espacios.'
+    if @professional_profile.update(onboarding_params)
+      @professional_profile.sync_onboarding_completed!
+      redirect_to root_path, notice: profile_saved_notice
     else
       render :show, status: :unprocessable_content
     end
@@ -24,6 +25,14 @@ class OnboardingController < ApplicationController
   end
 
   def onboarding_params
-    params.expect(professional_profile: %i[age gender interested_in_networking])
+    params.expect(professional_profile: %i[age gender profession interested_in_networking])
+  end
+
+  def profile_saved_notice
+    if @professional_profile.profile_complete?
+      'Perfil completado. ¡Gracias!'
+    else
+      'Información guardada. Aún faltan datos por completar.'
+    end
   end
 end

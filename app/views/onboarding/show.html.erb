@@ -1,7 +1,14 @@
 <div class="mx-auto max-w-lg px-4 py-16">
   <h1 class="text-2xl font-bold">Completa tu perfil</h1>
-  <p class="mt-2 text-gray-600">Esta información nos ayuda a conocerte mejor.</p>
+  <p class="mt-2 text-gray-600">Esta información nos ayuda a conocerte mejor. Puedes reservar sin completarla, pero te lo recordaremos en cada reserva.</p>
   <%= form_with model: @professional_profile, url: onboarding_path, method: :patch, class: "mt-6 space-y-4" do |f| %>
+    <%= f.label :profession, "Profesión", class: "block text-sm font-medium" %>
+    <%= f.text_field :profession, list: "profession-suggestions", class: "input-field", placeholder: "Ej: Psicólogo/a", required: true %>
+    <datalist id="profession-suggestions">
+      <% ProfessionalProfile::PROFESSION_SUGGESTIONS.each do |suggestion| %>
+        <option value="<%= suggestion %>"></option>
+      <% end %>
+    </datalist>
     <%= f.label :age, "Edad", class: "block text-sm font-medium" %>
     <%= f.number_field :age, class: "input-field", min: 18, max: 100, required: true %>
     <%= f.label :gender, "Sexo", class: "block text-sm font-medium" %>

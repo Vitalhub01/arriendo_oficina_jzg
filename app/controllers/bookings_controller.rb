@@ -41,9 +41,9 @@ class BookingsController < ApplicationController
     if result.success?
       flash[:ga_event] = { name: 'booking_started', params: { space_id: @space.id, slot_count: booking_params[:slot_count] } }
       if result.booking.confirmed?
-        redirect_to result.booking, notice: 'Reserva confirmada con tu crédito'
+        redirect_to result.booking, notice: booking_created_notice('Reserva confirmada con tu crédito')
       else
-        redirect_to result.booking, status: :see_other
+        redirect_to result.booking, notice: booking_created_notice, status: :see_other
       end
     else
       load_space_show_vars
@@ -128,9 +128,18 @@ class BookingsController < ApplicationController
 
     if current_user.banned?
       redirect_to root_path, alert: 'Tu cuenta está suspendida. Contacta al administrador.'
+    elsif current_user.professional_profile&.rejected?
+      redirect_to root_path, alert: 'Tu perfil profesional no está habilitado para reservar. Contacta al administrador.'
     else
-      redirect_to onboarding_path, alert: 'Completa tu perfil profesional para reservar'
+      redirect_to new_user_registration_path, alert: 'Regístrate como profesional para reservar'
     end
+  end
+
+  def booking_created_notice(base = nil)
+    parts = []
+    parts << base if base.present?
+    parts << 'Recuerda completar tu perfil.' unless current_user.profile_complete?
+    parts.join(' ').presence
   end
 
   def set_booking

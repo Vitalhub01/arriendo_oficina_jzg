@@ -3,6 +3,11 @@
   <p class="mt-1 text-sm text-gray-500">Elige si reservas por hora, por bloque (mañana o tarde) o jornada completa.</p>
 
   <% if user_signed_in? && current_user.can_book? %>
+    <% unless current_user.profile_complete? %>
+      <div class="mt-4">
+        <%= render "shared/profile_incomplete_reminder" %>
+      </div>
+    <% end %>
     <% booking_date = (@prefill_date || Date.current).to_date %>
     <div class="mt-4">
       <%= form_with url: space_bookings_path(space), method: :post, class: "space-y-4", data: { turbo: false } do %>
@@ -95,7 +100,7 @@
       <% end %>
     </div>
   <% elsif user_signed_in? %>
-    <%= link_to "Completa tu perfil para reservar", onboarding_path, class: "btn-primary mt-4 block w-full text-center" %>
+    <p class="mt-4 text-sm text-gray-600">Tu cuenta no puede reservar en este momento. Si crees que es un error, contáctanos.</p>
   <% else %>
     <%= link_to "Ingresa para reservar", new_user_session_path, class: "btn-primary mt-4 block w-full text-center" %>
   <% end %>

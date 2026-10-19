@@ -1,5 +1,20 @@
 <div class="mx-auto max-w-lg px-4 py-12">
-  <h1 class="text-2xl font-bold">Mi perfil</h1>
+  <div class="flex flex-wrap items-center gap-2">
+    <h1 class="text-2xl font-bold">Mi perfil</h1>
+    <% unless @user.profile_complete? %>
+      <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900"
+            title="Faltan datos profesionales por completar">
+        Incompleto
+      </span>
+    <% end %>
+  </div>
+
+  <% unless @user.profile_complete? %>
+    <div class="mt-4">
+      <%= render "shared/profile_incomplete_reminder" %>
+    </div>
+  <% end %>
+
   <%= form_with model: @user, url: profile_path, method: :patch, class: "mt-6 space-y-4" do |f| %>
     <div>
       <%= f.label :name, class: "block text-sm font-medium" %>
@@ -9,6 +24,42 @@
       <label class="block text-sm font-medium">Email</label>
       <p class="input-field bg-gray-50"><%= @user.email %></p>
     </div>
+
+    <% if @professional_profile %>
+      <div class="border-t border-gray-200 pt-6">
+        <h2 class="text-lg font-semibold text-gray-900">Datos profesionales</h2>
+        <p class="mt-1 text-sm text-gray-600">Edad, sexo y profesión nos ayudan a personalizar tu experiencia.</p>
+        <%= fields_for :professional_profile, @professional_profile do |pf| %>
+          <div class="mt-4 space-y-4">
+            <div>
+              <%= pf.label :profession, "Profesión", class: "block text-sm font-medium" %>
+              <%= pf.text_field :profession, list: "profession-suggestions-profile", class: "input-field" %>
+            </div>
+            <div>
+              <%= pf.label :age, "Edad", class: "block text-sm font-medium" %>
+              <%= pf.number_field :age, class: "input-field", min: 18, max: 100 %>
+            </div>
+            <div>
+              <%= pf.label :gender, "Sexo", class: "block text-sm font-medium" %>
+              <%= pf.select :gender,
+                    [["Femenino", "F"], ["Masculino", "M"], ["Otro", "O"], ["Prefiero no decir", "X"]],
+                    { include_blank: "Seleccionar" },
+                    class: "input-field" %>
+            </div>
+            <div class="flex items-center gap-2">
+              <%= pf.check_box :interested_in_networking, class: "rounded" %>
+              <%= pf.label :interested_in_networking, "Me interesa conocer otros profesionales" %>
+            </div>
+          </div>
+        <% end %>
+        <datalist id="profession-suggestions-profile">
+          <% ProfessionalProfile::PROFESSION_SUGGESTIONS.each do |suggestion| %>
+            <option value="<%= suggestion %>"></option>
+          <% end %>
+        </datalist>
+      </div>
+    <% end %>
+
     <%= f.submit "Guardar", class: "btn-primary" %>
   <% end %>
 </div>

@@ -1,4 +1,9 @@
 <div class="mx-auto max-w-3xl px-4 py-8">
+  <% unless current_user.profile_complete? %>
+    <div class="mb-6">
+      <%= render "shared/profile_incomplete_reminder", variant: :after_booking %>
+    </div>
+  <% end %>
   <h1 class="text-2xl font-bold">Detalle de reserva</h1>
   <div class="card mt-6 p-6">
     <h2 class="text-lg font-semibold"><%= @booking.space.title %></h2>

@@ -10,8 +10,29 @@ class ProfessionalProfile < ApplicationRecord
     rejected: 3
   }
 
+  PROFESSION_SUGGESTIONS = [
+    'Psicólogo/a',
+    'Psiquiatra',
+    'Nutricionista',
+    'Kinesiólogo/a',
+    'Terapeuta ocupacional',
+    'Fonoaudiólogo/a',
+    'Matrona',
+    'Enfermero/a',
+    'Médico general',
+    'Otro'
+  ].freeze
+
   validates :rut, presence: true, uniqueness: true
   validate :rut_must_be_valid
+
+  def profile_complete?
+    age.present? && gender.present? && profession.present?
+  end
+
+  def sync_onboarding_completed!
+    update!(onboarding_completed: profile_complete?)
+  end
 
   def verified?
     auto_verified? || manual_verified?

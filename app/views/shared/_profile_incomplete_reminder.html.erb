@@ -1,0 +1,14 @@
+<%# locals: (variant: :default) %>
+<% return unless user_signed_in? && !current_user.profile_complete? %>
+
+<div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+  <p>
+    <% if variant == :after_booking %>
+      <span class="font-medium">Recuerda completar tu perfil.</span>
+    <% else %>
+      <span class="font-medium">Tu perfil profesional está incompleto.</span>
+    <% end %>
+    Necesitamos tu edad, sexo y profesión para conocerte mejor.
+    <%= link_to "Completar perfil", onboarding_path, class: "font-medium text-brand hover:underline" %>
+  </p>
+</div>

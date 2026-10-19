@@ -21,6 +21,7 @@ end
 ProfessionalProfile.find_or_create_by!(user: profesional) do |p|
   p.rut = '12345678-5'
   p.validation_status = :manual_verified
+  p.profession = 'Psicólogo/a'
   p.onboarding_completed = true
   p.age = 35
   p.gender = 'F'

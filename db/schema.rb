@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_19_000004) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -307,6 +307,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_000004) do
     t.boolean "onboarding_completed", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "profession"
     t.index ["rut"], name: "index_professional_profiles_on_rut", unique: true
     t.index ["user_id"], name: "index_professional_profiles_on_user_id", unique: true
     t.index ["validation_status"], name: "index_professional_profiles_on_validation_status"

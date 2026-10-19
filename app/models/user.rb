@@ -56,7 +56,13 @@ class User < ApplicationRecord
     return false if banned?
     return false if professional_profile&.rejected?
 
-    professional_profile&.onboarding_completed?
+    professional_profile.present? && professional_profile.rut.present?
+  end
+
+  def profile_complete?
+    return true if admin?
+
+    professional_profile&.profile_complete?
   end
 
   def active_for_authentication?

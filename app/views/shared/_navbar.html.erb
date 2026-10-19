@@ -16,7 +16,17 @@
       <%= link_to "Membresía", membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
       <% if user_signed_in? %>
         <%= link_to "Mis reservas", bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
-        <%= link_to "Perfil", edit_profile_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <%= link_to edit_profile_path,
+            class: "inline-flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand",
+            title: (current_user.profile_complete? ? nil : "Perfil incompleto: completa tu profesión y datos personales") do %>
+          Perfil
+          <% unless current_user.profile_complete? %>
+            <span class="relative flex h-2 w-2" aria-label="Perfil incompleto">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60"></span>
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+            </span>
+          <% end %>
+        <% end %>
         <% if current_user.admin? %>
           <%= link_to "Admin", admin_root_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
         <% end %>

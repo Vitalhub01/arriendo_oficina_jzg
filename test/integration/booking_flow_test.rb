@@ -191,8 +191,21 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     sign_in @renter
 
     post space_bookings_path(@box), params: booking_params
-    assert_redirected_to onboarding_path
-    assert_match 'perfil profesional', flash[:alert]
+    assert_redirected_to root_path
+    assert_match 'no está habilitado', flash[:alert]
+  end
+
+  test 'profesional with incomplete profile can create booking' do
+    @renter.professional_profile.update!(onboarding_completed: false, age: nil, gender: nil, profession: nil)
+    sign_in @renter
+
+    assert_difference 'Booking.count', 1 do
+      post space_bookings_path(@box), params: booking_params
+    end
+
+    booking = Booking.order(:created_at).last
+    assert_redirected_to booking_path(booking)
+    assert_match 'completar tu perfil', flash[:notice]
   end
 
   test 'checkout without mercado pago token shows alert' do
