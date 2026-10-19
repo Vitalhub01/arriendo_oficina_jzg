@@ -13,6 +13,9 @@ class BookingsController < ApplicationController
 
   def show
     authorize @booking
+    Payments::MercadoPago::ProcessReturn.new(booking: @booking, params: params).call
+    @booking.reload
+
     if @booking.confirmed? && params[:collection_status] == 'approved'
       flash.now[:ga_event] = { name: 'payment_completed', params: { booking_id: @booking.id } }
       track_ga_flash_event

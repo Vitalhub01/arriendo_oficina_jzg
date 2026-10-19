@@ -47,6 +47,11 @@ Rails.application.configure do
     host: ENV.fetch('APP_HOST', 'arriendo-oficina-jzg.onrender.com'),
     protocol: 'https'
   }
+  config.action_mailer.default_url_options = config.action_controller.default_url_options
+
+  config.after_initialize do
+    Rails.application.routes.default_url_options = config.action_controller.default_url_options
+  end
 
   config.force_ssl = true
 

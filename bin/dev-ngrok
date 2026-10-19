@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+NGROK_BIN="$ROOT/bin/ngrok"
+NGROK_URL="https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz"
+NGROK_API="http://127.0.0.1:4040"
+NGROK_STARTED_BY_SCRIPT=0
+
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+if [[ -f .env.ngrok ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env.ngrok
+  set +a
+fi
+
+# Mismo puerto que tu app local (PORT en .env, default 5000).
+TUNNEL_PORT="${NGROK_TUNNEL_PORT:-${PORT:-5000}}"
+export PORT="$TUNNEL_PORT"
+
+cleanup() {
+  if [[ "$NGROK_STARTED_BY_SCRIPT" == 1 && -f tmp/ngrok.pid ]]; then
+    kill "$(cat tmp/ngrok.pid)" 2>/dev/null || true
+    rm -f tmp/ngrok.pid
+  fi
+}
+trap cleanup EXIT INT TERM
+
+fetch_ngrok_public_url() {
+  local body
+  body="$(curl -fsS "$NGROK_API/api/tunnels" 2>/dev/null)" || return 0
+  [[ -n "$body" ]] || return 0
+
+  if command -v jq &>/dev/null; then
+    jq -r '.tunnels[] | select(.public_url | startswith("https")) | .public_url' <<<"$body" | head -1
+    return 0
+  fi
+
+  ruby -rjson -e '
+    j = JSON.parse(STDIN.read)
+    url = j.fetch("tunnels", []).map { |t| t["public_url"] }.find { |u| u&.start_with?("https") }
+    puts url if url
+  ' <<<"$body" 2>/dev/null || true
+}
+
+if [[ ! -x "$NGROK_BIN" ]]; then
+  echo "Descargando ngrok en bin/ngrok..."
+  tmp="$(mktemp -d)"
+  curl -fsSL "$NGROK_URL" -o "$tmp/ngrok.tgz"
+  tar -xzf "$tmp/ngrok.tgz" -C "$ROOT/bin"
+  chmod +x "$NGROK_BIN"
+  rm -rf "$tmp"
+fi
+
+if [[ -z "${NGROK_AUTHTOKEN:-}" ]]; then
+  echo "Falta NGROK_AUTHTOKEN."
+  echo "1. Crea cuenta gratis: https://dashboard.ngrok.com/signup"
+  echo "2. Copia tu authtoken: https://dashboard.ngrok.com/get-started/your-authtoken"
+  echo "3. Agrégalo a .env.ngrok (ver .env.ngrok.example)"
+  exit 1
+fi
+
+if ! command -v foreman &>/dev/null; then
+  echo "Instalando foreman..."
+  gem install foreman
+fi
+
+mkdir -p tmp
+
+ngrok_tunnel_addr() {
+  local body
+  body="$(curl -fsS "$NGROK_API/api/tunnels" 2>/dev/null)" || return 1
+  if command -v jq &>/dev/null; then
+    jq -r '.tunnels[0].config.addr // empty' <<<"$body"
+  else
+    ruby -rjson -e 'j=JSON.parse(STDIN.read); puts j.dig("tunnels",0,"config","addr")' <<<"$body" 2>/dev/null
+  fi
+}
+
+start_ngrok_tunnel() {
+  echo "Iniciando ngrok → localhost:${TUNNEL_PORT}"
+  "$NGROK_BIN" config add-authtoken "$NGROK_AUTHTOKEN" >/dev/null 2>&1 || true
+  pkill -f "$NGROK_BIN http" 2>/dev/null || true
+  sleep 1
+  "$NGROK_BIN" http "$TUNNEL_PORT" --log=stdout >tmp/ngrok.log 2>&1 &
+  echo "$!" > tmp/ngrok.pid
+  NGROK_STARTED_BY_SCRIPT=1
+}
+
+EXPECTED_ADDR="http://localhost:${TUNNEL_PORT}"
+if curl -fsS "$NGROK_API/api/tunnels" &>/dev/null; then
+  CURRENT_ADDR="$(ngrok_tunnel_addr || true)"
+  if [[ "$CURRENT_ADDR" == "$EXPECTED_ADDR" ]]; then
+    echo "Reutilizando túnel ngrok existente (${EXPECTED_ADDR})"
+  else
+    echo "Reiniciando ngrok (era ${CURRENT_ADDR:-?}, necesita ${EXPECTED_ADDR})"
+    start_ngrok_tunnel
+  fi
+else
+  start_ngrok_tunnel
+fi
+
+echo "Esperando URL pública de ngrok..."
+PUBLIC_URL=""
+for i in $(seq 1 45); do
+  PUBLIC_URL="$(fetch_ngrok_public_url)"
+  if [[ -n "$PUBLIC_URL" && "$PUBLIC_URL" != "null" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+if [[ -z "$PUBLIC_URL" || "$PUBLIC_URL" == "null" ]]; then
+  echo "No se pudo obtener la URL de ngrok. Revisa tmp/ngrok.log"
+  tail -20 tmp/ngrok.log 2>/dev/null || true
+  exit 1
+fi
+
+TUNNEL_HOST="${PUBLIC_URL#https://}"
+TUNNEL_HOST="${TUNNEL_HOST#http://}"
+TUNNEL_HOST="${TUNNEL_HOST%%/*}"
+
+export RAILS_ENV=ngrok
+export APP_BASE_URL="$PUBLIC_URL"
+export APP_HOST="$TUNNEL_HOST"
+export MERCADOPAGO_HTTPS_BACK_URLS=true
+export MERCADOPAGO_SANDBOX="${MERCADOPAGO_SANDBOX:-true}"
+
+echo "$PUBLIC_URL" > tmp/ngrok.url
+cat > tmp/ngrok.env <<EOF
+export RAILS_ENV=ngrok
+export APP_BASE_URL=$PUBLIC_URL
+export APP_HOST=$TUNNEL_HOST
+export MERCADOPAGO_HTTPS_BACK_URLS=true
+export MERCADOPAGO_SANDBOX=${MERCADOPAGO_SANDBOX:-true}
+export PORT=$TUNNEL_PORT
+EOF
+echo ""
+echo "=== VitalHub — modo ngrok ==="
+echo "  Público:  $PUBLIC_URL"
+echo "  Rails:    RAILS_ENV=ngrok APP_BASE_URL=$APP_BASE_URL"
+echo "  Mercado Pago back_urls usarán HTTPS (auto_return)."
+echo "  Webhook:  $PUBLIC_URL/payments/webhooks/mercadopago"
+echo "  Puerto local: $PORT (ngrok → localhost:$PORT)"
+echo ""
+
+if command -v ss &>/dev/null && ss -tln | grep -q ":${PORT} "; then
+  echo "Puerto ${PORT} ya en uso (otro bin/dev sin ngrok)."
+  echo "En OTRA terminal: Ctrl+C al bin/dev viejo y luego:"
+  echo "  bin/dev-with-ngrok"
+  echo ""
+  echo "Ngrok sigue activo. Pulsa Ctrl+C aquí para cerrar el túnel."
+  NGROK_STARTED_BY_SCRIPT=0
+  trap - EXIT
+  if [[ -f tmp/ngrok.pid ]]; then
+    wait "$(cat tmp/ngrok.pid)" 2>/dev/null || true
+  else
+    while true; do sleep 3600; done
+  fi
+  exit 0
+fi
+
+# Foreman runs until Ctrl+C; do not kill ngrok on normal exit from foreman if user wants reuse
+NGROK_STARTED_BY_SCRIPT=0
+
+exec foreman start -f Procfile.dev "$@"

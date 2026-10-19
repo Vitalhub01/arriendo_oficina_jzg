@@ -32,3 +32,7 @@
 
 # Local environment (secrets)
 .env
+.env.ngrok
+
+# Tunnel binaries (downloaded by bin/dev-ngrok)
+/bin/ngrok

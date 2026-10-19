@@ -11,6 +11,10 @@ development:
   <<: *default
   database: <%= ENV.fetch("DATABASE_NAME", "jzg_development") %>
 
+ngrok:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "jzg_development") %>
+
 test:
   <<: *default
   database: jzg_test

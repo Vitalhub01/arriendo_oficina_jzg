@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+if [[ ! -f tmp/ngrok.env ]]; then
+  echo "Falta tmp/ngrok.env. Primero ejecuta bin/dev-ngrok en otra terminal."
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1091
+source tmp/ngrok.env
+set +a
+
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+  set -a
+  source tmp/ngrok.env
+  set +a
+fi
+
+echo "Rails con: RAILS_ENV=$RAILS_ENV APP_BASE_URL=$APP_BASE_URL PORT=$PORT"
+exec bin/dev "$@"

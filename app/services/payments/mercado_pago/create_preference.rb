@@ -14,7 +14,7 @@ module Payments
         return failure('Mercado Pago no configurado') if access_token.blank?
 
         existing = reusable_pending_payment
-        if existing
+        if existing && preference_back_urls_current?(existing)
           init_point = existing_init_point(existing)
           if init_point.present?
             return Result.new(success: true, payment: existing, init_point: init_point)
@@ -43,14 +43,13 @@ module Payments
         preference = response[:response]
 
         if response[:status] == 201 && preference && preference['id']
-          payment = Payment.create!(
-            booking: @booking,
-            payer: @payer,
-            payment_kind: :booking,
+          payment = existing || Payment.new(booking: @booking, payer: @payer, payment_kind: :booking)
+          payment.assign_attributes(
             mercadopago_preference_id: preference['id'],
             amount_cents: @booking.total_amount_cents,
             status: :pending
           )
+          payment.save!
           Result.new(success: true, payment: payment, init_point: CheckoutUrl.from_preference(preference))
         else
           failure(PreferenceOptions.error_from_response(response) || 'Error al crear preferencia de pago')
@@ -78,16 +77,27 @@ module Payments
         nil
       end
 
+      def preference_back_urls_current?(payment)
+        sdk = ::Mercadopago::SDK.new(access_token)
+        response = sdk.preference.get(payment.mercadopago_preference_id)
+        pref = response[:response]
+        return false unless pref.is_a?(Hash)
+
+        pref.dig('back_urls', 'success') == success_url
+      rescue StandardError
+        false
+      end
+
       def access_token
         ENV.fetch('MERCADOPAGO_ACCESS_TOKEN', nil)
       end
 
       def success_url
-        Rails.application.routes.url_helpers.booking_url(@booking, host: default_host)
+        SiteUrl.booking(@booking)
       end
 
       def failure_url
-        Rails.application.routes.url_helpers.booking_url(@booking, host: default_host)
+        success_url
       end
 
       def pending_url
@@ -95,11 +105,7 @@ module Payments
       end
 
       def webhook_url
-        Rails.application.routes.url_helpers.payments_webhooks_mercadopago_url(host: default_host)
-      end
-
-      def default_host
-        ENV.fetch('APP_HOST', 'localhost:3000')
+        SiteUrl.path(Rails.application.routes.url_helpers.payments_webhooks_mercadopago_path)
       end
 
       def failure(message)

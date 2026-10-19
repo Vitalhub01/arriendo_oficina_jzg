@@ -43,7 +43,16 @@ Ver `.env.example`. Copia a `.env` en la raíz; `bin/dev` (Foreman) lo carga aut
 
 ### Mercado Pago (prueba local)
 
-Define `MERCADOPAGO_ACCESS_TOKEN` con el access token de prueba y `MERCADOPAGO_SANDBOX=true` para redirigir al checkout sandbox. Tarjetas y usuarios de prueba: [documentación MP](https://www.mercadopago.cl/developers/es/docs/checkout-api/integration-test/test-cards). Para confirmar pagos por webhook en tu máquina necesitas un túnel HTTPS (ngrok, cloudflared) y `APP_HOST` apuntando a ese host; sin túnel puedes simular el webhook con un `POST` a `/payments/webhooks/mercadopago` (ver `test/integration/booking_flow_test.rb`).
+Define `MERCADOPAGO_ACCESS_TOKEN` con el access token de prueba y `MERCADOPAGO_SANDBOX=true` para redirigir al checkout sandbox. Tarjetas y usuarios de prueba: [documentación MP](https://www.mercadopago.cl/developers/es/docs/checkout-api/integration-test/test-cards).
+
+**Prueba local con redirección de Checkout Pro (ngrok):**
+
+1. Copia `.env.ngrok.example` → `.env.ngrok` y pon tu `NGROK_AUTHTOKEN` ([dashboard ngrok](https://dashboard.ngrok.com/get-started/your-authtoken)).
+2. Arranca con `bin/dev-ngrok` (ngrok al puerto de tu `.env`, p. ej. `5000`, y Rails con `RAILS_ENV=ngrok`). Si ya tienes el servidor en ese puerto, el script deja ngrok activo y te indica cómo reiniciar con `tmp/ngrok.env`.
+3. Abre la URL `https://….ngrok-free.app` que imprime el script (no uses solo `localhost` para pagar).
+4. El webhook de MP puede apuntar a `https://….ngrok-free.app/payments/webhooks/mercadopago`.
+
+Sin túnel puedes simular el webhook con un `POST` a `/payments/webhooks/mercadopago` (ver `test/integration/booking_flow_test.rb`).
 
 ### Boletas (LibreDTE)
 

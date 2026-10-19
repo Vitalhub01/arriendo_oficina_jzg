@@ -46,7 +46,7 @@ module Payments
       private
 
       def build_preference(membership)
-        success_url = "#{app_host}/membership"
+        success_url = SiteUrl.path('/membership')
         {
           items: [{
             title: "Membresía #{@plan.name}",
@@ -74,11 +74,6 @@ module Payments
 
       def access_token
         ENV.fetch('MERCADOPAGO_ACCESS_TOKEN', nil)
-      end
-
-      def app_host
-        host = ENV.fetch('APP_HOST', 'localhost:3000')
-        host.start_with?('http') ? host : "https://#{host}"
       end
 
       def failure(message)
