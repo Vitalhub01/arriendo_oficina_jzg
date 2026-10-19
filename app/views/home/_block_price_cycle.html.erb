@@ -7,9 +7,10 @@
      block_price_cycle << { label: 'Tarde', amount: format_clp(afternoon_cents) }
    end
    block_price_cycle.uniq! { |item| [item[:label], item[:amount]] } %>
-<div class="text-4xl font-medium tracking-tight text-gray-900">
+<div class="flex flex-wrap items-baseline gap-x-2 text-4xl font-medium tracking-tight text-gray-900">
   <% if block_price_cycle.any? %>
     <% first = block_price_cycle.first %>
+    <span class="text-base font-normal text-gray-500">Desde</span>
     <div
       class="inline-flex flex-wrap items-baseline gap-x-2 gap-y-1"
       <% if block_price_cycle.size > 1 %>
