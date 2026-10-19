@@ -3,7 +3,7 @@
 class BookingsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_can_book!, only: %i[new create reschedule]
-  before_action :set_booking, only: %i[show checkout cancel reschedule]
+  before_action :set_booking, only: %i[show checkout cancel reschedule apply_discount_code]
 
   def index
     @pagy, @bookings = pagy(
@@ -42,12 +42,33 @@ class BookingsController < ApplicationController
       if result.booking.confirmed?
         redirect_to result.booking, notice: 'Reserva confirmada con tu crédito'
       else
-        redirect_to checkout_booking_path(result.booking), status: :see_other
+        redirect_to result.booking, status: :see_other
       end
     else
       load_space_show_vars
       @errors = result.errors
       render 'spaces/show', status: :unprocessable_content
+    end
+  end
+
+  def apply_discount_code
+    authorize @booking, :apply_discount_code?
+
+    result = Bookings::ApplyDiscountCode.new(
+      booking: @booking,
+      code: params[:code],
+      actor: current_user
+    ).call
+
+    if result.success?
+      notice = if result.booking.confirmed?
+                 'Código aplicado. Tu reserva quedó confirmada sin pago.'
+               else
+                 'Código de descuento aplicado'
+               end
+      redirect_to result.booking, notice: notice
+    else
+      redirect_to @booking, alert: result.errors.join(', ')
     end
   end
 

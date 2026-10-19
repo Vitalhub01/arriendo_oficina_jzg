@@ -23,6 +23,7 @@ Rails.application.routes.draw do
       get :checkout
       patch :cancel
       patch :reschedule
+      patch :apply_discount_code
     end
     resource :testimonial, only: [:create], controller: 'testimonials'
   end
@@ -54,6 +55,7 @@ Rails.application.routes.draw do
     end
     resources :jornada_definitions
     resources :pricing_rules
+    resources :discount_codes
     resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
     resources :bookings, only: %i[index show new create update]

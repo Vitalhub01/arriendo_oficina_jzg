@@ -29,6 +29,10 @@ class BookingPolicy < ApplicationPolicy
     (user&.admin? || record.profesional_id == user&.id) && record.pending_payment? && !record.payment_expired?
   end
 
+  def apply_discount_code?
+    checkout?
+  end
+
   def cancel?
     Bookings::Cancel.new(booking: record, actor: user).cancellable?
   end

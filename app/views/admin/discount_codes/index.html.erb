@@ -1,0 +1,50 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold">Códigos de descuento</h1>
+    <p class="mt-1 text-sm text-gray-600">Los clientes los aplican en la reserva antes de pagar con Mercado Pago.</p>
+  </div>
+  <%= link_to "Nuevo código", new_admin_discount_code_path, class: "btn-primary" %>
+</div>
+
+<table class="mt-6 w-full text-sm">
+  <thead>
+    <tr class="border-b text-left">
+      <th class="py-2">Código</th>
+      <th>Descuento</th>
+      <th>Vigencia</th>
+      <th>Usos</th>
+      <th>Estado</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @discount_codes.each do |code| %>
+      <tr class="border-b">
+        <td class="py-2 font-mono font-medium"><%= code.code %></td>
+        <td><%= code.display_discount %></td>
+        <td>
+          <%= l(code.starts_at, format: :short) %> —
+          <%= l(code.ends_at, format: :short) %>
+        </td>
+        <td>
+          <%= code.redemptions_count %>
+          <% if code.max_uses.present? %>
+            / <%= code.max_uses %>
+          <% end %>
+        </td>
+        <td>
+          <% if code.redeemable_at? %>
+            <span class="text-green-700">Vigente</span>
+          <% elsif code.active? %>
+            <span class="text-amber-700">Fuera de vigencia o sin cupos</span>
+          <% else %>
+            <span class="text-gray-500">Inactivo</span>
+          <% end %>
+        </td>
+        <td class="text-right">
+          <%= link_to "Editar", edit_admin_discount_code_path(code), class: "text-brand hover:underline" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

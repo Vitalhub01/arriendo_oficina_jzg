@@ -1,0 +1,54 @@
+<%= form_with model: [:admin, @discount_code], class: "mt-6 max-w-lg space-y-4" do |f| %>
+  <% if @discount_code.errors.any? %>
+    <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+      <%= @discount_code.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :code, "Código", class: "block text-sm font-medium" %>
+    <%= f.text_field :code, class: "input-field font-mono uppercase", autocomplete: "off", placeholder: "VERANO2026" %>
+  </div>
+
+  <div>
+    <%= f.label :discount_type, "Tipo de descuento", class: "block text-sm font-medium" %>
+    <%= f.select :discount_type, DiscountCode.discount_types.keys.map { |k| [k == 'percent' ? 'Porcentaje' : 'Monto fijo', k] }, {}, class: "input-field" %>
+  </div>
+
+  <div>
+    <%= f.label :percent, "Porcentaje (%)", class: "block text-sm font-medium" %>
+    <%= f.number_field :percent, min: 1, max: 100, class: "input-field" %>
+  </div>
+
+  <div>
+    <%= f.label :amount_cents, "Monto fijo (centavos CLP)", class: "block text-sm font-medium" %>
+    <%= f.number_field :amount_cents, min: 1, class: "input-field" %>
+    <p class="mt-1 text-xs text-gray-500">Ej.: 5000 = $5.000</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <%= f.label :starts_at, "Válido desde", class: "block text-sm font-medium" %>
+      <%= f.datetime_field :starts_at, class: "input-field" %>
+    </div>
+    <div>
+      <%= f.label :ends_at, "Válido hasta", class: "block text-sm font-medium" %>
+      <%= f.datetime_field :ends_at, class: "input-field" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :max_uses, "Máximo de usos (opcional)", class: "block text-sm font-medium" %>
+    <%= f.number_field :max_uses, min: 1, class: "input-field" %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= f.check_box :active, class: "rounded border-gray-300" %>
+    <%= f.label :active, "Activo", class: "text-sm font-medium" %>
+  </div>
+
+  <div class="flex gap-3">
+    <%= f.submit "Guardar", class: "btn-primary" %>
+    <%= link_to "Cancelar", admin_discount_codes_path, class: "btn-secondary" %>
+  </div>
+<% end %>

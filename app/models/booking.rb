@@ -9,6 +9,7 @@ class Booking < ApplicationRecord
   belongs_to :booking_series, optional: true
   belongs_to :jornada_definition, optional: true
   belongs_to :reschedule_credit, optional: true
+  belongs_to :discount_code, optional: true
   has_one :payment, dependent: :destroy
   has_one :testimonial, dependent: :destroy
 

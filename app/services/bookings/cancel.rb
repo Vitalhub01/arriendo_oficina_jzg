@@ -10,6 +10,7 @@ module Bookings
     def call
       return failure('No se puede cancelar esta reserva') unless cancellable?
 
+      release_discount_code_redemption!
       @booking.update!(status: :cancelled)
       Payments::MercadoPago::RefundJob.perform_later(@booking.payment.id) if @booking.payment&.approved?
       BookingMailer.booking_cancelled(@booking).deliver_later
@@ -25,6 +26,13 @@ module Bookings
     end
 
     private
+
+    def release_discount_code_redemption!
+      code = @booking.discount_code
+      return unless code
+
+      code.release_redemption!
+    end
 
     def failure(message)
       Result.new(success: false, errors: [message])

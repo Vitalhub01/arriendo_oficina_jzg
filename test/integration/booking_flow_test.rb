@@ -28,7 +28,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert booking.payment_expires_at.present?
     assert_equal 2, booking.slot_count
     assert_equal 120, booking.duration_minutes
-    assert_redirected_to checkout_booking_path(booking)
+    assert_redirected_to booking_path(booking)
   end
 
   test 'checkout creates payment and redirects to mercado pago' do
@@ -45,6 +45,32 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert payment.pending?
     assert_equal 'TEST-pref-1', payment.mercadopago_preference_id
     assert_redirected_to 'https://sandbox.mercadopago.cl/checkout'
+  end
+
+  test 'apply discount code before checkout updates mercado pago amount' do
+    sign_in @renter
+    booking = create_pending_booking
+    create_payment_for(booking)
+    DiscountCode.create!(
+      code: 'MITAD',
+      discount_type: :percent,
+      percent: 50,
+      starts_at: 1.day.ago,
+      ends_at: 1.month.from_now
+    )
+
+    patch apply_discount_code_booking_path(booking), params: { code: 'MITAD' }
+    assert_redirected_to booking_path(booking)
+
+    booking.reload
+    expected_total = @box.default_price_per_slot_cents
+    assert_equal expected_total, booking.total_amount_cents
+
+    with_mercadopago_stub do
+      get checkout_booking_path(booking)
+    end
+
+    assert_equal expected_total, booking.reload.payment.amount_cents
   end
 
   test 'checkout reuses pending payment' do

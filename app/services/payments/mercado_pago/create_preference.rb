@@ -65,6 +65,7 @@ module Payments
         return unless payment&.pending?
         return unless payment.created_at >= PREFERENCE_REUSE_WINDOW.ago
         return if payment.mercadopago_preference_id.blank?
+        return if payment.amount_cents != @booking.total_amount_cents
 
         payment
       end

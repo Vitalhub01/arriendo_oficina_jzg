@@ -6,6 +6,9 @@
       <div class="flex justify-between"><dt class="text-gray-500">Fecha</dt><dd><%= l(@booking.start_at.to_date, format: :long) %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Horario</dt><dd><%= l(@booking.start_at, format: "%H:%M") %> — <%= l(@booking.end_at, format: "%H:%M") %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Duración</dt><dd><%= @booking.formatted_duration %> (<%= @booking.slot_count %> bloque(s))</dd></div>
+      <% if @booking.promo_discount_cents.positive? %>
+        <div class="flex justify-between"><dt class="text-gray-500">Descuento (código <%= @booking.discount_code&.code %>)</dt><dd class="text-green-700">−<%= Money.new(@booking.promo_discount_cents, 'CLP').format(no_cents_if_whole: true) %></dd></div>
+      <% end %>
       <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="font-semibold"><%= @booking.formatted_total %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Estado</dt><dd><%= booking_status_label(@booking) %></dd></div>
       <% if (invoice = @booking.payment&.invoice)&.downloadable? %>
@@ -15,6 +18,16 @@
         <div class="flex justify-between"><dt class="text-gray-500">Plazo de pago</dt><dd class="text-amber-700"><%= booking_payment_expires_label(@booking) %></dd></div>
       <% end %>
     </dl>
+    <% if policy(@booking).apply_discount_code? && @booking.discount_code.nil? %>
+      <div class="mt-6 rounded-xl border border-gray-200 p-4">
+        <p class="font-medium">¿Tienes un código de descuento?</p>
+        <%= form_with url: apply_discount_code_booking_path(@booking), method: :patch, class: "mt-3 flex flex-wrap gap-2" do %>
+          <%= text_field_tag :code, nil, class: "input-field min-w-[12rem] flex-1 font-mono uppercase", placeholder: "CÓDIGO", autocomplete: "off", required: true %>
+          <%= submit_tag "Aplicar", class: "btn-secondary" %>
+        <% end %>
+      </div>
+    <% end %>
+
     <div class="mt-6 flex flex-wrap gap-3">
       <% if @booking.pending_payment? && !@booking.payment_expired? && @booking.total_amount_cents.positive? %>
         <%= link_to "Ir a pagar", checkout_booking_path(@booking), class: "btn-primary", data: { turbo: false } %>
