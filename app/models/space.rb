@@ -15,7 +15,7 @@ class Space < ApplicationRecord
   has_many :schedule_blocks, dependent: :destroy, inverse_of: :space
   has_many :schedule_block_overrides, dependent: :destroy, inverse_of: :space
   has_many :pricing_rules, dependent: :destroy, inverse_of: :space
-  has_many_attached :photos
+  has_many :space_photos, -> { ordered }, foreign_key: :box_id, dependent: :destroy, inverse_of: :space
   has_one_attached :terms_and_conditions
 
   enum :box_type, { clinical: 0, office: 1, workspace: 2 }
@@ -197,7 +197,15 @@ class Space < ApplicationRecord
   end
 
   def cover_photo
-    photos.first
+    space_photos.first&.image
+  end
+
+  def gallery_photos
+    space_photos.filter_map { |photo| photo.image if photo.image.attached? }
+  end
+
+  def photos_attached?
+    space_photos.joins(:image_attachment).exists?
   end
 
   def interval_from_contiguous_blocks(date, blocks)
@@ -245,7 +253,7 @@ class Space < ApplicationRecord
   end
 
   def photos_required_for_publish
-    errors.add(:photos, 'debe tener al menos una foto para publicar') unless photos.attached?
+    errors.add(:photos, 'debe tener al menos una foto para publicar') unless photos_attached?
   end
 
   def coordinates_required_for_publish

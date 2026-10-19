@@ -2,7 +2,7 @@
 
 class SpacesController < ApplicationController
   def index
-    @spaces = Space.published_spaces.includes(photos_attachments: :blob)
+    @spaces = Space.published_spaces.includes(space_photos: { image_attachment: :blob })
     @spaces = @spaces.by_city(params[:city]) if params[:city].present?
     @spaces = @spaces.by_commune(params[:commune]) if params[:commune].present?
     @spaces = @spaces.by_type(params[:space_type]) if params[:space_type].present?

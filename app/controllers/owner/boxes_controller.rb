@@ -89,7 +89,7 @@ module Owner
       params.expect(
         box: [:title, :description, :address, :commune, :city,
               :latitude, :longitude, :box_type, :price_per_hour_cents,
-              :minimum_hours, :status, { amenities: {}, photos: [] }]
+              :minimum_hours, :status, { amenities: {} }]
       )
     end
 

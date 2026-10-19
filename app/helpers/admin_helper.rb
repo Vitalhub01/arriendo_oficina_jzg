@@ -59,6 +59,11 @@ module AdminHelper
     },
     { label: 'FAQ', path: :admin_faqs_path, match: ->(req) { req.path.start_with?('/admin/faqs') } },
     {
+      label: 'Galería inicio',
+      path: :admin_gallery_items_path,
+      match: ->(req) { req.path.start_with?('/admin/gallery') }
+    },
+    {
       label: 'Redes sociales',
       path: :admin_social_contacts_path,
       match: ->(req) { req.path.start_with?('/admin/social_contacts') }

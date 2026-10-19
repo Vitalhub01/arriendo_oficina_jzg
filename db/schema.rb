@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_19_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -183,6 +183,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_000002) do
     t.index ["box_id"], name: "index_favorites_on_box_id"
     t.index ["user_id", "box_id"], name: "index_favorites_on_user_id_and_box_id", unique: true
     t.index ["user_id"], name: "index_favorites_on_user_id"
+  end
+
+  create_table "gallery_items", force: :cascade do |t|
+    t.integer "position", default: 0, null: false
+    t.string "tag"
+    t.string "alt_text"
+    t.boolean "visible", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["position"], name: "index_gallery_items_on_position"
   end
 
   create_table "invoices", force: :cascade do |t|
@@ -381,6 +391,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_000002) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "space_photos", force: :cascade do |t|
+    t.bigint "box_id", null: false
+    t.integer "position", default: 0, null: false
+    t.string "caption"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["box_id", "position"], name: "index_space_photos_on_box_id_and_position"
+  end
+
   create_table "testimonials", force: :cascade do |t|
     t.bigint "box_id", null: false
     t.bigint "profesional_id", null: false
@@ -451,6 +470,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_000002) do
   add_foreign_key "schedule_block_overrides", "schedule_blocks"
   add_foreign_key "schedule_blocks", "boxes", column: "space_id"
   add_foreign_key "slot_rates", "boxes", column: "space_id"
+  add_foreign_key "space_photos", "boxes"
   add_foreign_key "testimonials", "bookings"
   add_foreign_key "testimonials", "boxes"
   add_foreign_key "testimonials", "users", column: "profesional_id"

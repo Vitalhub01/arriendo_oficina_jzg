@@ -40,11 +40,28 @@
       <p class="shop-eyebrow">Galería</p>
       <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Conoce nuestros espacios</h2>
     </div>
-    <div class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-      <% (2..5).each do |n| %>
-        <%= image_tag "vitalhub_office_#{n}.jpg", alt: "Espacio VitalHub #{n - 1}", class: "aspect-[4/3] w-full rounded-lg object-cover shadow-sm" %>
-      <% end %>
-    </div>
+    <% if @gallery_items.any? %>
+      <div class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        <% @gallery_items.each do |item| %>
+          <figure class="group relative overflow-hidden rounded-lg shadow-sm">
+            <%= image_tag item.image.variant(resize_to_limit: [800, 600]),
+                alt: item.display_alt,
+                class: "aspect-[4/3] w-full object-cover transition group-hover:scale-[1.02]" %>
+            <% if item.tag.present? %>
+              <figcaption class="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                <%= item.tag %>
+              </figcaption>
+            <% end %>
+          </figure>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        <% (2..5).each do |n| %>
+          <%= image_tag "vitalhub_office_#{n}.jpg", alt: "Espacio VitalHub #{n - 1}", class: "aspect-[4/3] w-full rounded-lg object-cover shadow-sm" %>
+        <% end %>
+      </div>
+    <% end %>
   </section>
 
   <section class="border-y border-gray-200 bg-brand-pale py-12">

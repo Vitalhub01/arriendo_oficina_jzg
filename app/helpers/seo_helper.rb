@@ -91,8 +91,8 @@ module SeoHelper
   end
 
   def space_offer_json_ld(space)
-    image_url = if space.photos.attached?
-                  url_for(space.photos.first)
+    image_url = if space.photos_attached?
+                  url_for(space.cover_photo)
                 else
                   asset_path('logo_vital_hub.png')
                 end

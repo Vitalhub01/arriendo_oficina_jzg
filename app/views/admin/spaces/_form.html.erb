@@ -43,8 +43,22 @@
   <%= f.text_field :dimensions, class: "input-field" %>
   <%= f.label :status, class: "block text-sm font-medium" %>
   <%= f.select :status, Space.statuses.keys, {}, class: "input-field" %>
-  <%= f.label :photos, class: "block text-sm font-medium" %>
-  <%= f.file_field :photos, multiple: true, class: "input-field" %>
+  <% if @space.persisted? %>
+    <div class="!mt-8 border-t border-gray-200 pt-6">
+      <%= render "admin/shared/photo_manager",
+          items: @space.space_photos.with_attached_image,
+          item_partial: "admin/spaces/photos/item",
+          item_locals: ->(photo) { { photo: photo, space: @space } },
+          create_url: admin_space_photos_path(@space),
+          reorder_url: reorder_admin_space_photos_path(@space),
+          update_url_template: admin_space_photo_path(@space, ":id"),
+          destroy_url_template: admin_space_photo_path(@space, ":id"),
+          show_tag: false,
+          empty_message: "Este espacio aún no tiene fotos. Sube al menos una para poder publicarlo." %>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-600">Guarda el espacio primero; después podrás subir y ordenar las fotos aquí.</p>
+  <% end %>
   <%= f.label :terms_and_conditions, "Términos y condiciones (PDF)", class: "block text-sm font-medium" %>
   <% if @space.terms_and_conditions.attached? %>
     <p class="text-sm text-gray-600">

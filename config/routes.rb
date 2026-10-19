@@ -52,6 +52,11 @@ Rails.application.routes.draw do
       resources :slot_rates, controller: 'spaces/slot_rates', except: [:show]
       resources :availability_rules, controller: 'spaces/availability_rules', except: %i[show edit update]
       resources :availability_blocks, controller: 'spaces/availability_blocks', except: %i[show edit update]
+      resources :photos, controller: 'spaces/photos', only: %i[create update destroy] do
+        collection do
+          patch :reorder
+        end
+      end
     end
     resources :jornada_definitions
     resources :pricing_rules
@@ -69,6 +74,11 @@ Rails.application.routes.draw do
     resources :memberships, only: [:index]
     resources :faqs
     resources :social_contacts, except: [:show]
+    resources :gallery_items, path: 'gallery', only: %i[index create update destroy] do
+      collection do
+        patch :reorder
+      end
+    end
     resource :site_settings, only: %i[edit update]
 
     authenticate :user, ->(u) { u.admin? } do

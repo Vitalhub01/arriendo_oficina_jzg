@@ -8,6 +8,7 @@
     <table class="admin-table">
       <thead>
         <tr>
+          <th class="w-16">Foto</th>
           <th>Nombre</th>
           <th>Precio/hora</th>
           <th>Estado</th>
@@ -17,6 +18,13 @@
       <tbody>
         <% @spaces.each do |space| %>
           <tr class="hover:bg-gray-50/80">
+            <td>
+              <% if space.cover_photo %>
+                <%= image_tag space.cover_photo.variant(resize_to_limit: [96, 72]), class: "h-12 w-16 rounded object-cover bg-gray-100", alt: space.title %>
+              <% else %>
+                <span class="flex h-12 w-16 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">Sin foto</span>
+              <% end %>
+            </td>
             <td class="font-medium text-gray-900"><%= space.title %></td>
             <td><%= format_clp(space.price_per_hour_cents) %></td>
             <td><%= space.status %></td>

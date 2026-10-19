@@ -6,7 +6,7 @@ class AdminSpaceUpdateTest < ActionDispatch::IntegrationTest
   setup do
     @admin = users(:admin)
     @space = boxes(:published_box)
-    attach_box_photo(@space) unless @space.photos.attached?
+    attach_box_photo(@space) unless @space.photos_attached?
   end
 
   test 'admin updates pricing from edit form fields' do

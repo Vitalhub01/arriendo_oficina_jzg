@@ -150,19 +150,10 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     space = boxes(:draft_box)
     file = fixture_file_upload('cover.jpg', 'image/jpeg')
 
-    patch admin_space_path(space), params: {
-      space: {
-        title: space.title,
-        address: space.address,
-        commune: space.commune,
-        city: space.city,
-        price_per_hour_cents: space.price_per_hour_cents,
-        photos: [file]
-      }
-    }
+    post admin_space_photos_path(space), params: { image: file }, headers: { Accept: 'application/json' }
 
-    assert_redirected_to edit_admin_space_path(space)
-    assert space.reload.photos.attached?
+    assert_response :created
+    assert space.reload.photos_attached?
   end
 
   test 'non-admin cannot access admin panel' do

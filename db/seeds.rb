@@ -96,12 +96,14 @@ spaces_data.each_with_index do |data, photo_index|
   space.save!
 
   photo_path = VITALHUB_OFFICE_PHOTOS[photo_index % VITALHUB_OFFICE_PHOTOS.size]
-  space.photos.purge
-  space.photos.attach(
+  space.space_photos.destroy_all
+  photo = space.space_photos.build(position: 0)
+  photo.image.attach(
     io: File.open(photo_path),
     filename: File.basename(photo_path),
     content_type: 'image/jpeg'
   )
+  photo.save!
 
   space.update!(status: :published)
 
@@ -211,6 +213,23 @@ end
 
 SiteSetting.set('reschedule_notice_hours', '24')
 SiteSetting.set('google_analytics_id', ENV.fetch('GOOGLE_ANALYTICS_ID', ''))
+
+if GalleryItem.none?
+  [
+    [2, 'Sala común'],
+    [3, 'Box clínico'],
+    [4, 'Recepción'],
+    [5, 'Equipamiento']
+  ].each_with_index do |(n, tag), index|
+    path = Rails.root.join("app/assets/images/vitalhub_office_#{n}.jpg")
+    item = GalleryItem.create!(position: index, tag: tag, visible: true)
+    item.image.attach(
+      io: File.open(path),
+      filename: File.basename(path),
+      content_type: 'image/jpeg'
+    )
+  end
+end
 
 space = Space.first
 if space && Booking.where(renter_id: profesional.id).none?

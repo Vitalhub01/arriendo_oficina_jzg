@@ -1,0 +1,53 @@
+<%# locals: (items:, create_url:, reorder_url:, update_url_template:, destroy_url_template:, show_tag: false, empty_message:) %>
+<div class="photo-manager rounded-xl border border-gray-200 bg-white p-4 md:p-6"
+     data-controller="photo-manager"
+     data-photo-manager-create-url-value="<%= create_url %>"
+     data-photo-manager-reorder-url-value="<%= reorder_url %>"
+     data-photo-manager-update-url-template-value="<%= update_url_template %>"
+     data-photo-manager-destroy-url-template-value="<%= destroy_url_template %>"
+     data-photo-manager-show-tag-value="<%= show_tag %>"
+     data-photo-manager-csrf-token-value="<%= form_authenticity_token %>">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-900">Fotos</p>
+      <p class="text-xs text-gray-500">Arrastra las tarjetas para cambiar el orden. La primera foto es la portada.</p>
+    </div>
+    <p class="text-xs text-gray-500" data-photo-manager-target="status" aria-live="polite"></p>
+  </div>
+
+  <div class="mt-4 space-y-3"
+       data-photo-manager-target="list"
+       data-action="dragover->photo-manager#dragOver drop->photo-manager#dropOnList">
+    <% if items.any? %>
+      <% items.each do |item| %>
+        <%= render partial: item_partial, locals: item_locals.call(item) %>
+      <% end %>
+    <% else %>
+      <p class="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500"
+         data-photo-manager-target="emptyState">
+        <%= empty_message %>
+      </p>
+    <% end %>
+  </div>
+
+  <div class="mt-4 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center transition"
+       data-photo-manager-target="dropZone"
+       data-action="click->photo-manager#browseFiles dragenter->photo-manager#preventDefaults dragover->photo-manager#highlightDropZone dragleave->photo-manager#unhighlightDropZone drop->photo-manager#handleDrop">
+    <p class="text-sm font-medium text-gray-800">Arrastra imágenes aquí o haz clic para elegir archivos</p>
+    <p class="mt-1 text-xs text-gray-500">JPG o PNG. Puedes subir varias a la vez.</p>
+    <input type="file"
+           accept="image/*"
+           multiple
+           class="hidden"
+           data-photo-manager-target="fileInput"
+           data-action="change->photo-manager#handleFileSelect">
+  </div>
+
+  <% if local_assigns[:datalist_id] %>
+    <datalist id="<%= datalist_id %>">
+      <% GalleryItem::TAG_SUGGESTIONS.each do |suggestion| %>
+        <option value="<%= suggestion %>"></option>
+      <% end %>
+    </datalist>
+  <% end %>
+</div>

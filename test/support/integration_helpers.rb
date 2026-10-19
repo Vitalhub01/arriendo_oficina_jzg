@@ -7,12 +7,13 @@ module IntegrationHelpers
 
   def attach_box_photo(box)
     path = Rails.root.join('test/fixtures/files/cover.jpg')
-    box.photos.attach(
+    photo = box.space_photos.build
+    photo.image.attach(
       io: File.open(path),
       filename: 'cover.jpg',
       content_type: 'image/jpeg'
     )
-    box.save!(validate: false)
+    photo.save!(validate: false)
   end
 
   def attach_space_terms(space)

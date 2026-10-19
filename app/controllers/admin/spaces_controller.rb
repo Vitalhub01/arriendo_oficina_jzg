@@ -5,7 +5,7 @@ module Admin
     before_action :set_space, only: %i[show edit update destroy]
 
     def index
-      @spaces = Space.includes(:office).order(created_at: :desc)
+      @spaces = Space.includes(:office, space_photos: { image_attachment: :blob }).order(created_at: :desc)
     end
 
     def show; end
@@ -61,13 +61,8 @@ module Admin
         :slot_duration_minutes, :minimum_slots, :reschedule_notice_hours,
         :minimum_hours, :status, :capacity, :dimensions,
         :terms_and_conditions,
-        amenities: {}, equipment: [], photos: []
+        amenities: {}, equipment: []
       )
-
-      photos = raw[:photos]
-      if photos.blank? || Array(photos).all?(&:blank?)
-        raw = raw.except(:photos)
-      end
 
       terms = raw[:terms_and_conditions]
       raw = raw.except(:terms_and_conditions) if terms.blank?

@@ -1,72 +1,92 @@
-<div class="flex flex-wrap items-center justify-between gap-4">
-  <div>
-    <h1 class="text-2xl font-bold">Contactos del día</h1>
-    <p class="mt-1 text-sm text-gray-600">Correos de profesionales con reserva activa en la fecha elegida.</p>
-  </div>
-  <%= link_to "Descargar CSV",
-              day_contacts_admin_bookings_path(date: @date, format: :csv),
-              class: "btn-secondary" %>
-</div>
+<h1 class="text-2xl font-bold">Contactos del día</h1>
+<p class="mt-1 text-sm text-gray-600">Correos de profesionales con reserva activa en la fecha elegida.</p>
 
-<%= form_with url: day_contacts_admin_bookings_path, method: :get, class: "mt-6 flex flex-wrap items-end gap-3" do %>
-  <div>
-    <label for="date" class="block text-sm font-medium text-gray-700">Fecha</label>
-    <input type="date" name="date" id="date" value="<%= @date.iso8601 %>" class="input-field mt-1">
-  </div>
-  <button type="submit" class="btn-secondary">Ver</button>
-<% end %>
-
-<% if @bookings_by_user.any? %>
-  <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4">
-    <p class="text-sm font-medium text-gray-700">Correos (copiar)</p>
-    <textarea readonly rows="3" class="input-field mt-2 w-full font-mono text-sm"><%= @bookings_by_user.keys.map(&:email).join(', ') %></textarea>
+<%= turbo_frame_tag "day_contacts", class: "mt-6 block transition-opacity duration-150 [&[busy]]:pointer-events-none [&[busy]]:opacity-60" do %>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <p class="text-sm text-gray-800">
+      <span class="font-medium text-gray-900"><%= l(@date, format: :long) %></span>
+      <% if @bookings_by_user.any? %>
+        <span class="text-gray-500">· <%= @bookings_by_user.size %> profesional(es)</span>
+      <% end %>
+    </p>
+    <%= link_to "Descargar CSV",
+                day_contacts_admin_bookings_path(date: @date, format: :csv),
+                class: "btn-secondary",
+                data: { turbo: false } %>
   </div>
 
-  <div class="admin-table-card mt-6">
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Profesional verificado</th>
-          <th>Reservas</th>
-          <th class="admin-table__actions"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @bookings_by_user.each do |user, bookings| %>
+  <%= form_with url: day_contacts_admin_bookings_path,
+                method: :get,
+                class: "mt-4 flex flex-wrap items-center gap-3",
+                data: {
+                  turbo_frame: "day_contacts",
+                  turbo_action: "advance",
+                  controller: "auto-submit"
+                } do %>
+    <div>
+      <label for="day_contacts_date" class="block text-sm font-medium text-gray-700">Cambiar fecha</label>
+      <input type="date"
+             name="date"
+             id="day_contacts_date"
+             value="<%= @date.iso8601 %>"
+             class="input-field mt-1"
+             data-action="change->auto-submit#submit">
+    </div>
+    <p class="text-xs text-gray-500 self-end pb-2">La lista se actualiza al elegir otra fecha.</p>
+  <% end %>
+
+  <% if @bookings_by_user.any? %>
+    <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4">
+      <p class="text-sm font-medium text-gray-700">Correos (copiar)</p>
+      <textarea readonly rows="3" class="input-field mt-2 w-full font-mono text-sm"><%= @bookings_by_user.keys.map(&:email).join(', ') %></textarea>
+    </div>
+
+    <div class="admin-table-card mt-6">
+      <table class="admin-table">
+        <thead>
           <tr>
-            <td class="font-medium text-gray-900"><%= user.name %></td>
-            <td><%= user.email %></td>
-            <td>
-              <% if user.professional_identity_verified? %>
-                <span class="text-green-700">Sí</span>
-                <% if user.professional_verified_at %>
-                  <span class="text-xs text-gray-500">(<%= l(user.professional_verified_at, format: :short) %>)</span>
-                <% end %>
-              <% else %>
-                <span class="text-amber-700">Pendiente</span>
-              <% end %>
-            </td>
-            <td>
-              <ul class="list-inside list-disc text-sm text-gray-700">
-                <% bookings.each do |booking| %>
-                  <li>
-                    <%= booking.space.title %> —
-                    <%= l(booking.start_at, format: "%H:%M") %>–<%= l(booking.end_at, format: "%H:%M") %>
-                    (<%= booking_status_label(booking) %>)
-                  </li>
-                <% end %>
-              </ul>
-            </td>
-            <td class="admin-table__actions">
-              <%= link_to "Permisos", edit_admin_user_path(user), class: "text-brand hover:underline" %>
-            </td>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Profesional verificado</th>
+            <th>Reservas</th>
+            <th class="admin-table__actions"></th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-<% else %>
-  <p class="mt-8 text-sm text-gray-600">No hay reservas para el <%= l(@date, format: :long) %>.</p>
+        </thead>
+        <tbody>
+          <% @bookings_by_user.each do |user, bookings| %>
+            <tr>
+              <td class="font-medium text-gray-900"><%= user.name %></td>
+              <td><%= user.email %></td>
+              <td>
+                <% if user.professional_identity_verified? %>
+                  <span class="text-green-700">Sí</span>
+                  <% if user.professional_verified_at %>
+                    <span class="text-xs text-gray-500">(<%= l(user.professional_verified_at, format: :short) %>)</span>
+                  <% end %>
+                <% else %>
+                  <span class="text-amber-700">Pendiente</span>
+                <% end %>
+              </td>
+              <td>
+                <ul class="list-inside list-disc text-sm text-gray-700">
+                  <% bookings.each do |booking| %>
+                    <li>
+                      <%= booking.space.title %> —
+                      <%= l(booking.start_at, format: "%H:%M") %>–<%= l(booking.end_at, format: "%H:%M") %>
+                      (<%= booking_status_label(booking) %>)
+                    </li>
+                  <% end %>
+                </ul>
+              </td>
+              <td class="admin-table__actions">
+                <%= link_to "Permisos", edit_admin_user_path(user), class: "text-brand hover:underline" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="mt-8 text-sm text-gray-600">No hay reservas para esta fecha.</p>
+  <% end %>
 <% end %>

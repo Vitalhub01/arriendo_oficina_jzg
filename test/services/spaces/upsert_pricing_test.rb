@@ -6,7 +6,7 @@ module Spaces
   class UpsertPricingTest < ActiveSupport::TestCase
     setup do
       @space = boxes(:published_box)
-      attach_box_photo(@space) unless @space.photos.attached?
+      attach_box_photo(@space) unless @space.photos_attached?
     end
 
     test 'creates slot rates jornada and syncs schedule block prices' do
