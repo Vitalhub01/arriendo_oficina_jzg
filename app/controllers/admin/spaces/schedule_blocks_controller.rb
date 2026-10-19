@@ -16,6 +16,28 @@ module Admin
         @volume_rule = @space.pricing_rules.volume_discount.new(active: true, priority: 10)
       end
 
+      def bulk_fill
+        result = ScheduleBlocks::BulkFill.call(
+          space: @space,
+          days: bulk_fill_days,
+          start_time: params.require(:start_time),
+          end_time: params.require(:end_time),
+          price_cents: bulk_fill_price_cents,
+          replace_overlapping: params[:replace_overlapping] == '1' || params[:replace_overlapping] == true
+        )
+
+        if result.success?
+          notice = "Se crearon #{result.created_count} bloques"
+          notice += " (se quitaron #{result.removed_count} anteriores)" if result.removed_count.positive?
+          respond_to do |format|
+            format.html { redirect_to schedule_index_path(week_start: @week_start), notice: notice }
+            format.json { render json: { created_count: result.created_count, removed_count: result.removed_count } }
+          end
+        else
+          respond_with_errors(result.errors)
+        end
+      end
+
       def create
         remove_overlapping_blocks!
         @schedule_block = @space.schedule_blocks.build(schedule_block_params)
@@ -141,6 +163,16 @@ module Admin
         return if ids.empty?
 
         @space.schedule_blocks.where(id: ids).destroy_all
+      end
+
+      def bulk_fill_days
+        Array(params[:days]).map(&:to_i).select { |d| d.in?(0..6) }
+      end
+
+      def bulk_fill_price_cents
+        return nil if params[:price_clp].blank?
+
+        params[:price_clp].to_f.round
       end
 
       def schedule_block_params

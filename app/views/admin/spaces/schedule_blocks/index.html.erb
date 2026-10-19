@@ -1,5 +1,5 @@
 <% calendar_start_hour = 7 %>
-<% calendar_end_hour = 21 %>
+<% calendar_end_hour = 23 %>
 <% calendar_minutes = (calendar_end_hour - calendar_start_hour) * 60 %>
 <% week_dates = (0..6).map { |i| @week_start + i.days } %>
 <% blocks_json = @schedule_blocks.map { |b|
@@ -51,9 +51,14 @@
   </div>
 
   <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-    <button type="button" class="btn-primary text-sm" data-action="admin-schedule#openNew">
-      Agregar horario
-    </button>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" class="btn-primary text-sm" data-action="admin-schedule#openNew">
+        Agregar horario
+      </button>
+      <button type="button" class="btn-secondary text-sm" data-action="admin-schedule#openBulkFill">
+        Rellenar por rango
+      </button>
+    </div>
     <div class="flex items-center gap-2 text-sm">
       <%= link_to "← Semana", admin_space_schedule_blocks_path(@space, week_start: @week_start - 1.week), class: "text-brand hover:underline" %>
       <span class="text-gray-600"><%= l(@week_start, format: :short) %> – <%= l(@week_start + 6.days, format: :short) %></span>
@@ -255,6 +260,57 @@
     </div>
 
     <p class="px-6 pb-4 text-sm text-red-600 hidden" data-admin-schedule-target="error"></p>
+  </dialog>
+
+  <dialog data-admin-schedule-target="bulkFillDialog" class="fixed inset-0 z-50 m-auto w-[min(100%,32rem)] max-h-[90vh] rounded-xl border-0 bg-white p-0 shadow-xl backdrop:bg-black/50 open:flex open:flex-col">
+    <div class="border-b border-gray-100 px-6 py-4">
+      <h2 class="text-lg font-semibold">Rellenar plantilla por rango</h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Crea bloques de <%= @space.slot_duration_minutes %> min en los días y horario que elijas (por ejemplo, lunes a viernes de 08:00 a 22:00).
+      </p>
+    </div>
+    <form class="max-h-[70vh] overflow-y-auto px-6 py-4" data-action="submit->admin-schedule#saveBulkFill">
+      <fieldset>
+        <legend class="text-sm font-medium text-gray-900">Días</legend>
+        <div class="mt-2 flex flex-wrap gap-3">
+          <% AvailabilityRule::DAY_NAMES.each_with_index do |name, day| %>
+            <label class="inline-flex items-center gap-1.5 text-sm">
+              <input type="checkbox" name="bulk_days" value="<%= day %>"
+                     class="rounded border-gray-300"
+                     data-admin-schedule-target="bulkDay"
+                     <%= 'checked' if day < 5 %>>
+              <span><%= name %></span>
+            </label>
+          <% end %>
+        </div>
+      </fieldset>
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Desde</label>
+          <input type="time" data-admin-schedule-target="bulkStartTime" class="input-field mt-1 w-full" value="08:00" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Hasta</label>
+          <input type="time" data-admin-schedule-target="bulkEndTime" class="input-field mt-1 w-full" value="22:00" required>
+        </div>
+      </div>
+      <div class="mt-4">
+        <label class="block text-sm font-medium">Precio por bloque (CLP)</label>
+        <input type="number" data-admin-schedule-target="bulkPriceClp" class="input-field mt-1 w-full" min="1" step="1"
+               value="<%= @space.default_price_per_slot_cents %>" required>
+        <p class="mt-1 text-xs text-gray-500">Mismo precio para todos los bloques generados en este rango.</p>
+      </div>
+      <label class="mt-4 flex items-start gap-2 text-sm">
+        <input type="checkbox" data-admin-schedule-target="bulkReplace" class="mt-1 rounded border-gray-300" checked>
+        <span>Reemplazar horarios existentes que se solapen con este rango en los días marcados</span>
+      </label>
+      <p class="mt-4 text-xs text-gray-500" data-admin-schedule-target="bulkPreview"></p>
+      <div class="mt-6 flex flex-wrap gap-2">
+        <button type="submit" class="btn-primary">Generar bloques</button>
+        <button type="button" class="btn-secondary" data-action="admin-schedule#closeBulkFill">Cancelar</button>
+      </div>
+    </form>
+    <p class="px-6 pb-4 text-sm text-red-600 hidden" data-admin-schedule-target="bulkError"></p>
   </dialog>
 
   <dialog data-admin-schedule-target="deleteDialog" class="fixed inset-0 z-[60] m-auto w-[min(100%,24rem)] rounded-xl border-0 bg-white p-0 shadow-xl backdrop:bg-black/50 open:block">

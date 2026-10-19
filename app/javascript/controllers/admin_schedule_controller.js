@@ -7,7 +7,9 @@ export default class extends Controller {
     "dialogSubtitle", "occurrenceDate", "datePriceClp", "dateStartTime", "dateEndTime",
     "dateTimeHint", "dateStatus",
     "tabBar", "tabDate", "tabTemplate", "panelDate", "panelTemplate",
-    "deleteDialog", "deleteDialogMessage"
+    "deleteDialog", "deleteDialogMessage",
+    "bulkFillDialog", "bulkDay", "bulkStartTime", "bulkEndTime", "bulkPriceClp",
+    "bulkReplace", "bulkPreview", "bulkError"
   ]
   static values = {
     blocks: Array,
@@ -31,6 +33,94 @@ export default class extends Controller {
     this.startTimeTarget?.addEventListener("change", () => this.updateDurationHint())
     this.endTimeTarget?.addEventListener("change", () => this.updateDurationHint())
     this.activeTab = "template"
+    this.bulkStartTimeTarget?.addEventListener("change", () => this.updateBulkPreview())
+    this.bulkEndTimeTarget?.addEventListener("change", () => this.updateBulkPreview())
+    this.bulkDayTargets.forEach((el) => el.addEventListener("change", () => this.updateBulkPreview()))
+  }
+
+  openBulkFill() {
+    this.hideBulkError()
+    this.updateBulkPreview()
+    this.bulkFillDialogTarget.showModal()
+  }
+
+  closeBulkFill() {
+    this.bulkFillDialogTarget.close()
+  }
+
+  selectedBulkDays() {
+    return this.bulkDayTargets.filter((el) => el.checked).map((el) => parseInt(el.value, 10))
+  }
+
+  updateBulkPreview() {
+    if (!this.hasBulkPreviewTarget) return
+
+    const days = this.selectedBulkDays()
+    const start = this.parseTime(this.bulkStartTimeTarget.value)
+    const end = this.parseTime(this.bulkEndTimeTarget.value)
+    if (days.length === 0 || end <= start) {
+      this.bulkPreviewTarget.textContent = ""
+      return
+    }
+
+    const slotsPerDay = Math.floor((end - start) / this.slotDurationValue)
+    const total = slotsPerDay * days.length
+    const dayLabels = days.map((d) => this.dayName(d).slice(0, 3)).join(", ")
+    this.bulkPreviewTarget.textContent =
+      `Vista previa: ${slotsPerDay} bloques por día × ${days.length} días = ${total} bloques (${dayLabels}, ${this.bulkStartTimeTarget.value}–${this.bulkEndTimeTarget.value}).`
+  }
+
+  async saveBulkFill(event) {
+    event.preventDefault()
+    const days = this.selectedBulkDays()
+    if (days.length === 0) {
+      this.showBulkError(["Marca al menos un día"])
+      return
+    }
+
+    const startTime = this.bulkStartTimeTarget.value
+    const endTime = this.bulkEndTimeTarget.value
+    if (this.parseTime(endTime) <= this.parseTime(startTime)) {
+      this.showBulkError(["La hora de fin debe ser posterior al inicio"])
+      return
+    }
+
+    const replace = this.bulkReplaceTarget.checked
+    const preview = this.bulkPreviewTarget.textContent
+    const confirmMsg = replace
+      ? `${preview}\n\n¿Generar los bloques y reemplazar horarios solapados?`
+      : `${preview}\n\n¿Generar solo los bloques que no se solapen?`
+
+    if (!confirm(confirmMsg)) return
+
+    this.hideBulkError()
+    const response = await this.jsonRequest(
+      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/bulk_fill`,
+      "POST",
+      {
+        days,
+        start_time: startTime,
+        end_time: endTime,
+        price_clp: this.bulkPriceClpTarget.value,
+        replace_overlapping: replace ? "1" : "0",
+        week_start: this.weekStartValue
+      }
+    )
+
+    if (response.ok) {
+      this.reloadWithToast()
+    } else {
+      this.showBulkError(response.errors)
+    }
+  }
+
+  showBulkError(messages) {
+    this.bulkErrorTarget.textContent = messages.join(", ")
+    this.bulkErrorTarget.classList.remove("hidden")
+  }
+
+  hideBulkError() {
+    this.bulkErrorTarget.classList.add("hidden")
   }
 
   openNew() {

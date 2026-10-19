@@ -44,6 +44,9 @@ Rails.application.routes.draw do
     resources :spaces do
       resource :availability, only: [:show], controller: 'spaces/availabilities'
       resources :schedule_blocks, controller: 'spaces/schedule_blocks', except: [:show] do
+        collection do
+          post :bulk_fill
+        end
         member do
           post :override, action: :upsert_override
           delete :override, action: :destroy_override
