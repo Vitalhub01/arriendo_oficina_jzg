@@ -1,0 +1,28 @@
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Espacio</th>
+        <th>Profesional</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th class="admin-table__actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @bookings.each do |booking| %>
+        <tr>
+          <td class="font-medium text-gray-900"><%= booking.space.title %></td>
+          <td><%= booking.profesional.name %></td>
+          <td><%= l(booking.start_at, format: :short) %></td>
+          <td><%= booking_status_label(booking) %></td>
+          <td class="admin-table__actions">
+            <%= link_to "Ver", admin_booking_path(booking), class: "text-brand hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>

@@ -1,0 +1,102 @@
+<% calendar_start_hour = 7 %>
+<% calendar_end_hour = 21 %>
+<% calendar_minutes = (calendar_end_hour - calendar_start_hour) * 60 %>
+<% week_dates = (0..6).map { |i| @week_start + i.days } %>
+
+<% if @spaces.blank? %>
+  <p class="mt-6 text-sm text-gray-600">No hay espacios configurados.</p>
+<% elsif @calendar_space.blank? %>
+  <p class="mt-6 text-sm text-gray-600">Selecciona un espacio para ver el calendario.</p>
+<% else %>
+  <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
+    <%= form_with url: admin_bookings_path, method: :get, class: "flex flex-wrap items-end gap-3" do %>
+      <input type="hidden" name="view" value="calendar">
+      <input type="hidden" name="week_start" value="<%= @week_start.iso8601 %>">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Espacio</label>
+        <select name="space_id" class="input-field mt-1 min-w-[14rem]" onchange="this.form.requestSubmit()">
+          <% @spaces.each do |space| %>
+            <option value="<%= space.id %>" <%= 'selected' if space.id == @calendar_space.id %>><%= space.title %></option>
+          <% end %>
+        </select>
+      </div>
+    <% end %>
+
+    <div class="flex items-center gap-2 text-sm">
+      <%= link_to "← Semana",
+                  admin_bookings_path(view: 'calendar', space_id: @calendar_space.id, week_start: @week_start - 1.week),
+                  class: "text-brand hover:underline" %>
+      <span class="text-gray-600"><%= l(@week_start, format: :short) %> – <%= l(@week_start + 6.days, format: :short) %></span>
+      <%= link_to "Semana →",
+                  admin_bookings_path(view: 'calendar', space_id: @calendar_space.id, week_start: @week_start + 1.week),
+                  class: "text-brand hover:underline" %>
+    </div>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-4 text-xs text-gray-700">
+    <span class="inline-flex items-center gap-2">
+      <span class="h-3 w-3 rounded border border-green-300 bg-green-100" aria-hidden="true"></span>
+      Disponible
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-3 w-3 rounded border border-amber-300 bg-amber-100" aria-hidden="true"></span>
+      Pendiente de pago
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-3 w-3 rounded border border-gray-300 bg-gray-200" aria-hidden="true"></span>
+      Bloqueado
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-3 w-3 rounded border border-blue-300 bg-blue-100" aria-hidden="true"></span>
+      Confirmada
+    </span>
+  </div>
+
+  <div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="grid min-w-[960px] grid-cols-[3rem_repeat(7,1fr)]">
+      <div class="border-b border-r border-gray-100 bg-gray-50"></div>
+      <% week_dates.each_with_index do |date, _day| %>
+        <div class="border-b border-r border-gray-100 bg-gray-50 py-2 text-center">
+          <p class="text-xs font-semibold text-gray-800"><%= AvailabilityRule::DAY_NAMES[(date.wday + 6) % 7][0..2] %></p>
+          <p class="text-[10px] text-gray-500"><%= l(date, format: '%d/%m') %></p>
+        </div>
+      <% end %>
+
+      <div class="relative border-r border-gray-100 bg-gray-50/50" style="height: <%= calendar_minutes %>px;">
+        <% (calendar_start_hour...calendar_end_hour).each do |h| %>
+          <div class="absolute right-1 text-[10px] text-gray-400" style="top: <%= (h - calendar_start_hour) * 60 %>px;"><%= sprintf('%02d:00', h) %></div>
+        <% end %>
+      </div>
+
+      <% @calendar_days.each do |day| %>
+        <% date = day[:date] %>
+        <div class="relative border-r border-gray-100 bg-white" style="height: <%= calendar_minutes %>px;">
+          <% day[:slots].each do |slot| %>
+            <% start_m = slot.starts_at.hour * 60 + slot.starts_at.min %>
+            <% end_m = slot.ends_at.hour * 60 + slot.ends_at.min %>
+            <% top = ((start_m - calendar_start_hour * 60).to_f / calendar_minutes * 100) %>
+            <% height = ((end_m - start_m).to_f / calendar_minutes * 100) %>
+            <% slot_url = slot.booking_ids.one? ? admin_booking_path(slot.booking_ids.first) : nil %>
+            <% tag_name = slot_url ? :a : :div %>
+            <%= content_tag tag_name,
+                            href: slot_url,
+                            title: slot.label,
+                            class: "absolute left-0.5 right-0.5 overflow-hidden rounded-md border px-1 py-0.5 text-[10px] leading-tight #{admin_booking_calendar_slot_classes(slot.status)} #{slot_url ? 'hover:ring-2 hover:ring-brand/40' : ''}",
+                            style: "top: #{top}%; height: #{[height, 3].max}%; min-height: 24px;" do %>
+              <span class="font-semibold"><%= slot.starts_at.strftime('%H:%M') %>–<%= slot.ends_at.strftime('%H:%M') %></span>
+              <% if slot.status == :available %>
+                <span class="block truncate">Disponible</span>
+              <% elsif slot.status == :blocked %>
+                <span class="block truncate">Bloqueado</span>
+              <% elsif slot.status == :pending %>
+                <span class="block truncate">Pendiente</span>
+              <% else %>
+                <span class="block truncate">Confirmada</span>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

@@ -5,6 +5,21 @@ module Admin
     before_action :set_booking, only: %i[show update]
 
     def index
+      @view = params[:view].presence_in(%w[list calendar]) || 'list'
+
+      if @view == 'calendar'
+        @spaces = Space.order(:title)
+        @week_start = parse_week_start
+        @calendar_space = Space.find_by(id: params[:space_id]) || @spaces.first
+        if @calendar_space
+          @calendar_days = Bookings::AdminCalendarBuilder.new(
+            space: @calendar_space,
+            week_start: @week_start
+          ).build
+        end
+        return
+      end
+
       scope = Booking.includes(:space, :profesional, :payment).order(start_at: :desc)
       scope = scope.where(status: params[:status]) if params[:status].present?
       scope = scope.where(box_id: params[:space_id]) if params[:space_id].present?
@@ -35,7 +50,8 @@ module Admin
       result = Bookings::Create.new(
         space: space,
         profesional: profesional,
-        params: create_params.slice(:date, :start_time, :slot_count, :hours)
+        params: create_params.slice(:date, :start_time, :slot_count, :hours),
+        require_terms_acceptance: false
       ).call
 
       if result.success?
@@ -94,6 +110,14 @@ module Admin
 
     def create_params
       params.expect(booking: %i[space_id profesional_id date start_time slot_count hours confirm_manually])
+    end
+
+    def parse_week_start
+      if params[:week_start].present?
+        Date.parse(params[:week_start]).beginning_of_week(:monday)
+      else
+        Date.current.beginning_of_week(:monday)
+      end
     end
   end
 end

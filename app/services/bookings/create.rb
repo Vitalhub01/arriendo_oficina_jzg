@@ -2,13 +2,17 @@
 
 module Bookings
   class Create
-    def initialize(space:, profesional:, params:)
+    def initialize(space:, profesional:, params:, require_terms_acceptance: true)
       @space = space
       @profesional = profesional
       @params = params
+      @require_terms_acceptance = require_terms_acceptance
     end
 
     def call
+      terms_error = validate_terms_acceptance
+      return Result.new(success: false, errors: [terms_error]) if terms_error
+
       slot_count = resolve_slot_count
       start_at, end_at = parse_times(slot_count)
       duration_minutes = ((end_at - start_at) / 60).to_i
@@ -19,7 +23,8 @@ module Bookings
         end_at: end_at,
         duration_minutes: duration_minutes,
         booking_type: :slot_based,
-        reschedule_credit: find_reschedule_credit
+        reschedule_credit: find_reschedule_credit,
+        terms_accepted_at: (@space.terms_and_conditions.attached? ? Time.current : nil)
       )
 
       if booking.save
@@ -36,6 +41,14 @@ module Bookings
     end
 
     private
+
+    def validate_terms_acceptance
+      return if !@require_terms_acceptance || !@space.terms_and_conditions.attached?
+
+      return if ActiveModel::Type::Boolean.new.cast(@params[:accept_terms])
+
+      'Debes aceptar los términos y condiciones del espacio'
+    end
 
     def resolve_slot_count
       if @params[:slot_count].present?

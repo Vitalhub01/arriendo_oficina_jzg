@@ -34,7 +34,8 @@ class BookingsController < ApplicationController
     result = Bookings::Create.new(
       space: @space,
       profesional: current_user,
-      params: booking_params
+      params: booking_params,
+      require_terms_acceptance: true
     ).call
 
     if result.success?
@@ -142,7 +143,7 @@ class BookingsController < ApplicationController
   end
 
   def booking_params
-    params.permit(:date, :start_time, :slot_count, :hours, :reschedule_credit_id)
+    params.permit(:date, :start_time, :slot_count, :hours, :reschedule_credit_id, :accept_terms)
   end
 
   def reschedule_params

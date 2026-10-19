@@ -13,21 +13,12 @@
     <div class="flex min-h-screen">
       <aside class="hidden w-64 bg-gray-900 p-6 text-white md:block">
         <%= image_tag "logo_vital_hub.png", alt: "VitalHub", class: "h-9 w-auto" %>
-        <nav class="mt-8 space-y-2 text-sm">
-          <%= link_to "Dashboard", admin_root_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Oficina", edit_admin_office_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Espacios", admin_spaces_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Descuentos membresía", admin_pricing_rules_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Códigos de descuento", admin_discount_codes_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Usuarios y permisos", admin_users_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Profesionales", admin_professionals_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Reservas", admin_bookings_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Membresías", admin_memberships_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Planes membresía", admin_membership_plans_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Testimonios", admin_testimonials_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "FAQ", admin_faqs_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Configuración", edit_admin_site_settings_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
-          <%= link_to "Ver sitio", root_path, class: "block rounded-lg px-3 py-2 hover:bg-gray-800" %>
+        <nav class="mt-8 space-y-1">
+          <% AdminHelper::NAV_ITEMS.each do |item| %>
+            <% active = admin_nav_active?(item[:match]) %>
+            <%= link_to item[:label], public_send(item[:path]), class: admin_nav_link_classes(active) %>
+          <% end %>
+          <%= link_to "Ver sitio", root_path, class: "mt-2 block rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-gray-800 hover:text-white" %>
         </nav>
       </aside>
       <main class="flex-1 p-4 md:p-8">

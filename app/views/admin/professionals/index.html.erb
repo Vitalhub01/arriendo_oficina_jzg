@@ -3,17 +3,28 @@
   <%= link_to "Todos", admin_professionals_path, class: "text-sm text-brand" %>
   <%= link_to "Pendientes", admin_professionals_path(validation_status: :pending), class: "text-sm text-brand" %>
 </div>
-<table class="mt-6 w-full text-sm">
-  <thead><tr class="border-b"><th class="py-2 text-left">Nombre</th><th>RUT</th><th>Estado</th><th></th></tr></thead>
-  <tbody>
-    <% @professional_profiles.each do |p| %>
-      <tr class="border-b">
-        <td class="py-2"><%= p.user.name %></td>
-        <td><%= p.full_rut %></td>
-        <td><%= p.validation_status %></td>
-        <td><%= link_to "Ver", admin_professional_path(p), class: "text-brand" %></td>
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>RUT</th>
+        <th>Estado</th>
+        <th class="admin-table__actions"></th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% @professional_profiles.each do |p| %>
+        <tr>
+          <td class="font-medium text-gray-900"><%= p.user.name %></td>
+          <td><%= p.full_rut %></td>
+          <td><%= p.validation_status %></td>
+          <td class="admin-table__actions">
+            <%= link_to "Ver", admin_professional_path(p), class: "text-brand hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
 <%== pagy_nav(@pagy) if @pagy.pages > 1 %>

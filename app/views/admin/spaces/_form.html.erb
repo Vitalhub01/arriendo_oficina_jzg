@@ -42,5 +42,14 @@
   <%= f.select :status, Space.statuses.keys, {}, class: "input-field" %>
   <%= f.label :photos, class: "block text-sm font-medium" %>
   <%= f.file_field :photos, multiple: true, class: "input-field" %>
+  <%= f.label :terms_and_conditions, "Términos y condiciones (PDF)", class: "block text-sm font-medium" %>
+  <% if @space.terms_and_conditions.attached? %>
+    <p class="text-sm text-gray-600">
+      Archivo actual:
+      <%= link_to @space.terms_and_conditions.filename, rails_blob_path(@space.terms_and_conditions, disposition: "inline"), class: "text-brand hover:underline", target: "_blank", rel: "noopener" %>
+    </p>
+  <% end %>
+  <%= f.file_field :terms_and_conditions, accept: "application/pdf", class: "input-field" %>
+  <p class="text-xs text-gray-500">Un PDF por espacio. Los profesionales deberán aceptarlo al reservar.</p>
   <%= f.submit "Guardar", class: "btn-primary" %>
 <% end %>

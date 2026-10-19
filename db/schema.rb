@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_18_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_18_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -104,6 +104,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_18_000002) do
     t.datetime "manually_confirmed_at"
     t.bigint "discount_code_id"
     t.integer "promo_discount_cents", default: 0, null: false
+    t.datetime "terms_accepted_at"
     t.index ["booking_series_id"], name: "index_bookings_on_booking_series_id"
     t.index ["box_id", "start_at", "end_at"], name: "index_bookings_on_box_id_and_start_at_and_end_at"
     t.index ["box_id"], name: "index_bookings_on_box_id"

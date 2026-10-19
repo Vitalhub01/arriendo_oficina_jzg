@@ -16,6 +16,7 @@ class Space < ApplicationRecord
   has_many :schedule_block_overrides, dependent: :destroy, inverse_of: :space
   has_many :pricing_rules, dependent: :destroy, inverse_of: :space
   has_many_attached :photos
+  has_one_attached :terms_and_conditions
 
   enum :box_type, { clinical: 0, office: 1, workspace: 2 }
   enum :status, { draft: 0, published: 1, suspended: 2 }
@@ -38,6 +39,7 @@ class Space < ApplicationRecord
   validate :slot_duration_multiple_of_thirty
   validate :photos_required_for_publish, if: :published?
   validate :coordinates_required_for_publish, if: :published?
+  validate :terms_and_conditions_must_be_pdf
 
   scope :published_spaces, -> { where(status: :published) }
   scope :published_boxes, -> { published_spaces }
@@ -156,6 +158,14 @@ class Space < ApplicationRecord
     return if (slot_duration_minutes % 30).zero?
 
     errors.add(:slot_duration_minutes, 'debe ser múltiplo de 30')
+  end
+
+  def terms_and_conditions_must_be_pdf
+    return unless terms_and_conditions.attached?
+
+    return if terms_and_conditions.content_type == 'application/pdf'
+
+    errors.add(:terms_and_conditions, 'debe ser un archivo PDF')
   end
 end
 

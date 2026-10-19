@@ -2,17 +2,18 @@
   <h1 class="text-2xl font-bold">Reservas</h1>
   <%= link_to "Nueva reserva", new_admin_booking_path, class: "btn-primary" %>
 </div>
-<table class="mt-6 w-full text-sm">
-  <thead><tr class="border-b"><th class="py-2 text-left">Espacio</th><th>Profesional</th><th>Fecha</th><th>Estado</th><th></th></tr></thead>
-  <tbody>
-    <% @bookings.each do |booking| %>
-      <tr class="border-b">
-        <td class="py-2"><%= booking.space.title %></td>
-        <td><%= booking.profesional.name %></td>
-        <td><%= l(booking.start_at, format: :short) %></td>
-        <td><%= booking_status_label(booking) %></td>
-        <td><%= link_to "Ver", admin_booking_path(booking), class: "text-brand" %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+
+<nav class="mt-6 flex gap-1 border-b border-gray-200" aria-label="Vistas de reservas">
+  <%= link_to "Lista",
+              admin_bookings_path(view: 'list'),
+              class: "px-4 py-2 text-sm font-medium border-b-2 -mb-px #{@view == 'list' ? 'border-brand text-brand' : 'border-transparent text-gray-600 hover:text-gray-900'}" %>
+  <%= link_to "Calendario",
+              admin_bookings_path(view: 'calendar', space_id: params[:space_id], week_start: params[:week_start]),
+              class: "px-4 py-2 text-sm font-medium border-b-2 -mb-px #{@view == 'calendar' ? 'border-brand text-brand' : 'border-transparent text-gray-600 hover:text-gray-900'}" %>
+</nav>
+
+<% if @view == 'calendar' %>
+  <%= render 'calendar' %>
+<% else %>
+  <%= render 'list' %>
+<% end %>

@@ -55,6 +55,7 @@ module Admin
         :latitude, :longitude, :box_type, :price_per_hour_cents,
         :slot_duration_minutes, :minimum_slots, :reschedule_notice_hours,
         :minimum_hours, :status, :capacity, :dimensions,
+        :terms_and_conditions,
         amenities: {}, equipment: [], photos: []
       )
 
@@ -62,6 +63,9 @@ module Admin
       if photos.blank? || Array(photos).all?(&:blank?)
         raw = raw.except(:photos)
       end
+
+      terms = raw[:terms_and_conditions]
+      raw = raw.except(:terms_and_conditions) if terms.blank?
 
       raw
     end

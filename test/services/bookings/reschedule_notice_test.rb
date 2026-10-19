@@ -5,6 +5,7 @@ require 'test_helper'
 class BookingsRescheduleNoticeTest < ActiveSupport::TestCase
   setup do
     @box = boxes(:published_box)
+    @box.terms_and_conditions.purge if @box.terms_and_conditions.attached?
     @renter = users(:renter)
     @start_at = next_monday_at(hour: 10)
     result = Bookings::Create.new(

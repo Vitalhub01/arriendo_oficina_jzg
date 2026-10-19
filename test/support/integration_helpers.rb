@@ -14,6 +14,15 @@ module IntegrationHelpers
     )
   end
 
+  def attach_space_terms(space)
+    path = Rails.root.join('test/fixtures/files/terms.pdf')
+    space.terms_and_conditions.attach(
+      io: File.open(path),
+      filename: 'terminos.pdf',
+      content_type: 'application/pdf'
+    )
+  end
+
   def with_mercadopago_stub(preference_id: 'TEST-pref-1', init_point: 'https://sandbox.mercadopago.cl/checkout', &)
     fake_pref = Object.new
     fake_pref.define_singleton_method(:create) do |_data|

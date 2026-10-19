@@ -1,16 +1,25 @@
 <h1 class="text-2xl font-bold">Testimonios</h1>
-<table class="mt-6 w-full text-sm">
-  <thead><tr class="border-b"><th class="py-2 text-left">Profesional</th><th>Visible</th><th>Texto</th><th></th></tr></thead>
-  <tbody>
-    <% @testimonials.each do |t| %>
-      <tr class="border-b">
-        <td class="py-2"><%= t.profesional.name %></td>
-        <td><%= t.visible? ? 'Sí' : 'No' %></td>
-        <td class="max-w-xs truncate"><%= t.body %></td>
-        <td>
-          <%= button_to t.visible? ? "Ocultar" : "Mostrar", admin_testimonial_path(t), method: :patch, params: { testimonial: { visible: !t.visible? } }, class: "text-brand text-xs" %>
-        </td>
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Profesional</th>
+        <th>Visible</th>
+        <th>Texto</th>
+        <th class="admin-table__actions"></th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% @testimonials.each do |t| %>
+        <tr>
+          <td class="font-medium text-gray-900"><%= t.profesional.name %></td>
+          <td><%= t.visible? ? 'Sí' : 'No' %></td>
+          <td class="max-w-xs truncate"><%= t.body %></td>
+          <td class="admin-table__actions">
+            <%= button_to t.visible? ? "Ocultar" : "Mostrar", admin_testimonial_path(t), method: :patch, params: { testimonial: { visible: !t.visible? } }, class: "text-brand text-xs hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

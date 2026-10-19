@@ -3,16 +3,27 @@
   <p class="mt-1 text-sm text-gray-600">Los precios por franja y descuentos por volumen se configuran en el calendario de cada espacio.</p>
   <%= link_to "Nueva regla", new_admin_pricing_rule_path, class: "btn-primary" %>
 </div>
-<table class="mt-6 w-full text-sm">
-  <thead><tr class="border-b"><th class="py-2 text-left">Nombre</th><th>Tipo</th><th>Activa</th><th></th></tr></thead>
-  <tbody>
-    <% @pricing_rules.each do |rule| %>
-      <tr class="border-b">
-        <td class="py-2"><%= rule.name %></td>
-        <td><%= rule.rule_type %></td>
-        <td><%= rule.active? ? 'Sí' : 'No' %></td>
-        <td><%= link_to "Editar", edit_admin_pricing_rule_path(rule), class: "text-brand" %></td>
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th>Activa</th>
+        <th class="admin-table__actions"></th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% @pricing_rules.each do |rule| %>
+        <tr>
+          <td class="font-medium text-gray-900"><%= rule.name %></td>
+          <td><%= rule.rule_type %></td>
+          <td><%= rule.active? ? 'Sí' : 'No' %></td>
+          <td class="admin-table__actions">
+            <%= link_to "Editar", edit_admin_pricing_rule_path(rule), class: "text-brand hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -32,7 +32,8 @@ module Bookings
           params: create_params.merge(
             slot_count: slot_count,
             reschedule_credit_id: credit.id
-          )
+          ),
+          require_terms_acceptance: false
         ).call
 
         unless result.success?

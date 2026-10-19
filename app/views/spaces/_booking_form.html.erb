@@ -27,6 +27,20 @@
                   { include_blank: "No usar crédito" }, class: "input-field" %>
           </div>
         <% end %>
+        <% if space.terms_and_conditions.attached? %>
+          <div class="flex items-start gap-2">
+            <%= check_box_tag :accept_terms, "1", false, required: true, class: "mt-1 rounded border-gray-300" %>
+            <label for="accept_terms" class="text-sm text-gray-700">
+              Acepto los
+              <%= link_to "términos y condiciones",
+                    rails_blob_path(space.terms_and_conditions, disposition: "inline"),
+                    class: "text-brand hover:underline",
+                    target: "_blank",
+                    rel: "noopener" %>
+              de este espacio
+            </label>
+          </div>
+        <% end %>
         <%= submit_tag "Reservar y pagar", class: "btn-primary w-full" %>
       <% end %>
     </div>

@@ -7,6 +7,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
 
   setup do
     @box = boxes(:published_box)
+    @box.terms_and_conditions.purge if @box.terms_and_conditions.attached?
     @renter = users(:renter)
     @slot_time = next_monday_at(hour: 10)
   end
@@ -14,6 +15,32 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   test 'booking requires authentication' do
     post space_bookings_path(@box), params: booking_params
     assert_redirected_to new_user_session_path
+  end
+
+  test 'requires accepting space terms when pdf is attached' do
+    sign_in @renter
+    attach_space_terms(@box)
+    assert @box.reload.terms_and_conditions.attached?
+
+    assert_no_difference 'Booking.count' do
+      post space_bookings_path(@box), params: booking_params
+    end
+
+    assert_response :unprocessable_entity
+    assert_match 'términos y condiciones', response.body
+  end
+
+  test 'creates booking when space terms are accepted' do
+    sign_in @renter
+    attach_space_terms(@box)
+
+    assert_difference 'Booking.count', 1 do
+      post space_bookings_path(@box), params: booking_params.merge(accept_terms: '1')
+    end
+
+    booking = Booking.order(:created_at).last
+    assert booking.terms_accepted_at.present?
+    assert_redirected_to booking_path(booking)
   end
 
   test 'creates pending booking with expiry and redirects to checkout' do
