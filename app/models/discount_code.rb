@@ -11,6 +11,7 @@ class DiscountCode < ApplicationRecord
   validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }, if: :fixed_amount?
   validate :ends_after_starts
   validate :discount_value_present
+  validate :at_least_one_booking_type
 
   before_validation :normalize_code
 
@@ -72,6 +73,31 @@ class DiscountCode < ApplicationRecord
     end
   end
 
+  def applies_to_booking?(booking)
+    applies_to_booking_type?(booking.booking_type)
+  end
+
+  def applies_to_booking_type?(booking_type)
+    case booking_type.to_s
+    when 'hourly'
+      applies_to_hourly?
+    when 'slot_based'
+      applies_to_slot_based?
+    when 'jornada'
+      applies_to_jornada?
+    else
+      false
+    end
+  end
+
+  def display_booking_types
+    labels = []
+    labels << 'Hora' if applies_to_hourly?
+    labels << 'Bloque' if applies_to_slot_based?
+    labels << 'Jornada' if applies_to_jornada?
+    labels.join(', ')
+  end
+
   private
 
   def normalize_code
@@ -90,5 +116,11 @@ class DiscountCode < ApplicationRecord
     elsif fixed_amount? && amount_cents.blank?
       errors.add(:amount_cents, :blank)
     end
+  end
+
+  def at_least_one_booking_type
+    return if applies_to_hourly? || applies_to_slot_based? || applies_to_jornada?
+
+    errors.add(:base, 'Selecciona al menos un tipo de reserva')
   end
 end

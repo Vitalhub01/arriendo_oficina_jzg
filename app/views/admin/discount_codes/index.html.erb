@@ -12,6 +12,7 @@
       <tr>
         <th>Código</th>
         <th>Descuento</th>
+        <th>Tipos de reserva</th>
         <th>Vigencia</th>
         <th>Usos</th>
         <th>Estado</th>
@@ -23,6 +24,7 @@
         <tr>
           <td class="font-mono font-medium text-gray-900"><%= code.code %></td>
           <td><%= code.display_discount %></td>
+          <td class="text-sm text-gray-700"><%= code.display_booking_types %></td>
           <td>
             <%= l(code.starts_at, format: :short) %> —
             <%= l(code.ends_at, format: :short) %>

@@ -49,5 +49,16 @@ module Bookings
       assert_not result.success?
       assert_equal payable, @booking.reload.total_amount_cents
     end
+
+    test 'rejects code when booking type is not allowed' do
+      @code.update!(applies_to_slot_based: false)
+      payable = @booking.total_amount_cents
+
+      result = ApplyDiscountCode.new(booking: @booking, code: 'PROMO10', actor: @renter).call
+
+      assert_not result.success?
+      assert_includes result.errors, 'El código no es válido para el tipo de reserva'
+      assert_equal payable, @booking.reload.total_amount_cents
+    end
   end
 end

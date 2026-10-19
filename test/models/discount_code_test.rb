@@ -23,4 +23,11 @@ class DiscountCodeTest < ActiveSupport::TestCase
     code = DiscountCode.new(discount_type: :fixed_amount, amount_cents: 5000)
     assert_equal 3000, code.discount_cents_for(3000)
   end
+
+  test 'applies_to_booking_type respects flags' do
+    code = DiscountCode.new(applies_to_hourly: true, applies_to_slot_based: false, applies_to_jornada: false)
+    assert code.applies_to_booking_type?(:hourly)
+    assert_not code.applies_to_booking_type?(:slot_based)
+    assert_not code.applies_to_booking_type?(:jornada)
+  end
 end

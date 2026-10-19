@@ -13,7 +13,10 @@ module Admin
         starts_at: Time.zone.now.beginning_of_day,
         ends_at: 1.month.from_now.end_of_day,
         discount_type: :percent,
-        percent: 10
+        percent: 10,
+        applies_to_hourly: true,
+        applies_to_slot_based: true,
+        applies_to_jornada: true
       )
     end
 
@@ -63,6 +66,9 @@ module Admin
           ends_at
           active
           max_uses
+          applies_to_hourly
+          applies_to_slot_based
+          applies_to_jornada
         ]
       )
     end
