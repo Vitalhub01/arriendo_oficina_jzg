@@ -18,7 +18,6 @@ module Admin
 
     def create
       @space = Space.new(space_params)
-      geocode_if_needed(@space)
 
       if @space.save
         redirect_to edit_admin_space_path(@space), notice: 'Espacio creado'
@@ -29,7 +28,6 @@ module Admin
 
     def update
       @space.assign_attributes(space_params)
-      geocode_if_needed(@space)
 
       if @space.save
         redirect_to edit_admin_space_path(@space), notice: 'Espacio actualizado'
@@ -70,14 +68,5 @@ module Admin
       raw
     end
 
-    def geocode_if_needed(space)
-      return if space.latitude.present? && space.longitude.present?
-
-      coords = GeocoderService.geocode(space.address, city: space.city, commune: space.commune)
-      return unless coords
-
-      space.latitude = coords[:latitude]
-      space.longitude = coords[:longitude]
-    end
   end
 end

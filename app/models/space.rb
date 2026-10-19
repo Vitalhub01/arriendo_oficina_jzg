@@ -29,7 +29,11 @@ class Space < ApplicationRecord
 
   AMENITY_OPTIONS = %w[wifi bathroom parking air_conditioning waiting_room wheelchair_access].freeze
 
-  validates :title, :address, :commune, :city, presence: true
+  validates :title, :city, presence: true
+  validates :address, :commune, presence: true, unless: :inherits_location_from_office?
+
+  before_validation :inherit_location_from_office
+  before_validation :geocode_from_address, if: :needs_geocoding?
   validates :price_per_hour_cents, numericality: { greater_than: 0 }
   validates :minimum_hours, numericality: { greater_than: 0, only_integer: true }
   validates :slot_duration_minutes, numericality: { greater_than: 0, only_integer: true }
@@ -135,7 +139,23 @@ class Space < ApplicationRecord
   end
 
   def full_address
-    [address, commune, city].compact.join(', ')
+    [effective_address, effective_commune, effective_city].compact.join(', ')
+  end
+
+  def effective_address
+    address.presence || office&.address
+  end
+
+  def effective_commune
+    commune.presence || office&.commune
+  end
+
+  def effective_city
+    city.presence || office&.city || city
+  end
+
+  def inherits_location_from_office?
+    office_id.present? && office.present?
   end
 
   def cover_photo
@@ -143,6 +163,34 @@ class Space < ApplicationRecord
   end
 
   private
+
+  def inherit_location_from_office
+    return unless office
+
+    self.address = office.address
+    self.commune = office.commune
+    self.city = office.city
+    self.latitude = office.latitude if office.latitude.present?
+    self.longitude = office.longitude if office.longitude.present?
+  end
+
+  def needs_geocoding?
+    latitude.blank? || longitude.blank?
+  end
+
+  def geocode_from_address
+    return if effective_address.blank?
+
+    coords = GeocoderService.geocode(
+      effective_address,
+      city: effective_city,
+      commune: effective_commune
+    )
+    return unless coords
+
+    self.latitude = coords[:latitude]
+    self.longitude = coords[:longitude]
+  end
 
   def photos_required_for_publish
     errors.add(:photos, 'debe tener al menos una foto para publicar') unless photos.attached?
