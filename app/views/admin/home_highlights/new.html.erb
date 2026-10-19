@@ -1,0 +1,29 @@
+<h1 class="text-2xl font-bold">Nuevo destacado</h1>
+<%= form_with model: @home_highlight, url: admin_home_highlights_path, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <% if @home_highlight.errors.any? %>
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+      <ul class="list-disc pl-5">
+        <% @home_highlight.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= f.label :title, "Título", class: "block text-sm font-medium" %>
+  <%= f.text_field :title, class: "input-field", placeholder: "Flexibilidad" %>
+
+  <%= f.label :description, "Descripción", class: "block text-sm font-medium" %>
+  <%= f.text_field :description, class: "input-field", placeholder: "Bloques a tu medida" %>
+  <p class="text-xs text-gray-500">Usa <code>{ciudad}</code> para la ciudad configurada en la oficina.</p>
+
+  <%= f.label :position, "Orden", class: "block text-sm font-medium" %>
+  <%= f.number_field :position, min: 0, class: "input-field" %>
+
+  <%= f.label :visible, class: "inline-flex items-center gap-2 text-sm font-medium" do %>
+    <%= f.check_box :visible %>
+    Visible en el sitio
+  <% end %>
+
+  <%= f.submit "Guardar", class: "btn-primary" %>
+<% end %>

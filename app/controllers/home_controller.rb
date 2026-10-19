@@ -13,5 +13,6 @@ class HomeController < ApplicationController
     @faqs = Faq.where(visible: true).order(:position)
     @social_contacts = SocialContact.visible.ordered.with_attached_icon
     @gallery_groups = GalleryItem.grouped_by_tag(GalleryItem.visible.ordered.with_attached_image)
+    @home_highlights = HomeHighlight.visible.ordered
   end
 end

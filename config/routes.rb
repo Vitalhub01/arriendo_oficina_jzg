@@ -78,6 +78,7 @@ Rails.application.routes.draw do
     resources :membership_plans
     resources :memberships, only: [:index]
     resources :faqs
+    resources :home_highlights, path: 'home-highlights'
     resources :social_contacts, except: [:show]
     resources :gallery_items, path: 'gallery', only: %i[index create update destroy] do
       collection do

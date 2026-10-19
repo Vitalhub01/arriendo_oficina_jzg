@@ -64,6 +64,11 @@ module AdminHelper
       match: ->(req) { req.path == '/admin/gallery' || req.path == '/admin/gallery/reorder' || req.path.match?(%r{^/admin/gallery/\d+}) }
     },
     {
+      label: 'Destacados inicio',
+      path: :admin_home_highlights_path,
+      match: ->(req) { req.path.start_with?('/admin/home-highlights') }
+    },
+    {
       label: 'Descripciones de galería',
       path: :admin_gallery_tags_path,
       match: ->(req) { req.path.start_with?('/admin/gallery-tags') }

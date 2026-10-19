@@ -212,6 +212,19 @@ end
   end
 end
 
+[
+  ['Flexibilidad', 'Bloques a tu medida', 0],
+  ['Equipado', 'Listo para atender', 1],
+  ['Ubicación', '{ciudad}', 2],
+  ['Reserva online', 'Simple y rápida', 3]
+].each do |title, description, position|
+  HomeHighlight.find_or_create_by!(title: title) do |highlight|
+    highlight.description = description
+    highlight.position = position
+    highlight.visible = true
+  end
+end
+
 SiteSetting.set('reschedule_notice_hours', '24')
 SiteSetting.set('google_analytics_id', ENV.fetch('GOOGLE_ANALYTICS_ID', ''))
 
