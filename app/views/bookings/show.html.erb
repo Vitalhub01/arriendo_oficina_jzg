@@ -52,8 +52,8 @@
     </div>
 
     <% if @booking.completed? && @booking.testimonial.nil? && current_user == @booking.profesional %>
-      <div class="mt-8 border-t pt-6">
-        <h3 class="font-semibold">Deja tu testimonio</h3>
+      <div id="testimonial" class="mt-8 border-t pt-6 scroll-mt-24">
+        <h3 class="font-semibold">Deja tu comentario</h3>
         <%= form_with url: booking_testimonial_path(@booking), method: :post, class: "mt-4 space-y-3" do %>
           <%= select_tag "testimonial[rating]", options_for_select((1..5).map { |n| [n, n] }), class: "input-field" %>
           <%= text_area_tag "testimonial[body]", nil, rows: 3, placeholder: "Cuéntanos tu experiencia", class: "input-field", required: true %>

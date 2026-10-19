@@ -172,9 +172,10 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     sign_in @renter
     booking = create_pending_booking
 
-    get bookings_path
+    get bookings_path(filter: 'pending_payment')
     assert_response :success
     assert_match booking.box.title, response.body
+    assert_match 'Pendientes de pago', response.body
   end
 
   test 'banned profesional cannot create booking' do

@@ -1,0 +1,27 @@
+<div class="card p-4">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h3 class="font-semibold"><%= booking.space.title %></h3>
+      <p class="text-sm text-gray-600"><%= l(booking.start_at, format: :long) %> — <%= booking.formatted_duration %></p>
+      <p class="mt-1 text-sm"><%= booking.formatted_total %></p>
+      <% if booking.pending_payment? && booking.payment_expires_at.present? %>
+        <p class="mt-1 text-xs text-amber-700"><%= booking_payment_expires_label(booking) %></p>
+      <% end %>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="rounded-full px-3 py-1 text-xs font-medium <%= booking_status_badge_classes(booking) %>">
+        <%= booking_status_label(booking) %>
+      </span>
+      <% if show_testimonial_action && booking_can_leave_testimonial?(booking) %>
+        <%= link_to "Dejar comentario", booking_path(booking, anchor: "testimonial"), class: "btn-primary !py-2 !px-4" %>
+      <% end %>
+      <% if booking.pending_payment? && !booking.payment_expired? && booking.total_amount_cents.positive? %>
+        <%= link_to "Pagar", checkout_booking_path(booking), class: "btn-primary !py-2 !px-4" %>
+      <% end %>
+      <% if policy(booking).cancel? %>
+        <%= button_to "Cancelar", cancel_booking_path(booking), method: :patch, class: "btn-secondary !py-2 !px-4", data: { turbo_confirm: "¿Cancelar esta reserva?" } %>
+      <% end %>
+      <%= link_to "Ver", booking_path(booking), class: "btn-secondary !py-2 !px-4" %>
+    </div>
+  </div>
+</div>

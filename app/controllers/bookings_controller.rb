@@ -5,9 +5,20 @@ class BookingsController < ApplicationController
   before_action :require_can_book!, only: %i[new create reschedule]
   before_action :set_booking, only: %i[show checkout cancel reschedule apply_discount_code]
 
+  BOOKING_INDEX_FILTERS = {
+    'confirmed' => { label: 'Confirmadas', statuses: %i[confirmed completed] },
+    'pending_payment' => { label: 'Pendientes de pago', statuses: %i[pending_payment] },
+    'cancelled' => { label: 'Canceladas', statuses: %i[cancelled rescheduled] }
+  }.freeze
+
   def index
+    @filter = BOOKING_INDEX_FILTERS.key?(params[:filter]) ? params[:filter] : 'confirmed'
+    base_scope = policy_scope(Booking).includes(:space, :payment, :testimonial)
+    statuses = BOOKING_INDEX_FILTERS.fetch(@filter)[:statuses]
+    @filter_counts = booking_index_filter_counts(base_scope)
+
     @pagy, @bookings = pagy(
-      policy_scope(Booking).includes(:space, :payment).order(start_at: :desc)
+      base_scope.where(status: statuses).order(start_at: :desc)
     )
   end
 
@@ -158,5 +169,11 @@ class BookingsController < ApplicationController
 
   def reschedule_params
     params.permit(:date, :start_time, :slot_count, :hours)
+  end
+
+  def booking_index_filter_counts(scope)
+    BOOKING_INDEX_FILTERS.transform_values do |config|
+      scope.where(status: config[:statuses]).count
+    end
   end
 end

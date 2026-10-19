@@ -83,6 +83,18 @@ module ApplicationHelper
     end
   end
 
+  def booking_can_leave_testimonial?(booking)
+    booking.completed? && booking.testimonial.nil?
+  end
+
+  def bookings_index_empty_message(filter)
+    {
+      'confirmed' => 'No tienes reservas confirmadas.',
+      'pending_payment' => 'No tienes reservas pendientes de pago.',
+      'cancelled' => 'No tienes reservas canceladas.'
+    }.fetch(filter, 'No hay reservas en esta categoría.')
+  end
+
   def google_analytics_id
     SiteSetting.get('google_analytics_id', ENV.fetch('GOOGLE_ANALYTICS_ID', nil))
   end
