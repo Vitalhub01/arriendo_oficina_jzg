@@ -1,5 +1,5 @@
 <div>
-  <%= label_tag :slot_count, "Cantidad de bloques", class: "mb-1 block text-sm font-medium" %>
+  <%= label_tag :slot_count, "Cantidad de horas", class: "mb-1 block text-sm font-medium" %>
   <div class="flex items-center gap-3">
     <button type="button" data-action="click->booking-form#decrement" class="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-300 text-xl">−</button>
     <%= number_field_tag :slot_count, @prefill_slot_count || space.minimum_slots, min: space.minimum_slots, class: "input-field text-center", data: { booking_form_target: "slotCount", action: "input->booking-form#updateTotal" } %>

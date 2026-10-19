@@ -72,7 +72,7 @@ class PricingEngine
     duration_label = format_duration
     {
       type: 'base',
-      label: "#{slot_count} bloque(s) (#{duration_label})",
+      label: "#{slot_count} hora(s) (#{duration_label})",
       amount_cents: amount_cents
     }
   end

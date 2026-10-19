@@ -67,7 +67,7 @@ export default class extends Controller {
       if (selectableBlocks.length === 0) {
         const option = document.createElement("option")
         option.value = ""
-        option.textContent = "Sin bloques disponibles"
+        option.textContent = "Sin franjas disponibles"
         select.appendChild(option)
       } else if (previous && selectableBlocks.some((b) => b.start === previous)) {
         select.value = previous

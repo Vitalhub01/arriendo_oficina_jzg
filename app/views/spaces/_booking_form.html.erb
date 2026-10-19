@@ -1,6 +1,6 @@
 <div>
-  <p class="text-2xl font-bold text-gray-900">Reserva por bloques</p>
-  <p class="mt-1 text-sm text-gray-500">Mínimo <%= space.minimum_slots %> bloque(s) contiguos según la agenda del espacio.</p>
+  <p class="text-2xl font-bold text-gray-900">Reserva por horas</p>
+  <p class="mt-1 text-sm text-gray-500">Elige un bloque de la mañana o de la tarde y cuántas horas continuas necesitas (mínimo <%= space.minimum_slots %>).</p>
 
   <% if user_signed_in? && current_user.can_book? %>
     <% booking_date = (@prefill_date || Date.current).to_date %>
@@ -11,7 +11,7 @@
           <%= date_field_tag :date, booking_date, min: Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#refreshStarts" } %>
         </div>
         <div>
-          <%= label_tag :start_time, "Hora inicio", class: "mb-1 block text-sm font-medium" %>
+          <%= label_tag :start_time, "Bloque (mañana / tarde)", class: "mb-1 block text-sm font-medium" %>
           <%= select_tag :start_time,
                 options_for_select(space_booking_start_time_options(space, booking_date), @prefill_start_time),
                 class: "input-field",

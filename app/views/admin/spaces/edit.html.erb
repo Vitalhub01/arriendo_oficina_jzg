@@ -1,3 +1,7 @@
 <h1 class="text-2xl font-bold">Editar espacio</h1>
-<p class="mt-1 text-sm text-gray-600"><%= link_to "← Espacios", admin_spaces_path, class: "text-brand hover:underline" %> · <%= link_to "Calendario y precios", admin_space_schedule_blocks_path(@space), class: "text-brand hover:underline" %></p>
+<p class="mt-1 text-sm text-gray-600">
+  <%= link_to "← Espacios", admin_spaces_path, class: "text-brand hover:underline" %>
+  · <%= link_to "Bloques mañana/tarde", admin_space_schedule_blocks_path(@space), class: "text-brand hover:underline" %>
+  · <%= link_to "Jornadas completas", admin_jornada_definitions_path, class: "text-brand hover:underline" %>
+</p>
 <%= render partial: "admin/spaces/form" %>

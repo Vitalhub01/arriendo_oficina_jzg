@@ -7,7 +7,7 @@
   <p><strong>Espacio:</strong> <%= @booking.space.title %></p>
   <p><strong>Profesional:</strong> <%= @booking.profesional.name %> (<%= @booking.profesional.email %>)</p>
   <p><strong>Fecha:</strong> <%= l(@booking.start_at, format: :long) %> — <%= l(@booking.end_at, format: "%H:%M") %></p>
-  <p><strong>Duración:</strong> <%= @booking.formatted_duration %> (<%= @booking.slot_count %> bloque(s))</p>
+  <p><strong>Duración:</strong> <%= @booking.formatted_duration %> (<%= @booking.slot_count %> hora(s))</p>
   <p><strong>Total:</strong> <%= @booking.formatted_total %></p>
   <p><strong>Estado:</strong> <%= booking_status_label(@booking) %></p>
   <% if @booking.profesional.banned? %>

@@ -115,7 +115,7 @@ class Booking < ApplicationRecord
     slots = slot_count
     return if slots >= space.minimum_slots
 
-    errors.add(:base, "mínimo #{space.minimum_slots} bloque(s)")
+    errors.add(:base, "mínimo #{space.minimum_slots} hora(s)")
   end
 
   def availability_check

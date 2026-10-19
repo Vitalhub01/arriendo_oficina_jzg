@@ -10,8 +10,9 @@
   <%= f.time_field :start_time, class: "input-field" %>
   <%= f.label :end_time, class: "block text-sm font-medium" %>
   <%= f.time_field :end_time, class: "input-field" %>
-  <%= f.label :price_cents, "Precio (centavos)", class: "block text-sm font-medium" %>
-  <%= f.number_field :price_cents, class: "input-field" %>
+  <%= f.label :price_cents, "Precio jornada completa (CLP)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_cents, class: "input-field", min: 1, step: 1 %>
+  <p class="text-xs text-gray-500">Tarifa del día entero; no depende del precio por hora ni del bloque mañana/tarde.</p>
   <%= f.label :active, class: "inline-flex items-center gap-2" %>
   <%= f.check_box :active %>
   <%= f.submit "Guardar", class: "btn-primary" %>

@@ -23,13 +23,20 @@
   <%= f.text_area :description, rows: 4, class: "input-field" %>
   <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
   <%= f.collection_select :office_id, Office.all, :id, :name, {}, class: "input-field" %>
-  <%= f.label :price_per_hour_cents, "Precio por hora base (CLP)", class: "block text-sm font-medium" %>
+  <%= f.label :price_per_hour_cents, "Precio por hora (CLP)", class: "block text-sm font-medium" %>
   <%= f.number_field :price_per_hour_cents, class: "input-field", min: 1, step: 1 %>
-  <p class="text-xs text-gray-500">Precio de referencia; los bloques del calendario tienen su propio precio por franja.</p>
-  <%= f.label :slot_duration_minutes, "Duración de bloque (minutos)", class: "block text-sm font-medium" %>
+  <p class="text-xs text-gray-500">Tarifa de cada hora suelta. El precio del bloque mañana/tarde y de la jornada completa se configuran aparte.</p>
+  <% if @space.persisted? %>
+    <p class="text-xs text-gray-600">
+      <%= link_to "Precios por bloque (mañana / tarde)", admin_space_schedule_blocks_path(@space), class: "text-brand hover:underline" %>
+      ·
+      <%= link_to "Precios jornada completa", admin_jornada_definitions_path, class: "text-brand hover:underline" %>
+    </p>
+  <% end %>
+  <%= f.label :slot_duration_minutes, "Duración de cada hora en agenda (minutos)", class: "block text-sm font-medium" %>
   <%= f.number_field :slot_duration_minutes, class: "input-field", step: 30, min: 30 %>
-  <p class="text-xs text-gray-500">Múltiplo de 30. Ej: 60 = 1 hora, 90 = 1h30.</p>
-  <%= f.label :minimum_slots, "Mínimo de bloques por reserva", class: "block text-sm font-medium" %>
+  <p class="text-xs text-gray-500">Múltiplo de 30. Ej: 60 = 1 hora por unidad al reservar varias horas seguidas.</p>
+  <%= f.label :minimum_slots, "Mínimo de horas por reserva", class: "block text-sm font-medium" %>
   <%= f.number_field :minimum_slots, class: "input-field", min: 1 %>
   <%= f.label :reschedule_notice_hours, "Anticipación para reprogramar (horas)", class: "block text-sm font-medium" %>
   <%= f.number_field :reschedule_notice_hours, class: "input-field", min: 1, step: 1, placeholder: "Vacío = valor global del sitio" %>

@@ -1,7 +1,7 @@
 <div class="max-w-lg">
   <%= link_to "← Reservas", admin_bookings_path, class: "text-sm text-brand hover:underline" %>
   <h1 class="mt-2 text-2xl font-bold">Nueva reserva</h1>
-  <p class="mt-1 text-sm text-gray-600">Asigna espacio, bloques horarios y profesional.</p>
+  <p class="mt-1 text-sm text-gray-600">Asigna espacio, franja horaria y profesional.</p>
 
   <% if flash[:alert].present? %>
     <div class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800"><%= flash[:alert] %></div>
@@ -29,9 +29,9 @@
     </div>
 
     <div>
-      <%= f.label :slot_count, "Cantidad de bloques", class: "block text-sm font-medium" %>
+      <%= f.label :slot_count, "Cantidad de horas", class: "block text-sm font-medium" %>
       <%= f.number_field :slot_count, min: 1, class: "input-field mt-1 w-full", required: true %>
-      <p class="mt-1 text-xs text-gray-500">La duración de cada bloque depende del espacio (ej. 60 min).</p>
+      <p class="mt-1 text-xs text-gray-500">Cada unidad equivale a la duración configurada del espacio (ej. 60 min = 1 hora).</p>
     </div>
 
     <div class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">

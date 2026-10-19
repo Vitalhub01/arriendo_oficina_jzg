@@ -228,7 +228,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_match 'mínimo 2 bloque', response.body
+    assert_match 'mínimo 2 hora', response.body
   end
 
   test 'rejects booking outside availability rules' do
