@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_19_000006) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_20_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -366,6 +366,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_000006) do
     t.date "effective_until"
     t.index ["space_id", "day_of_week", "position"], name: "index_schedule_blocks_on_space_id_and_day_of_week_and_position"
     t.index ["space_id"], name: "index_schedule_blocks_on_space_id"
+  end
+
+  create_table "site_brandings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "site_settings", force: :cascade do |t|

@@ -13,6 +13,7 @@ module Admin
 
     def edit
       @settings = SETTING_KEYS.index_with { |key| SiteSetting.get(key) }
+      @branding = SiteBranding.current
     end
 
     def update
@@ -20,13 +21,23 @@ module Admin
         SiteSetting.set(key, value)
       end
 
-      redirect_to edit_admin_site_settings_path, notice: 'Configuración actualizada'
+      @branding = SiteBranding.current
+      if @branding.update(site_branding_params)
+        redirect_to edit_admin_site_settings_path, notice: 'Configuración actualizada'
+      else
+        @settings = SETTING_KEYS.index_with { |key| SiteSetting.get(key) }
+        render :edit, status: :unprocessable_content
+      end
     end
 
     private
 
     def settings_params
       params.expect(site_settings: SETTING_KEYS)
+    end
+
+    def site_branding_params
+      params.fetch(:site_branding, {}).permit(:logo, :hero_image)
     end
   end
 end

@@ -16,8 +16,10 @@ module SeoHelper
   def seo_image_url
     if content_for?(:og_image)
       absolute_url(content_for(:og_image))
+    elsif site_branding.hero_image.attached?
+      absolute_url(url_for(site_branding.hero_image))
     else
-      absolute_url(asset_path('logo_vital_hub.png'))
+      site_logo_url
     end
   end
 
@@ -52,7 +54,7 @@ module SeoHelper
       'name' => SITE_NAME,
       'description' => DEFAULT_DESCRIPTION,
       'url' => absolute_url(root_path),
-      'image' => absolute_url(asset_path('logo_vital_hub.png')),
+      'image' => site_logo_url,
       'address' => {
         '@type' => 'PostalAddress',
         'streetAddress' => office.address,
@@ -91,18 +93,18 @@ module SeoHelper
   end
 
   def space_offer_json_ld(space)
-    image_url = if space.photos_attached?
-                  url_for(space.cover_photo)
-                else
-                  asset_path('logo_vital_hub.png')
-                end
+    product_image_url = if space.photos_attached?
+                          absolute_url(url_for(space.cover_photo))
+                        else
+                          site_logo_url
+                        end
 
     {
       '@context' => 'https://schema.org',
       '@type' => 'Product',
       'name' => space.title,
       'description' => truncate_description(space.description),
-      'image' => absolute_url(image_url),
+      'image' => product_image_url,
       'url' => absolute_url(space_path(space)),
       'offers' => {
         '@type' => 'Offer',
