@@ -1,5 +1,5 @@
 <% content_for :title, "#{@tag_label} — Galería | VitalHub" %>
-<% content_for :meta_description, "Fotos de #{@tag_label} en VitalHub. Conoce nuestros espacios para profesionales de la salud." %>
+<% content_for :meta_description, @tag_description.presence || "Fotos de #{@tag_label} en VitalHub. Conoce nuestros espacios para profesionales de la salud." %>
 <% if @current_item.image.attached? %>
   <% content_for :og_image, url_for(@current_item.image) %>
 <% end %>
@@ -20,6 +20,9 @@
   <header class="mt-4 border-b border-gray-200 pb-6">
     <p class="shop-eyebrow">Galería</p>
     <h1 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl"><%= @tag_label %></h1>
+    <% if @tag_description.present? %>
+      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-gray-600"><%= @tag_description %></p>
+    <% end %>
     <p class="mt-2 text-sm text-gray-600">
       <%= @items.size %> <%= @items.size == 1 ? 'foto' : 'fotos' %>
       <% if @items.size > 1 %>

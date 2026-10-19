@@ -1,0 +1,43 @@
+<h1 class="text-2xl font-bold">Descripciones de galería</h1>
+<p class="mt-2 text-sm text-gray-600">
+  Cada etiqueta agrupa las fotos de la galería del inicio. Aquí puedes añadir o editar el texto que se muestra al visitar ese conjunto.
+</p>
+
+<div class="admin-table-card mt-6">
+  <% if @gallery_tags.any? %>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Etiqueta</th>
+          <th>Fotos</th>
+          <th>Descripción</th>
+          <th class="admin-table__actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @gallery_tags.each do |gallery_tag| %>
+          <tr>
+            <td class="font-medium text-gray-900"><%= gallery_tag.label %></td>
+            <td class="text-gray-600"><%= @photo_counts[gallery_tag.label] || 0 %></td>
+            <td class="max-w-md text-sm text-gray-600">
+              <% if gallery_tag.description.present? %>
+                <%= truncate(gallery_tag.description, length: 120) %>
+              <% else %>
+                <span class="text-gray-400">Sin descripción</span>
+              <% end %>
+            </td>
+            <td class="admin-table__actions">
+              <%= link_to "Editar", edit_admin_gallery_tag_path(gallery_tag), class: "text-brand hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="p-6 text-sm text-gray-600">
+      Aún no hay etiquetas. Sube fotos en
+      <%= link_to "Galería inicio", admin_gallery_items_path, class: "text-brand hover:underline" %>
+      y asigna una etiqueta a cada imagen.
+    </p>
+  <% end %>
+</div>

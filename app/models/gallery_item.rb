@@ -32,6 +32,17 @@ class GalleryItem < ApplicationRecord
     visible.ordered.select { |item| item.tag_slug == slug.to_s }
   end
 
+  def self.distinct_tag_labels
+    pluck(:tag)
+      .map { |tag| tag.presence || UNTAGGED_LABEL }
+      .uniq
+      .sort_by { |label| label.parameterize }
+  end
+
+  def self.photo_counts_by_label
+    pluck(:tag).group_by { |tag| tag.presence || UNTAGGED_LABEL }.transform_values(&:count)
+  end
+
   def tag_label
     tag.presence || UNTAGGED_LABEL
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_19_000005) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -193,6 +193,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_19_000005) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["position"], name: "index_gallery_items_on_position"
+  end
+
+  create_table "gallery_tags", force: :cascade do |t|
+    t.string "label", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["label"], name: "index_gallery_tags_on_label", unique: true
   end
 
   create_table "invoices", force: :cascade do |t|

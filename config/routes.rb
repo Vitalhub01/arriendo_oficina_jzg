@@ -84,6 +84,7 @@ Rails.application.routes.draw do
         patch :reorder
       end
     end
+    resources :gallery_tags, path: 'gallery-tags', only: %i[index edit update]
     resource :site_settings, only: %i[edit update]
 
     authenticate :user, ->(u) { u.admin? } do

@@ -61,7 +61,12 @@ module AdminHelper
     {
       label: 'Galería inicio',
       path: :admin_gallery_items_path,
-      match: ->(req) { req.path.start_with?('/admin/gallery') }
+      match: ->(req) { req.path == '/admin/gallery' || req.path == '/admin/gallery/reorder' || req.path.match?(%r{^/admin/gallery/\d+}) }
+    },
+    {
+      label: 'Descripciones de galería',
+      path: :admin_gallery_tags_path,
+      match: ->(req) { req.path.start_with?('/admin/gallery-tags') }
     },
     {
       label: 'Redes sociales',

@@ -1,0 +1,25 @@
+<p class="text-sm">
+  <%= link_to "← Descripciones de galería", admin_gallery_tags_path, class: "text-brand hover:underline" %>
+</p>
+
+<h1 class="mt-4 text-2xl font-bold">Editar descripción</h1>
+<p class="mt-2 text-sm text-gray-600">
+  Etiqueta: <span class="font-medium text-gray-900"><%= @gallery_tag.label %></span>
+</p>
+
+<%= form_with model: @gallery_tag, url: admin_gallery_tag_path(@gallery_tag), method: :patch, class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <% if @gallery_tag.errors.any? %>
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+      <%= @gallery_tag.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <%= f.label :description, "Descripción", class: "block text-sm font-medium" %>
+  <%= f.text_area :description, rows: 5, class: "input-field", placeholder: "Texto breve sobre este ambiente o conjunto de fotos…" %>
+  <p class="text-xs text-gray-500">Se muestra en la página pública de cada etiqueta de la galería.</p>
+
+  <div class="flex gap-3">
+    <%= f.submit "Guardar", class: "btn-primary" %>
+    <%= link_to "Cancelar", admin_gallery_tags_path, class: "btn-secondary" %>
+  </div>
+<% end %>

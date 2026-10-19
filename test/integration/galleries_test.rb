@@ -32,6 +32,20 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     assert_match '/rails/active_storage/', response.body
   end
 
+  test 'show displays tag description when present' do
+    item = GalleryItem.create!(position: 0, tag: 'Exterior', visible: true)
+    item.image.attach(
+      io: File.open(Rails.root.join('test/fixtures/files/cover.jpg')),
+      filename: 'cover.jpg',
+      content_type: 'image/jpeg'
+    )
+    GalleryTag.create!(label: 'Exterior', description: 'Vista del edificio y accesos.')
+
+    get gallery_path(tag: item.tag_slug, photo_id: item.id)
+    assert_response :success
+    assert_match 'Vista del edificio y accesos.', response.body
+  end
+
   test 'unknown tag returns not found' do
     get gallery_path(tag: 'no-existe')
     assert_response :not_found
