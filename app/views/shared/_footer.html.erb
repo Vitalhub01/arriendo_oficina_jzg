@@ -24,7 +24,8 @@
       <div>
         <p class="text-xs font-medium uppercase tracking-widest text-gray-900">Contacto</p>
         <p class="mt-4 text-sm text-gray-600">Espacios de salud · VitalHub</p>
-        <p class="mt-2 text-sm text-gray-400">&copy; <%= Date.current.year %> VitalHub. Chile.</p>
+        <%= render "shared/social_contacts", contacts: footer_social_contacts, variant: :footer %>
+        <p class="mt-4 text-sm text-gray-400">&copy; <%= Date.current.year %> VitalHub. Chile.</p>
       </div>
     </div>
   </div>

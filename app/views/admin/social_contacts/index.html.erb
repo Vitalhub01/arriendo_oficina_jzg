@@ -1,0 +1,35 @@
+<h1 class="text-2xl font-bold">Redes sociales</h1>
+<p class="mt-2 text-sm text-gray-600">Contactos que se muestran en el landing y el pie de página del sitio.</p>
+<%= link_to "Nuevo contacto", new_admin_social_contact_path, class: "btn-primary mt-4 inline-flex" %>
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Red</th>
+        <th>Usuario</th>
+        <th>Visible</th>
+        <th class="admin-table__actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @social_contacts.each do |contact| %>
+        <tr>
+          <td class="font-medium text-gray-900">
+            <div class="flex items-center gap-3">
+              <% if contact.icon.attached? %>
+                <%= image_tag contact.icon, alt: contact.name, class: "h-8 w-8 object-contain" %>
+              <% end %>
+              <%= contact.name %>
+            </div>
+          </td>
+          <td class="text-gray-600"><%= contact.username.presence || "—" %></td>
+          <td><%= contact.visible? ? 'Sí' : 'No' %></td>
+          <td class="admin-table__actions space-x-3">
+            <%= link_to "Editar", edit_admin_social_contact_path(contact), class: "text-brand hover:underline" %>
+            <%= button_to "Eliminar", admin_social_contact_path(contact), method: :delete, form: { data: { turbo_confirm: "¿Eliminar este contacto?" } }, class: "text-red-600 hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -63,6 +63,7 @@ Rails.application.routes.draw do
     resources :membership_plans
     resources :memberships, only: [:index]
     resources :faqs
+    resources :social_contacts, except: [:show]
     resource :site_settings, only: %i[edit update]
 
     authenticate :user, ->(u) { u.admin? } do

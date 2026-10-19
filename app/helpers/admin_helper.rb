@@ -39,6 +39,11 @@ module AdminHelper
     },
     { label: 'FAQ', path: :admin_faqs_path, match: ->(req) { req.path.start_with?('/admin/faqs') } },
     {
+      label: 'Redes sociales',
+      path: :admin_social_contacts_path,
+      match: ->(req) { req.path.start_with?('/admin/social_contacts') }
+    },
+    {
       label: 'Configuración',
       path: :edit_admin_site_settings_path,
       match: ->(req) { req.path.start_with?('/admin/site_settings') }

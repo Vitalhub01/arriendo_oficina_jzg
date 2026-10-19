@@ -85,4 +85,8 @@ module ApplicationHelper
     payload = params.to_json
     javascript_tag("if (typeof gtag === 'function') { gtag('event', '#{j(event_name)}', #{payload}); }")
   end
+
+  def footer_social_contacts
+    @footer_social_contacts ||= SocialContact.visible.ordered.with_attached_icon.to_a
+  end
 end

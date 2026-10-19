@@ -11,5 +11,6 @@ class HomeController < ApplicationController
                                       .first
     @testimonials = Testimonial.visible.includes(:profesional).order(created_at: :desc).limit(6)
     @faqs = Faq.where(visible: true).order(:position)
+    @social_contacts = SocialContact.visible.ordered.with_attached_icon
   end
 end

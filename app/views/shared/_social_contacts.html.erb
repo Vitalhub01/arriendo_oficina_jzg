@@ -1,0 +1,23 @@
+<%# locals: (contacts:, variant: :default) %>
+<% return if contacts.blank? %>
+
+<div class="<%= variant == :footer ? 'mt-4 flex flex-wrap gap-3' : 'mt-8 flex flex-wrap justify-center gap-4' %>">
+  <% contacts.each do |contact| %>
+    <%= link_to contact.url,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "#{variant == :footer ? 'inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:border-brand hover:text-brand' : 'inline-flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition hover:border-brand hover:shadow-md'}",
+                title: contact.name do %>
+      <% if contact.icon.attached? %>
+        <%= image_tag contact.icon, alt: contact.name, class: "#{variant == :footer ? 'h-5 w-5' : 'h-8 w-8'} object-contain" %>
+      <% end %>
+      <span class="<%= variant == :footer ? '' : 'text-sm font-medium text-gray-900' %>">
+        <% if contact.username.present? %>
+          @<%= contact.username %>
+        <% else %>
+          <%= contact.name %>
+        <% end %>
+      </span>
+    <% end %>
+  <% end %>
+</div>
