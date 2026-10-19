@@ -53,7 +53,7 @@ module Admin
       raw = params.require(:space).permit(
         :title, :description, :address, :commune, :city, :office_id,
         :latitude, :longitude, :box_type, :price_per_hour_cents,
-        :slot_duration_minutes, :minimum_slots,
+        :slot_duration_minutes, :minimum_slots, :reschedule_notice_hours,
         :minimum_hours, :status, :capacity, :dimensions,
         amenities: {}, equipment: [], photos: []
       )

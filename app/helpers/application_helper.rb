@@ -31,6 +31,10 @@ module ApplicationHelper
   end
 
   def booking_status_label(booking)
+    if booking.confirmed? && booking.respond_to?(:manually_confirmed_at) && booking.manually_confirmed_at.present?
+      return 'Confirmada manualmente'
+    end
+
     I18n.t("activerecord.enums.booking.status.#{booking.status}", default: booking.status.humanize)
   end
 

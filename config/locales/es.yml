@@ -19,6 +19,7 @@ es:
           confirmed: Confirmada
           cancelled: Cancelada
           completed: Completada
+          rescheduled: Reprogramada
   date:
     day_names:
       - domingo

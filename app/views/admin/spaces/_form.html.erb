@@ -31,6 +31,9 @@
   <p class="text-xs text-gray-500">Múltiplo de 30. Ej: 60 = 1 hora, 90 = 1h30.</p>
   <%= f.label :minimum_slots, "Mínimo de bloques por reserva", class: "block text-sm font-medium" %>
   <%= f.number_field :minimum_slots, class: "input-field", min: 1 %>
+  <%= f.label :reschedule_notice_hours, "Anticipación para reprogramar (horas)", class: "block text-sm font-medium" %>
+  <%= f.number_field :reschedule_notice_hours, class: "input-field", min: 1, step: 1, placeholder: "Vacío = valor global del sitio" %>
+  <p class="text-xs text-gray-500">El profesional puede reprogramar hasta esta cantidad de horas antes del inicio de la cita.</p>
   <%= f.label :capacity, class: "block text-sm font-medium" %>
   <%= f.number_field :capacity, class: "input-field" %>
   <%= f.label :dimensions, class: "block text-sm font-medium" %>

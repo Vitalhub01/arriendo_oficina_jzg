@@ -1,0 +1,50 @@
+<div class="max-w-lg">
+  <%= link_to "← Reservas", admin_bookings_path, class: "text-sm text-brand hover:underline" %>
+  <h1 class="mt-2 text-2xl font-bold">Nueva reserva</h1>
+  <p class="mt-1 text-sm text-gray-600">Asigna espacio, bloques horarios y profesional.</p>
+
+  <% if flash[:alert].present? %>
+    <div class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800"><%= flash[:alert] %></div>
+  <% end %>
+
+  <%= form_with scope: :booking, url: admin_bookings_path, class: "mt-6 space-y-4" do |f| %>
+    <div>
+      <%= f.label :profesional_id, "Profesional", class: "block text-sm font-medium" %>
+      <%= f.collection_select :profesional_id, @professionals, :id, :name, { prompt: "Seleccionar…" }, class: "input-field mt-1 w-full", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :space_id, "Espacio", class: "block text-sm font-medium" %>
+      <%= f.collection_select :space_id, @spaces, :id, :title, { prompt: "Seleccionar…" }, class: "input-field mt-1 w-full", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :date, "Fecha", class: "block text-sm font-medium" %>
+      <%= f.date_field :date, class: "input-field mt-1 w-full", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :start_time, "Hora de inicio", class: "block text-sm font-medium" %>
+      <%= f.time_field :start_time, class: "input-field mt-1 w-full", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :slot_count, "Cantidad de bloques", class: "block text-sm font-medium" %>
+      <%= f.number_field :slot_count, min: 1, class: "input-field mt-1 w-full", required: true %>
+      <p class="mt-1 text-xs text-gray-500">La duración de cada bloque depende del espacio (ej. 60 min).</p>
+    </div>
+
+    <div class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+      <%= f.check_box :confirm_manually, { checked: true }, '1', '0' %>
+      <div>
+        <%= f.label :confirm_manually, "Confirmar manualmente (sin pago en línea)", class: "text-sm font-medium" %>
+        <p class="text-xs text-gray-600">La reserva quedará como confirmada manualmente. Desmarca para dejarla pendiente de pago.</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 pt-2">
+      <%= f.submit "Crear reserva", class: "btn-primary" %>
+      <%= link_to "Cancelar", admin_bookings_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>

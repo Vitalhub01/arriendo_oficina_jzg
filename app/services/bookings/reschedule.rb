@@ -62,8 +62,11 @@ module Bookings
     private
 
     def reschedule_cutoff
-      notice_hours = SiteSetting.get('reschedule_notice_hours', ENV.fetch('RESCHEDULE_NOTICE_HOURS', '24')).to_i
-      notice_hours.hours.from_now
+      notice_hours = @booking.space.reschedule_notice_hours
+      if notice_hours.blank?
+        notice_hours = SiteSetting.get('reschedule_notice_hours', ENV.fetch('RESCHEDULE_NOTICE_HOURS', '24')).to_i
+      end
+      notice_hours.to_i.hours.from_now
     end
 
     def create_credit!

@@ -1,8 +1,34 @@
-<h1 class="text-2xl font-bold">Reserva #<%= @booking.id %></h1>
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <h1 class="text-2xl font-bold">Reserva #<%= @booking.id %></h1>
+  <%= link_to "← Reservas", admin_bookings_path, class: "text-sm text-brand hover:underline" %>
+</div>
+
 <div class="card mt-6 p-6 text-sm">
   <p><strong>Espacio:</strong> <%= @booking.space.title %></p>
   <p><strong>Profesional:</strong> <%= @booking.profesional.name %> (<%= @booking.profesional.email %>)</p>
-  <p><strong>Fecha:</strong> <%= l(@booking.start_at, format: :long) %></p>
+  <p><strong>Fecha:</strong> <%= l(@booking.start_at, format: :long) %> — <%= l(@booking.end_at, format: "%H:%M") %></p>
+  <p><strong>Duración:</strong> <%= @booking.formatted_duration %> (<%= @booking.slot_count %> bloque(s))</p>
   <p><strong>Total:</strong> <%= @booking.formatted_total %></p>
   <p><strong>Estado:</strong> <%= booking_status_label(@booking) %></p>
+  <% if @booking.profesional.banned? %>
+    <p class="mt-2 text-red-700"><strong>Usuario en lista negra</strong> desde <%= l(@booking.profesional.banned_at, format: :short) %></p>
+  <% end %>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <% if Bookings::Cancel.new(booking: @booking, actor: current_user).cancellable? %>
+    <%= button_to "Anular reserva", admin_booking_path(@booking), method: :patch, params: { cancel: true }, class: "btn-secondary", data: { turbo_confirm: "¿Anular esta reserva?" } %>
+  <% end %>
+
+  <% if @booking.pending_payment? && !@booking.payment_expired? %>
+    <%= button_to "Confirmar manualmente", admin_booking_path(@booking), method: :patch, params: { confirm_manually: true }, class: "btn-primary", data: { turbo_confirm: "¿Confirmar sin pasar por Mercado Pago?" } %>
+  <% end %>
+
+  <% if @booking.profesional.banned? %>
+    <%= button_to "Quitar de lista negra", admin_booking_path(@booking), method: :patch, params: { unban_profesional: true }, class: "btn-secondary" %>
+  <% elsif @booking.profesional_id != current_user.id %>
+    <%= button_to "Bloquear profesional (lista negra)", admin_booking_path(@booking), method: :patch, params: { ban_profesional: true }, class: "btn-secondary", data: { turbo_confirm: "¿Bloquear a este profesional en toda la plataforma?" } %>
+  <% end %>
+
+  <%= link_to "Editar permisos del usuario", edit_admin_user_path(@booking.profesional), class: "btn-secondary" %>
 </div>

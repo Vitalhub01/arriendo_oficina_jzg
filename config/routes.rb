@@ -56,7 +56,7 @@ Rails.application.routes.draw do
     resources :pricing_rules
     resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
-    resources :bookings, only: %i[index show update]
+    resources :bookings, only: %i[index show new create update]
     resources :testimonials, only: %i[index update]
     resources :membership_plans
     resources :memberships, only: [:index]

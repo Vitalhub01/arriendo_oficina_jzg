@@ -33,6 +33,8 @@ class Space < ApplicationRecord
   validates :minimum_hours, numericality: { greater_than: 0, only_integer: true }
   validates :slot_duration_minutes, numericality: { greater_than: 0, only_integer: true }
   validates :minimum_slots, numericality: { greater_than: 0, only_integer: true }
+  validates :reschedule_notice_hours,
+            numericality: { greater_than: 0, only_integer: true, allow_nil: true }
   validate :slot_duration_multiple_of_thirty
   validate :photos_required_for_publish, if: :published?
   validate :coordinates_required_for_publish, if: :published?

@@ -171,4 +171,71 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     assert_match 'Acceso no autorizado', flash[:alert]
   end
+
+  test 'admin cancels booking from panel' do
+    sign_in @admin
+    slot_time = next_monday_at(hour: 11)
+    booking = Booking.create!(
+      space: @published,
+      profesional: @renter,
+      start_at: slot_time,
+      end_at: slot_time + 2.hours,
+      hours: 2,
+      duration_minutes: 120,
+      total_amount_cents: 30_000,
+      status: :confirmed,
+      booking_type: :slot_based
+    )
+
+    patch admin_booking_path(booking), params: { cancel: true }
+    assert_redirected_to admin_booking_path(booking)
+    assert booking.reload.cancelled?
+  end
+
+  test 'admin confirms booking manually' do
+    sign_in @admin
+    slot_time = next_monday_at(hour: 12)
+    booking = Booking.create!(
+      space: @published,
+      profesional: @renter,
+      start_at: slot_time,
+      end_at: slot_time + 2.hours,
+      hours: 2,
+      duration_minutes: 120,
+      total_amount_cents: 30_000,
+      status: :pending_payment,
+      payment_expires_at: 30.minutes.from_now,
+      booking_type: :slot_based
+    )
+
+    patch admin_booking_path(booking), params: { confirm_manually: true }
+    assert_redirected_to admin_booking_path(booking)
+    booking.reload
+    assert booking.confirmed?
+    assert booking.manually_confirmed_at.present?
+  end
+
+  test 'admin creates booking for professional' do
+    sign_in @admin
+    slot_time = next_monday_at(hour: 10)
+
+    assert_difference 'Booking.count', 1 do
+      post admin_bookings_path, params: {
+        booking: {
+          profesional_id: @renter.id,
+          space_id: @published.id,
+          date: booking_date_param(slot_time),
+          start_time: booking_start_time_param(slot_time),
+          slot_count: 2,
+          confirm_manually: '1'
+        }
+      }
+    end
+
+    booking = Booking.order(:created_at).last
+    assert_redirected_to admin_booking_path(booking)
+    assert booking.confirmed?
+    assert booking.manually_confirmed_at.present?
+    assert_equal @renter.id, booking.profesional_id
+  end
 end
