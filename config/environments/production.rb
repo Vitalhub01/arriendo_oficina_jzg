@@ -44,7 +44,7 @@ Rails.application.configure do
   config.active_storage.variant_processor = :vips
 
   config.action_controller.default_url_options = {
-    host: ENV.fetch('APP_HOST', 'arriendo-oficina-jzg.onrender.com'),
+    host: ENV.fetch('APP_HOST', 'www.vitalhub.cl'),
     protocol: 'https'
   }
   config.action_mailer.default_url_options = config.action_controller.default_url_options
@@ -55,6 +55,9 @@ Rails.application.configure do
 
   config.force_ssl = true
 
+  # Custom domain + Render default hostname (both must stay allowed).
+  config.hosts << 'vitalhub.cl'
+  config.hosts << 'www.vitalhub.cl'
   config.hosts << 'arriendodebox.cl'
   config.hosts << 'rentabox.onrender.com'
   config.hosts << 'arriendo-oficina-jzg.onrender.com'
@@ -80,7 +83,7 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.default_url_options = { host: ENV.fetch('APP_HOST', 'arriendo-oficina-jzg.onrender.com') }
+  config.action_mailer.default_url_options = { host: ENV.fetch('APP_HOST', 'www.vitalhub.cl') }
   config.action_mailer.smtp_settings = {
     address: ENV.fetch('SMTP_ADDRESS', 'smtp.sendgrid.net'),
     port: ENV.fetch('SMTP_PORT', 587).to_i,
