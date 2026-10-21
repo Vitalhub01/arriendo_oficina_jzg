@@ -57,7 +57,18 @@ class GalleryItem < ApplicationRecord
   end
 
   def self.items_for_tag_slug(slug)
-    visible.ordered.select { |item| item.tag_slug == slug.to_s }
+    slug = slug.to_s.downcase
+    tags = visible.distinct.pluck(:tag)
+    return visible.none unless tags.any? { |tag| (tag.presence || UNTAGGED_LABEL).parameterize == slug }
+
+    matched_tag = tags.find { |tag| (tag.presence || UNTAGGED_LABEL).parameterize == slug }
+
+    scope = visible.ordered.with_attached_image
+    if matched_tag.present?
+      scope.where(tag: matched_tag)
+    else
+      scope.where(tag: [nil, ''])
+    end
   end
 
   def self.distinct_tag_labels
