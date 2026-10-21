@@ -21,6 +21,13 @@ class GalleryItem < ApplicationRecord
   scope :ordered, -> { order(:position, :id) }
 
   before_validation :assign_next_position, on: :create
+  after_commit :enqueue_variant_preprocessing, on: :create
+
+  def enqueue_variant_preprocessing
+    return unless image.attached?
+
+    PreprocessGalleryItemVariantsJob.perform_later(id)
+  end
 
   def self.grouped_by_tag(scope = visible.ordered)
     scope.group_by(&:tag_label).sort_by do |_label, items|

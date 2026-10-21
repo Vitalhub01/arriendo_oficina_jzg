@@ -11,6 +11,13 @@ class SpacePhoto < ApplicationRecord
   scope :ordered, -> { order(:position, :id) }
 
   before_validation :assign_next_position, on: :create
+  after_commit :enqueue_variant_preprocessing, on: :create
+
+  def enqueue_variant_preprocessing
+    return unless image.attached?
+
+    PreprocessSpacePhotoVariantsJob.perform_later(id)
+  end
 
   private
 
