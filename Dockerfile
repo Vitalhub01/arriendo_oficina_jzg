@@ -22,7 +22,10 @@ COPY . .
 
 RUN chmod +x bin/* || true
 
-RUN SECRET_KEY_BASE=dummy_key_for_assets_precompile bin/rails assets:precompile
+# No Supabase/S3 env at image build time — use local disk so Rails boot does not fail.
+RUN SECRET_KEY_BASE=dummy_key_for_assets_precompile \
+    ACTIVE_STORAGE_SERVICE=local \
+    bin/rails assets:precompile
 
 EXPOSE 3000
 
