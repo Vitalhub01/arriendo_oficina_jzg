@@ -6,4 +6,21 @@ if [ "${SKIP_DB_PREPARE}" != "1" ]; then
   bin/rails db:prepare
 fi
 
+sidekiq_only=false
+if [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "sidekiq" ]; then
+  sidekiq_only=true
+fi
+
+if [ "$sidekiq_only" = true ]; then
+  exec "$@"
+fi
+
+# Single Render web service (no paid worker): run Sidekiq beside Puma in production.
+if [ "${RAILS_ENV}" = "production" ] && [ -n "${REDIS_URL}" ] && [ "${SKIP_SIDEKIQ}" != "1" ]; then
+  echo "Starting Sidekiq (background)..."
+  bundle exec sidekiq -C config/sidekiq.yml &
+  sidekiq_pid=$!
+  trap 'kill -TERM "$sidekiq_pid" 2>/dev/null; wait "$sidekiq_pid" 2>/dev/null' EXIT TERM INT
+fi
+
 exec "$@"
