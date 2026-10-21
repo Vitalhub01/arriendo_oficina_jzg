@@ -5,7 +5,9 @@ ENV RAILS_ENV=production \
     BUNDLE_WITHOUT="development:test" \
     BUNDLE_PATH=/usr/local/bundle \
     RAILS_SERVE_STATIC_FILES=true \
-    RAILS_LOG_TO_STDOUT=true
+    RAILS_LOG_TO_STDOUT=true \
+    VIPS_CONCURRENCY=1 \
+    MALLOC_ARENA_MAX=2
 
 RUN apt-get update -qq && \
     apt-get install -y build-essential libpq-dev libyaml-dev curl git libvips42 && \

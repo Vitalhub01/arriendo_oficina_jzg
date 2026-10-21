@@ -21,7 +21,12 @@ class GalleryItem < ApplicationRecord
   scope :ordered, -> { order(:position, :id) }
 
   before_validation :assign_next_position, on: :create
+  before_validation :normalize_uploaded_image, on: :create
   after_commit :enqueue_variant_preprocessing, on: :create
+
+  def normalize_uploaded_image
+    ImageUploadNormalizer.normalize!(image) if image.attached?
+  end
 
   def enqueue_variant_preprocessing
     return unless image.attached?
@@ -33,6 +38,22 @@ class GalleryItem < ApplicationRecord
     scope.group_by(&:tag_label).sort_by do |_label, items|
       items.map(&:position).min || 0
     end
+  end
+
+  # One cover image per tag + counts (home gallery), without loading every photo.
+  def self.home_gallery_groups
+    tag_key_sql = "COALESCE(NULLIF(TRIM(tag), ''), '#{UNTAGGED_LABEL.gsub("'", "''")}')"
+
+    counts = visible.reorder(nil).group(Arel.sql(tag_key_sql)).count
+    covers = visible
+             .with_attached_image
+             .select("DISTINCT ON (#{tag_key_sql}) gallery_items.*")
+             .order(Arel.sql(tag_key_sql), :position, :id)
+             .to_a
+
+    covers
+      .map { |item| [item.tag_label, HomeGalleryTagGroup.new(item, counts.fetch(item.tag_label, 1))] }
+      .sort_by { |_label, group| group.cover.position }
   end
 
   def self.items_for_tag_slug(slug)

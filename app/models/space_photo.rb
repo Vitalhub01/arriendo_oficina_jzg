@@ -11,7 +11,12 @@ class SpacePhoto < ApplicationRecord
   scope :ordered, -> { order(:position, :id) }
 
   before_validation :assign_next_position, on: :create
+  before_validation :normalize_uploaded_image, on: :create
   after_commit :enqueue_variant_preprocessing, on: :create
+
+  def normalize_uploaded_image
+    ImageUploadNormalizer.normalize!(image) if image.attached?
+  end
 
   def enqueue_variant_preprocessing
     return unless image.attached?

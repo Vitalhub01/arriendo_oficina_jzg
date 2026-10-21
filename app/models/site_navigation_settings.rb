@@ -50,8 +50,16 @@ class SiteNavigationSettings
   }.freeze
 
   KEYS = LABELS.keys.freeze
+  CACHE_KEY = 'site_navigation_settings/v1'
+
+  def self.load_all
+    Rails.cache.fetch(CACHE_KEY, expires_in: 5.minutes) do
+      stored = SiteSetting.where(key: KEYS).pluck(:key, :value).to_h
+      KEYS.index_with { |key| stored[key].presence || DEFAULTS.fetch(key) }
+    end
+  end
 
   def self.value(key)
-    SiteSetting.get(key, DEFAULTS.fetch(key))
+    load_all.fetch(key.to_s) { DEFAULTS.fetch(key.to_s) }
   end
 end

@@ -36,6 +36,13 @@ services:
         sync: false
       - key: SUPABASE_S3_REGION
         value: us-east-1
+      # Limit concurrent requests so Active Storage does not run several libvips transforms at once (512MB plan).
+      - key: RAILS_MAX_THREADS
+        value: "2"
+      - key: VIPS_CONCURRENCY
+        value: "1"
+      - key: MALLOC_ARENA_MAX
+        value: "2"
 
   - type: worker
     name: rentabox-worker
@@ -69,6 +76,10 @@ services:
         sync: false
       - key: SUPABASE_S3_REGION
         value: us-east-1
+      - key: VIPS_CONCURRENCY
+        value: "1"
+      - key: MALLOC_ARENA_MAX
+        value: "2"
 
   - type: redis
     name: rentabox-redis

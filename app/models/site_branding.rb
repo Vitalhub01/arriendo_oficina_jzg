@@ -14,6 +14,13 @@ class SiteBranding < ApplicationRecord
     with_attached_logo.with_attached_hero_image.first || create!
   end
 
+  after_commit :normalize_branding_images
+
+  def normalize_branding_images
+    ImageUploadNormalizer.normalize!(logo) if logo.attached?
+    ImageUploadNormalizer.normalize!(hero_image) if hero_image.attached?
+  end
+
   private
 
   def logo_content_type

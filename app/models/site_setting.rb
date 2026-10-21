@@ -11,6 +11,7 @@ class SiteSetting < ApplicationRecord
     record = find_or_initialize_by(key: key.to_s)
     record.value = value
     record.save!
+    Rails.cache.delete(SiteNavigationSettings::CACHE_KEY)
     record.value
   end
 end

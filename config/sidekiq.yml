@@ -1,4 +1,5 @@
-:concurrency: 5
+# One image preprocess at a time on 512MB worker; raise when you upgrade RAM.
+:concurrency: 1
 :queues:
   - default
   - mailers

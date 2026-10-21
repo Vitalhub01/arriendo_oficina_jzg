@@ -83,8 +83,24 @@ class Space < ApplicationRecord
     slot_rates.minimum(:price_per_slot_cents) || default_price_per_slot_cents
   end
 
+  def self.home_pricing_snapshot
+    Rails.cache.fetch('spaces/home_pricing_snapshot/v1', expires_in: 2.minutes) do
+      slot_rates = SlotRate.joins(:space).merge(published_spaces)
+      block_effective = Arel.sql('COALESCE(slot_rates.block_price_cents, slot_rates.price_per_slot_cents)')
+
+      {
+        min_hourly_cents: published_spaces.minimum(:price_per_hour_cents),
+        min_morning_block_cents: slot_rates.where(name: 'Mañana').minimum(block_effective),
+        min_afternoon_block_cents: slot_rates.where(name: 'Tarde').minimum(block_effective),
+        min_jornada_cents: JornadaDefinition.active.where(space_id: published_spaces.select(:id)).minimum(:price_cents)
+      }
+    end
+  end
+
   def self.home_min_flexible_block_price_cents
-    published_spaces.includes(:slot_rates).filter_map(&:flexible_block_unit_price_cents).min
+    SlotRate.joins(:space)
+            .merge(published_spaces)
+            .minimum(:price_per_slot_cents)
   end
 
   def morning_block_price_cents
@@ -96,19 +112,19 @@ class Space < ApplicationRecord
   end
 
   def self.home_min_morning_block_price_cents
-    published_spaces.includes(:slot_rates).filter_map(&:morning_block_price_cents).min
+    home_pricing_snapshot[:min_morning_block_cents]
   end
 
   def self.home_min_afternoon_block_price_cents
-    published_spaces.includes(:slot_rates).filter_map(&:afternoon_block_price_cents).min
+    home_pricing_snapshot[:min_afternoon_block_cents]
   end
 
   def self.home_min_hourly_price_cents
-    published_spaces.minimum(:price_per_hour_cents)
+    home_pricing_snapshot[:min_hourly_cents]
   end
 
   def self.home_min_jornada_price_cents
-    JornadaDefinition.active.where(space_id: published_spaces.select(:id)).minimum(:price_cents)
+    home_pricing_snapshot[:min_jornada_cents]
   end
 
   def price_per_slot_at(time)

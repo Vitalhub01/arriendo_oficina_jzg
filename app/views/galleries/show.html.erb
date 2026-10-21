@@ -73,7 +73,7 @@
             <%= image_tag item.image.variant(resize_to_limit: [480, 640]),
                 alt: item.display_alt,
                 class: "w-full object-cover #{item.masonry_aspect_class}",
-                **image_loading_attrs(eager: item.id == @current_item.id) %>
+                **image_loading_attrs(eager: false) %>
           <% end %>
         <% end %>
       </div>

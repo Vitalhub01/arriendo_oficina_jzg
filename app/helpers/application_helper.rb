@@ -118,6 +118,10 @@ module ApplicationHelper
     @site_branding ||= SiteBranding.current
   end
 
+  def site_navigation_settings
+    @site_navigation_settings ||= SiteNavigationSettings.load_all
+  end
+
   def site_logo(branding = site_branding)
     branding.logo.attached? ? branding.logo : 'logo_vital_hub.png'
   end
@@ -127,7 +131,7 @@ module ApplicationHelper
   end
 
   def site_nav_text(key)
-    SiteNavigationSettings.value(key.to_s)
+    site_navigation_settings.fetch(key.to_s) { SiteNavigationSettings::DEFAULTS.fetch(key.to_s) }
   end
 
   def site_logo_url
