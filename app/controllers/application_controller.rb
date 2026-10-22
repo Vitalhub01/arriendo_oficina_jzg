@@ -17,6 +17,13 @@ class ApplicationController < ActionController::Base
     SiteFeatureSettings.memberships_enabled?
   end
 
+  # Evita UnsafeRedirectError cuando APP_HOST (p. ej. www) no coincide con el host de la petición.
+  def default_url_options
+    opts = { host: request.host, protocol: request.scheme }
+    opts[:port] = request.port unless request.standard_port?
+    opts
+  end
+
   private
 
   def track_ga_flash_event
