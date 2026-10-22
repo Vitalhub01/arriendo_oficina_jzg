@@ -2,6 +2,7 @@
 
 module Admin
   class PricingRulesController < Admin::BaseController
+    before_action :require_memberships_enabled!
     before_action :set_pricing_rule, only: %i[show edit update destroy]
 
     def index

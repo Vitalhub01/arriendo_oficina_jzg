@@ -35,6 +35,7 @@ Rails.application.routes.draw do
   get 'privacidad', to: 'pages#privacy', as: :privacy
   get 'cancelacion', to: 'pages#cancellation', as: :cancellation_policy
 
+  get 'galeria/marco/:id', to: 'galleries#frame', as: :gallery_frame
   get 'galeria/:tag', to: 'galleries#show', as: :gallery
 
   get 'sitemap.xml', to: 'sitemaps#show', defaults: { format: :xml }
@@ -43,6 +44,9 @@ Rails.application.routes.draw do
     root to: 'dashboard#index'
     resource :office, only: %i[edit update], controller: 'office'
     resources :spaces do
+      collection do
+        patch :reorder
+      end
       resource :availability, only: [:show], controller: 'spaces/availabilities'
       resources :schedule_blocks, controller: 'spaces/schedule_blocks', except: [:show] do
         collection do

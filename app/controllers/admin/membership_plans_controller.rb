@@ -2,6 +2,7 @@
 
 module Admin
   class MembershipPlansController < Admin::BaseController
+    before_action :require_memberships_enabled!
     before_action :set_membership_plan, only: %i[show edit update destroy]
 
     def index

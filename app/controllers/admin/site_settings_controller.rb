@@ -16,7 +16,7 @@ module Admin
     def edit
       @settings = SETTING_KEYS.index_with { |key| SiteSetting.get(key) }
       @nav_settings = NAV_SETTING_KEYS.index_with { |key| SiteNavigationSettings.value(key) }
-      @branding = SiteBranding.current
+      @memberships_enabled = SiteFeatureSettings.memberships_enabled?
     end
 
     def update
@@ -28,14 +28,13 @@ module Admin
         SiteSetting.set(key, value)
       end
 
-      @branding = SiteBranding.current
-      if @branding.update(site_branding_params)
-        redirect_to edit_admin_site_settings_path, notice: 'Configuración actualizada'
-      else
-        @settings = SETTING_KEYS.index_with { |key| SiteSetting.get(key) }
-        @nav_settings = NAV_SETTING_KEYS.index_with { |key| SiteNavigationSettings.value(key) }
-        render :edit, status: :unprocessable_content
+      if params.key?(:site_feature_settings)
+        raw = params.dig(:site_feature_settings, :memberships_enabled)
+        enabled = Array.wrap(raw).include?('1')
+        SiteFeatureSettings.set_memberships_enabled!(enabled)
       end
+
+      redirect_to edit_admin_site_settings_path, notice: 'Configuración actualizada'
     end
 
     private
@@ -46,10 +45,6 @@ module Admin
 
     def nav_settings_params
       params.expect(site_nav_settings: NAV_SETTING_KEYS)
-    end
-
-    def site_branding_params
-      params.fetch(:site_branding, {}).permit(:logo, :hero_image)
     end
   end
 end

@@ -2,6 +2,7 @@
 
 class MembershipsController < ApplicationController
   before_action :authenticate_user!
+  before_action :ensure_memberships_public_enabled!
 
   def show
     @membership = current_user.memberships.current.first

@@ -34,6 +34,7 @@ class Space < ApplicationRecord
 
   before_validation :inherit_location_from_office
   before_validation :geocode_from_address, if: :needs_geocoding?
+  before_create :assign_display_position
   validates :price_per_hour_cents, numericality: { greater_than: 0 }
   validates :minimum_hours, numericality: { greater_than: 0, only_integer: true }
   validates :slot_duration_minutes, numericality: { greater_than: 0, only_integer: true }
@@ -47,6 +48,7 @@ class Space < ApplicationRecord
 
   scope :published_spaces, -> { where(status: :published) }
   scope :published_boxes, -> { published_spaces }
+  scope :ordered_for_display, -> { order(:display_position, :id) }
   scope :by_city, ->(city) { where('LOWER(city) = ?', city.to_s.downcase) if city.present? }
   scope :by_commune, ->(commune) { where('LOWER(commune) = ?', commune.to_s.downcase) if commune.present? }
   scope :by_type, ->(type) { where(box_type: type) if type.present? && box_types.key?(type) }
@@ -323,6 +325,12 @@ class Space < ApplicationRecord
     return if terms_and_conditions.content_type == 'application/pdf'
 
     errors.add(:terms_and_conditions, 'debe ser un archivo PDF')
+  end
+
+  def assign_display_position
+    return unless display_position.zero?
+
+    self.display_position = (Space.maximum(:display_position) || -1) + 1
   end
 end
 

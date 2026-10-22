@@ -2,6 +2,7 @@
 
 module ApplicationHelper
   include Pagy::Frontend
+  include LazyImageHelper
 
   def format_clp(cents)
     Money.new(cents, 'CLP').format(no_cents_if_whole: true)
@@ -15,7 +16,7 @@ module ApplicationHelper
     if eager
       { loading: 'eager', fetchpriority: 'high', decoding: 'async' }
     else
-      { loading: 'lazy', decoding: 'async' }
+      { loading: 'lazy', fetchpriority: 'low', decoding: 'async' }
     end
   end
 
@@ -114,20 +115,19 @@ module ApplicationHelper
     @footer_social_contacts ||= SocialContact.visible.ordered.with_attached_icon.to_a
   end
 
-  def site_branding
-    @site_branding ||= SiteBranding.current
-  end
+  SITE_LOGO_ASSET = 'logo_vital_hub.png'
+  SITE_HERO_ASSET = 'vitalhub_office_1.jpg'
 
   def site_navigation_settings
     @site_navigation_settings ||= SiteNavigationSettings.load_all
   end
 
-  def site_logo(branding = site_branding)
-    branding.logo.attached? ? branding.logo : 'logo_vital_hub.png'
+  def site_logo
+    SITE_LOGO_ASSET
   end
 
-  def site_hero_image(branding = site_branding)
-    branding.hero_image.attached? ? branding.hero_image : 'vitalhub_office_1.jpg'
+  def site_hero_image
+    SITE_HERO_ASSET
   end
 
   def site_nav_text(key)
@@ -135,14 +135,10 @@ module ApplicationHelper
   end
 
   def site_logo_url
-    branding_image_absolute_url(site_branding.logo, 'logo_vital_hub.png')
+    absolute_url(asset_path(SITE_LOGO_ASSET))
   end
 
-  def branding_image_absolute_url(attachment, fallback_asset)
-    if attachment.attached?
-      absolute_url(url_for(attachment))
-    else
-      absolute_url(asset_path(fallback_asset))
-    end
+  def site_hero_image_url
+    absolute_url(asset_path(SITE_HERO_ASSET))
   end
 end

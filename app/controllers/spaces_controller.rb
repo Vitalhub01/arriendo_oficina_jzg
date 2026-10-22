@@ -8,7 +8,7 @@ class SpacesController < ApplicationController
     @spaces = @spaces.by_type(params[:space_type]) if params[:space_type].present?
     @spaces = @spaces.by_min_price(params[:min_price]) if params[:min_price].present?
     @spaces = @spaces.by_max_price(params[:max_price]) if params[:max_price].present?
-    @spaces = @spaces.order(created_at: :desc)
+    @spaces = @spaces.ordered_for_display
 
     @filtered_by_availability = false
     if params[:date].present? && (params[:slot_count].present? || params[:hours].present?)

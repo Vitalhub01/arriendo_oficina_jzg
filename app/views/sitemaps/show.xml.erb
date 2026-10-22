@@ -3,7 +3,7 @@
   <% static_pages = [
     [root_url(host: @host, protocol: @protocol), Time.current],
     [spaces_url(host: @host, protocol: @protocol), @spaces.maximum(:updated_at)],
-    [membership_url(host: @host, protocol: @protocol), Time.current],
+    *([[membership_url(host: @host, protocol: @protocol), Time.current]] if memberships_enabled?),
     [terms_url(host: @host, protocol: @protocol), Time.current],
     [privacy_url(host: @host, protocol: @protocol), Time.current],
     [cancellation_policy_url(host: @host, protocol: @protocol), Time.current]

@@ -15,7 +15,9 @@
         </p>
         <div class="mt-10 flex flex-wrap gap-4">
           <%= link_to "Ver espacios", spaces_path, class: "btn-primary" %>
-          <%= link_to "Membresía", membership_path, class: "btn-secondary" %>
+          <% if memberships_enabled? %>
+            <%= link_to "Membresía", membership_path, class: "btn-secondary" %>
+          <% end %>
         </div>
       </div>
 
@@ -23,10 +25,10 @@
         <div class="relative w-full max-w-lg">
           <div class="absolute -inset-4 rounded-2xl bg-brand-pale"></div>
           <div class="relative overflow-hidden rounded-2xl bg-gray-100 shadow-xl">
-            <%= image_tag site_hero_image, alt: "Espacios VitalHub", class: "aspect-[4/3] w-full object-cover", **image_loading_attrs(eager: true) %>
+            <%= lazy_asset_image site_hero_image, alt: "Espacios VitalHub", wrapper_class: "rounded-none" %>
             <div class="flex items-center justify-center border-t border-gray-200 bg-white px-6 py-8">
               <div class="logo-badge logo-badge--hero">
-                <%= image_tag site_logo, alt: "VitalHub — Espacios de salud" %>
+                <%= image_tag site_logo, alt: "VitalHub — Espacios de salud", **image_loading_attrs(eager: false) %>
               </div>
             </div>
           </div>
@@ -65,8 +67,8 @@
 
     <% if @spaces.any? %>
       <div class="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-        <% @spaces.each_with_index do |space, index| %>
-          <%= render "shared/space_card", space: space, eager_image: index.zero? %>
+        <% @spaces.each do |space| %>
+          <%= render "shared/space_card", space: space %>
         <% end %>
       </div>
     <% else %>
@@ -172,14 +174,16 @@
     </section>
   <% end %>
 
-  <section class="shop-section text-center">
-    <p class="shop-eyebrow">Membresía</p>
-    <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Beneficios para profesionales</h2>
-    <p class="mx-auto mt-4 max-w-xl text-gray-600">
-      Descuentos en arriendos, capacitaciones y accesos exclusivos para miembros suscritos.
-    </p>
-    <%= link_to "Conocer membresía", membership_path, class: "btn-primary mx-auto mt-8" %>
-  </section>
+  <% if memberships_enabled? %>
+    <section class="shop-section text-center">
+      <p class="shop-eyebrow">Membresía</p>
+      <h2 class="mt-2 text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">Beneficios para profesionales</h2>
+      <p class="mx-auto mt-4 max-w-xl text-gray-600">
+        Descuentos en arriendos, capacitaciones y accesos exclusivos para miembros suscritos.
+      </p>
+      <%= link_to "Conocer membresía", membership_path, class: "btn-primary mx-auto mt-8" %>
+    </section>
+  <% end %>
 
   <% if @faqs.any? %>
     <section class="border-t border-gray-200 bg-gray-50">

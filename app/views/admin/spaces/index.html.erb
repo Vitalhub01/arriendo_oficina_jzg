@@ -4,10 +4,22 @@
     <%= link_to "Nuevo espacio", new_admin_space_path, class: "btn-primary" %>
   </div>
 
-  <div class="admin-table-card mt-6">
+  <div
+    class="mt-6"
+    data-controller="sortable-list"
+    data-sortable-list-reorder-url-value="<%= reorder_admin_spaces_path %>"
+    data-sortable-list-csrf-token-value="<%= form_authenticity_token %>"
+    data-action="dragover->sortable-list#dragOver drop->sortable-list#dropOnList"
+  >
+    <p class="mb-4 text-sm text-gray-600">
+      Arrastra las filas para definir el orden en el catálogo público y en los destacados del inicio.
+      <span data-sortable-list-target="status" class="ml-1 text-brand"></span>
+    </p>
+    <div class="admin-table-card">
     <table class="admin-table">
       <thead>
         <tr>
+          <th class="w-10" aria-label="Orden"></th>
           <th class="w-16">Foto</th>
           <th>Nombre</th>
           <th>Precio/hora</th>
@@ -17,7 +29,22 @@
       </thead>
       <tbody>
         <% @spaces.each do |space| %>
-          <tr class="hover:bg-gray-50/80">
+          <tr
+            class="hover:bg-gray-50/80"
+            data-sortable-list-target="row"
+            data-sortable-id="<%= space.id %>"
+          >
+            <td class="text-gray-400">
+              <button
+                type="button"
+                class="cursor-grab px-1 py-2 active:cursor-grabbing"
+                title="Arrastrar para reordenar"
+                draggable="true"
+                data-action="dragstart->sortable-list#dragStart dragend->sortable-list#dragEnd"
+              >
+                ⋮⋮
+              </button>
+            </td>
             <td>
               <% if space.cover_photo %>
                 <%= image_tag space.cover_photo.variant(resize_to_limit: [96, 72]), class: "h-12 w-16 rounded object-cover bg-gray-100", alt: space.title %>
@@ -37,5 +64,6 @@
         <% end %>
       </tbody>
     </table>
+    </div>
   </div>
 </div>

@@ -5,7 +5,14 @@ module Admin
     before_action :set_space, only: %i[show edit update destroy]
 
     def index
-      @spaces = Space.includes(:office, space_photos: { image_attachment: :blob }).order(created_at: :desc)
+      @spaces = Space.includes(:office, space_photos: { image_attachment: :blob }).ordered_for_display
+    end
+
+    def reorder
+      Array(params[:order]).each_with_index do |id, index|
+        Space.where(id: id).update_all(display_position: index)
+      end
+      head :no_content
     end
 
     def show; end

@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 gap-12 md:grid-cols-3">
       <div>
         <div class="logo-badge logo-badge--footer">
-          <%= image_tag site_logo, alt: "VitalHub — Espacios de salud" %>
+          <%= image_tag site_logo, alt: "VitalHub — Espacios de salud", **image_loading_attrs(eager: false) %>
         </div>
         <p class="mt-4 max-w-xs text-sm leading-relaxed text-gray-600">
           <%= site_nav_text('footer_tagline') %>
@@ -14,7 +14,9 @@
         <p class="text-xs font-medium uppercase tracking-widest text-gray-900"><%= site_nav_text('footer_nav_heading') %></p>
         <ul class="mt-4 space-y-3 text-sm text-gray-600">
           <li><%= link_to site_nav_text('footer_link_spaces'), spaces_path, class: "hover:text-brand" %></li>
-          <li><%= link_to site_nav_text('footer_link_membership'), membership_path, class: "hover:text-brand" %></li>
+          <% if memberships_enabled? %>
+            <li><%= link_to site_nav_text('footer_link_membership'), membership_path, class: "hover:text-brand" %></li>
+          <% end %>
           <li><%= link_to site_nav_text('footer_link_terms'), terms_path, class: "hover:text-brand" %></li>
           <li><%= link_to site_nav_text('footer_link_privacy'), privacy_path, class: "hover:text-brand" %></li>
           <li><%= link_to site_nav_text('footer_link_cancellation'), cancellation_policy_path, class: "hover:text-brand" %></li>

@@ -17,8 +17,7 @@ class HomeIndexQuery
       faqs: faqs,
       social_contacts: social_contacts,
       gallery_groups: gallery_groups,
-      home_highlights: home_highlights,
-      site_branding: site_branding
+      home_highlights: home_highlights
     }
   end
 
@@ -27,7 +26,7 @@ class HomeIndexQuery
   def featured_spaces
     Space.published_spaces
          .includes(space_photos: { image_attachment: :blob })
-         .order(:title)
+         .ordered_for_display
          .limit(3)
   end
 
@@ -55,7 +54,4 @@ class HomeIndexQuery
     HomeHighlight.visible.ordered
   end
 
-  def site_branding
-    SiteBranding.current
-  end
 end

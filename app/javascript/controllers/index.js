@@ -11,6 +11,8 @@ import PhotoManagerController from "controllers/photo_manager_controller"
 import GallerySetController from "controllers/gallery_set_controller"
 import AutoSubmitController from "controllers/auto_submit_controller"
 import PriceCycleController from "controllers/price_cycle_controller"
+import LazyImageController from "controllers/lazy_image_controller"
+import SortableListController from "controllers/sortable_list_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -25,6 +27,8 @@ application.register("photo-manager", PhotoManagerController)
 application.register("gallery-set", GallerySetController)
 application.register("auto-submit", AutoSubmitController)
 application.register("price-cycle", PriceCycleController)
+application.register("lazy-image", LazyImageController)
+application.register("sortable-list", SortableListController)
 window.Stimulus = application
 
 export { application }

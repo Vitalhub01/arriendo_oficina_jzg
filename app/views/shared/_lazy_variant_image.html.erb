@@ -1,0 +1,16 @@
+<%# locals: (url:, alt:, img_class: "h-full w-full object-cover", wrapper_class: nil, aspect_class: "aspect-[4/3]") %>
+<div class="relative overflow-hidden bg-gray-100 <%= aspect_class %> <%= wrapper_class %>"
+     data-controller="lazy-image"
+     data-lazy-image-src-value="<%= h(url) %>">
+  <div data-lazy-image-target="skeleton"
+       class="image-skeleton absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 transition-opacity duration-300"
+       aria-hidden="true"></div>
+  <img data-lazy-image-target="image"
+       alt="<%= alt %>"
+       decoding="async"
+       loading="lazy"
+       fetchpriority="low"
+       class="absolute inset-0 <%= img_class %> opacity-0 transition-opacity duration-300 ease-out"
+       width="1200"
+       height="800" />
+</div>

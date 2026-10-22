@@ -24,22 +24,8 @@
 
   <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
     <div class="space-y-8 lg:col-span-2">
-      <div data-controller="gallery" class="overflow-hidden rounded-2xl">
-        <% if @space.photos_attached? %>
-          <div class="grid grid-cols-1 gap-2 sm:grid-cols-4 sm:grid-rows-2">
-            <% @space.gallery_photos.first(5).each_with_index do |photo, i| %>
-              <% limits = i.zero? ? [1200, 800] : [640, 480] %>
-              <div class="<%= i == 0 ? 'sm:col-span-2 sm:row-span-2' : '' %> aspect-[4/3] overflow-hidden bg-gray-100">
-                <%= image_tag photo.variant(resize_to_limit: limits),
-                    class: "h-full w-full object-cover",
-                    alt: @space.title,
-                    **image_loading_attrs(eager: i.zero?) %>
-              </div>
-            <% end %>
-          </div>
-        <% else %>
-          <div class="flex aspect-video items-center justify-center bg-gray-100 text-gray-400">Sin fotos</div>
-        <% end %>
+      <div class="overflow-hidden rounded-2xl">
+        <%= render "shared/place_cover_photo", record: @space, title: @space.title %>
       </div>
 
       <div>

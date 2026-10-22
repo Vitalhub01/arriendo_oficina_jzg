@@ -16,10 +16,8 @@ module SeoHelper
   def seo_image_url
     if content_for?(:og_image)
       absolute_url(content_for(:og_image))
-    elsif site_branding.hero_image.attached?
-      absolute_url(url_for(site_branding.hero_image))
     else
-      site_logo_url
+      site_hero_image_url
     end
   end
 

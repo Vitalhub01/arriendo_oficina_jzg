@@ -1,23 +1,18 @@
 # frozen_string_literal: true
 
 class GalleriesController < ApplicationController
-  def show
-    @items = GalleryItem.items_for_tag_slug(params.expect(:tag))
-    raise ActiveRecord::RecordNotFound if @items.empty?
-
-    @tag_label = @items.first.tag_label
-    @tag_slug = @items.first.tag_slug
-    @tag_description = GalleryTag.description_for_label(@tag_label)
-    @current_item = find_current_item(@items)
+  def frame
+    @item = GalleryItem.visible.find(params.expect(:id))
+    @frame_context = params[:frame].presence_in(%w[photo cover]) || 'cover'
+    render layout: false
   end
 
-  private
+  def show
+    @item = GalleryItem.items_for_tag_slug(params.expect(:tag)).first
+    raise ActiveRecord::RecordNotFound unless @item
 
-  def find_current_item(items)
-    if params[:photo_id].present?
-      items.find { |item| item.id == params[:photo_id].to_i } || items.first
-    else
-      items.first
-    end
+    @tag_label = @item.tag_label
+    @tag_slug = @item.tag_slug
+    @tag_description = GalleryTag.description_for_label(@tag_label)
   end
 end

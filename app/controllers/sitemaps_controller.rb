@@ -2,7 +2,7 @@
 
 class SitemapsController < ApplicationController
   def show
-    @spaces = Space.published_spaces.order(updated_at: :desc)
+    @spaces = Space.published_spaces.ordered_for_display
     @host = ENV.fetch('APP_HOST', request.host_with_port)
     @protocol = request.ssl? || Rails.env.production? ? 'https' : request.protocol.delete_suffix('://')
   end

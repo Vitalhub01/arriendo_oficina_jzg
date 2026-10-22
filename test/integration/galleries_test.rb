@@ -3,6 +3,20 @@
 require 'test_helper'
 
 class GalleriesTest < ActionDispatch::IntegrationTest
+  test 'gallery frame serves lazy cover image' do
+    item = GalleryItem.create!(position: 0, tag: 'Pasillo', visible: true)
+    item.image.attach(
+      io: File.open(Rails.root.join('test/fixtures/files/cover.jpg')),
+      filename: 'cover.jpg',
+      content_type: 'image/jpeg'
+    )
+
+    get gallery_frame_path(item)
+    assert_response :success
+    assert_match 'lazy-image', response.body
+    assert_match '/rails/active_storage/', response.body
+  end
+
   test 'home shows one cover photo per tag with count' do
     item = GalleryItem.create!(position: 0, tag: 'Recepción', visible: true)
     item.image.attach(
@@ -16,6 +30,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     assert_match 'Recepción', response.body
     assert_match '(1)', response.body
     assert_match gallery_path(tag: item.tag_slug), response.body
+    assert_match gallery_frame_path(item), response.body
   end
 
   test 'show displays photo set for tag slug' do
@@ -29,6 +44,10 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     get gallery_path(tag: item.tag_slug, photo_id: item.id)
     assert_response :success
     assert_match 'Box clínico', response.body
+    assert_match 'gallery_photo', response.body
+
+    get gallery_frame_path(item, frame: 'photo')
+    assert_response :success
     assert_match '/rails/active_storage/', response.body
   end
 

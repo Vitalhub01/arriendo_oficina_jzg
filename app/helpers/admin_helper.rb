@@ -8,7 +8,8 @@ module AdminHelper
     {
       label: 'Descuentos membresía',
       path: :admin_pricing_rules_path,
-      match: ->(req) { req.path.start_with?('/admin/pricing_rules') }
+      match: ->(req) { req.path.start_with?('/admin/pricing_rules') },
+      feature: :memberships
     },
     {
       label: 'Códigos de descuento',
@@ -45,12 +46,14 @@ module AdminHelper
     {
       label: 'Membresías',
       path: :admin_memberships_path,
-      match: ->(req) { req.path.start_with?('/admin/memberships') }
+      match: ->(req) { req.path.start_with?('/admin/memberships') },
+      feature: :memberships
     },
     {
       label: 'Planes membresía',
       path: :admin_membership_plans_path,
-      match: ->(req) { req.path.start_with?('/admin/membership_plans') }
+      match: ->(req) { req.path.start_with?('/admin/membership_plans') },
+      feature: :memberships
     },
     {
       label: 'Testimonios',
@@ -84,6 +87,12 @@ module AdminHelper
       match: ->(req) { req.path.start_with?('/admin/site_settings') }
     }
   ].freeze
+
+  def admin_nav_items
+    NAV_ITEMS.select do |item|
+      item[:feature] != :memberships || memberships_enabled?
+    end
+  end
 
   def admin_nav_link_classes(active, nested: false)
     base = 'block rounded-lg text-sm transition'

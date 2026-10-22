@@ -2,6 +2,8 @@
 
 module Admin
   class MembershipsController < Admin::BaseController
+    before_action :require_memberships_enabled!
+
     def index
       scope = Membership.includes(:user, :membership_plan).order(created_at: :desc)
       scope = scope.where(status: params[:status]) if params[:status].present?

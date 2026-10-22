@@ -1,0 +1,11 @@
+<% frame_name = @frame_context == 'photo' ? :gallery_photo : :gallery_cover %>
+<% hover_class = @frame_context == 'cover' ? 'transition duration-300 ease-out group-hover:scale-[1.04]' : '' %>
+<%= turbo_frame_tag dom_id(@item, frame_name) do %>
+  <% if @item.image.attached? %>
+    <%= lazy_variant_image @item.image,
+          alt: @item.display_alt,
+          img_class: "h-full w-full object-cover #{hover_class}" %>
+  <% else %>
+    <div class="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">Sin imagen</div>
+  <% end %>
+<% end %>
