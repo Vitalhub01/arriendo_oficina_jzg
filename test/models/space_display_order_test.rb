@@ -4,8 +4,8 @@ require 'test_helper'
 
 class SpaceDisplayOrderTest < ActiveSupport::TestCase
   test 'ordered_for_display sorts by display_position' do
-    first = spaces(:published_box)
-    second = spaces(:draft_box)
+    first = boxes(:published_box)
+    second = boxes(:draft_box)
     first.update_column(:display_position, 1)
     second.update_column(:display_position, 0)
 

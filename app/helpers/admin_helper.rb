@@ -23,6 +23,11 @@ module AdminHelper
       match: ->(req) { req.path.start_with?('/admin/professionals') }
     },
     {
+      label: 'Tarifas spot',
+      path: :admin_spot_offers_path,
+      match: ->(req) { req.path.start_with?('/admin/spot_offers') }
+    },
+    {
       label: 'Reservas',
       match: ->(req) { req.path.start_with?('/admin/bookings') },
       children: [

@@ -32,9 +32,11 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     assert_match boxes(:published_box).title, response.body
   end
 
-  test 'availability returns schedule partial for a week' do
+  test 'availability returns schedule inside turbo frame' do
     get availability_space_path(boxes(:published_box))
     assert_response :success
+    assert_match 'turbo-frame', response.body
+    assert_match 'availability_schedule', response.body
   end
 
   test 'show renders active storage image when space has photo' do

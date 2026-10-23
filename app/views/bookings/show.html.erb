@@ -40,7 +40,7 @@
       <% if policy(@booking).cancel? %>
         <%= button_to "Cancelar reserva", cancel_booking_path(@booking), method: :patch, class: "btn-secondary", data: { turbo_confirm: "¿Cancelar esta reserva?" } %>
       <% end %>
-      <% if policy(@booking).reschedule? %>
+      <% if @booking.confirmed? && policy(@booking).reschedule? %>
         <%= form_with url: reschedule_booking_path(@booking), method: :patch, class: "w-full space-y-3 rounded-xl border border-gray-200 p-4" do %>
           <p class="font-medium">Reagendar (sin reembolso, con crédito aplicado)</p>
           <%= date_field_tag :date, @booking.start_at.to_date + 7.days, class: "input-field", required: true %>

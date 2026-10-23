@@ -12,6 +12,7 @@ class Booking < ApplicationRecord
   belongs_to :jornada_definition, optional: true
   belongs_to :reschedule_credit, optional: true
   belongs_to :discount_code, optional: true
+  belongs_to :spot_offer, optional: true
   has_one :payment, dependent: :destroy
   has_one :testimonial, dependent: :destroy
 
@@ -104,6 +105,8 @@ class Booking < ApplicationRecord
   end
 
   def apply_pricing
+    return if spot_offer_id.present? && total_amount_cents.positive?
+
     result = PricingEngine.calculate(
       space,
       profesional,

@@ -12,6 +12,7 @@ ENV['APP_HOST'] = 'www.example.com' if ENV['APP_HOST'].blank?
 require_relative '../config/environment'
 require 'minitest/mock'
 require 'rails/test_help'
+require 'active_job/test_helper'
 require_relative 'support/integration_helpers'
 
 Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new) if defined?(Minitest::Reporters)
@@ -19,6 +20,7 @@ Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new) if defined?(
 module ActiveSupport
   class TestCase
     include IntegrationHelpers
+    include ActiveJob::TestHelper
 
     parallelize(workers: 1)
 

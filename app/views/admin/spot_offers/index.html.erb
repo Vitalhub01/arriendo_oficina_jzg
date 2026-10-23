@@ -1,0 +1,33 @@
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold">Tarifas spot</h1>
+  <%= link_to "Nueva tarifa spot", new_admin_spot_offer_path, class: "btn-primary" %>
+</div>
+
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Espacio</th>
+        <th>Rango</th>
+        <th>Horario</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th class="admin-table__actions">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @spot_offers.each do |offer| %>
+        <tr>
+          <td><%= offer.space.title %></td>
+          <td><%= l(offer.starts_on) %> — <%= l(offer.ends_on) %></td>
+          <td><%= offer.daily_start_time.strftime('%H:%M') %> – <%= offer.daily_end_time.strftime('%H:%M') %></td>
+          <td><%= format_clp(offer.total_price_cents) %></td>
+          <td><%= offer.status %></td>
+          <td class="admin-table__actions">
+            <%= link_to "Ver enlace", admin_spot_offer_path(offer), class: "text-brand hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

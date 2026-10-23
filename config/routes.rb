@@ -40,6 +40,9 @@ Rails.application.routes.draw do
 
   get 'sitemap.xml', to: 'sitemaps#show', defaults: { format: :xml }
 
+  get 'tarifa-spot/:token', to: 'spot_offers#show', as: :spot_offer
+  post 'tarifa-spot/:token/checkout', to: 'spot_offers#checkout', as: :checkout_spot_offer
+
   namespace :admin do
     root to: 'dashboard#index'
     resource :office, only: %i[edit update], controller: 'office'
@@ -73,6 +76,7 @@ Rails.application.routes.draw do
     resources :discount_codes
     resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
+    resources :spot_offers, only: %i[index new create show]
     resources :bookings, only: %i[index show new create update] do
       collection do
         get :calendar

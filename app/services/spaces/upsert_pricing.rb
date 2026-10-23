@@ -2,10 +2,10 @@
 
 module Spaces
   class UpsertPricing
-    PERIODS = [
-      { key: :morning, name: 'Mañana', start: '08:00', end: '13:00', position: 0 },
-      { key: :afternoon, name: 'Tarde', start: '14:00', end: '19:00', position: 1 }
-    ].freeze
+    PERIODS = SpaceBlockPeriods::PERIODS.map do |period|
+      key = period[:name] == 'Mañana' ? :morning : :afternoon
+      period.merge(key: key)
+    end.freeze
 
     def initialize(space:, params:)
       @space = space
@@ -38,8 +38,8 @@ module Spaces
       return if hourly_cents.blank? && block_cents.blank?
 
       rate = space.slot_rates.find_or_initialize_by(name: period[:name])
-      rate.start_time ||= time_on(period[:start])
-      rate.end_time ||= time_on(period[:end])
+      rate.start_time = time_on(period[:start])
+      rate.end_time = time_on(period[:end])
       rate.position = period[:position]
       rate.price_per_slot_cents = hourly_cents.to_i if hourly_cents.present?
       rate.block_price_cents = block_cents.to_i if block_cents.present?
@@ -87,7 +87,7 @@ module Spaces
     end
 
     def time_on(hour_minute)
-      Time.zone.parse("2000-01-01 #{hour_minute}")
+      SpaceBlockPeriods.time_on(hour_minute)
     end
 
     class Result

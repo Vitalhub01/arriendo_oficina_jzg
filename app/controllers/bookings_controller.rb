@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class BookingsController < ApplicationController
+  include SpaceScheduleWeeks
+
   before_action :authenticate_user!
   before_action :require_can_book!, only: %i[new create reschedule]
   before_action :set_booking, only: %i[show checkout cancel reschedule apply_discount_code]
@@ -158,8 +160,7 @@ class BookingsController < ApplicationController
   end
 
   def load_space_show_vars
-    @week_start = Date.current.beginning_of_week(:monday)
-    @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
+    load_space_schedule(@space)
   end
 
   def booking_params

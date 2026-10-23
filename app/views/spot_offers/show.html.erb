@@ -1,0 +1,32 @@
+<div class="mx-auto max-w-2xl px-4 py-10">
+  <h1 class="text-2xl font-bold">Tarifa spot</h1>
+  <% if @spot_offer.title.present? %>
+    <p class="mt-1 text-gray-600"><%= @spot_offer.title %></p>
+  <% end %>
+  <p class="mt-2 text-lg font-medium"><%= @spot_offer.space.title %></p>
+
+  <dl class="mt-6 space-y-2 text-sm">
+    <div class="flex justify-between"><dt class="text-gray-500">Fechas</dt><dd><%= l(@spot_offer.starts_on) %> — <%= l(@spot_offer.ends_on) %></dd></div>
+    <div class="flex justify-between"><dt class="text-gray-500">Horario cada día</dt><dd><%= @spot_offer.daily_start_time.strftime('%H:%M') %> – <%= @spot_offer.daily_end_time.strftime('%H:%M') %></dd></div>
+    <div class="flex justify-between"><dt class="text-gray-500">Sesiones incluidas</dt><dd><%= @occurrences.size %></dd></div>
+    <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="text-lg font-bold"><%= format_clp(@spot_offer.total_price_cents) %></dd></div>
+  </dl>
+
+  <% if @spot_offer.paid? %>
+    <p class="mt-8 rounded-xl bg-green-50 p-4 text-green-800">Esta tarifa spot ya fue pagada.</p>
+  <% elsif @occurrences.empty? %>
+    <p class="mt-8 rounded-xl bg-amber-50 p-4 text-amber-900">No hay horarios disponibles para este paquete.</p>
+  <% else %>
+    <ul class="mt-6 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-gray-200 p-4 text-sm">
+      <% @occurrences.each do |occ| %>
+        <li><%= l(occ[:date], format: :long) %> · <%= l(occ[:start_at], format: '%H:%M') %> – <%= l(occ[:end_at], format: '%H:%M') %></li>
+      <% end %>
+    </ul>
+
+    <% if user_signed_in? %>
+      <%= button_to "Pagar paquete completo", checkout_spot_offer_path(@spot_offer.token), method: :post, class: "btn-primary mt-8 w-full", data: { turbo: false } %>
+    <% else %>
+      <%= link_to "Ingresar para pagar", new_user_session_path, class: "btn-primary mt-8 block w-full text-center" %>
+    <% end %>
+  <% end %>
+</div>

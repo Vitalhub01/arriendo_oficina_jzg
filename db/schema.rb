@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -105,6 +105,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
     t.bigint "discount_code_id"
     t.integer "promo_discount_cents", default: 0, null: false
     t.datetime "terms_accepted_at"
+    t.bigint "spot_offer_id"
     t.index ["booking_series_id"], name: "index_bookings_on_booking_series_id"
     t.index ["box_id", "start_at", "end_at"], name: "index_bookings_on_box_id_and_start_at_and_end_at"
     t.index ["box_id"], name: "index_bookings_on_box_id"
@@ -113,6 +114,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
     t.index ["renter_id", "status"], name: "index_bookings_on_renter_id_and_status"
     t.index ["renter_id"], name: "index_bookings_on_renter_id"
     t.index ["reschedule_credit_id"], name: "index_bookings_on_reschedule_credit_id"
+    t.index ["spot_offer_id"], name: "index_bookings_on_spot_offer_id"
     t.index ["status", "payment_expires_at"], name: "index_bookings_on_status_and_payment_expires_at"
     t.exclusion_constraint "box_id WITH =, tsrange(start_at, end_at, '[)'::text) WITH &&", where: "status = ANY (ARRAY[0, 1])", using: :gist, name: "bookings_no_overlap"
   end
@@ -140,6 +142,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
     t.integer "slot_duration_minutes", default: 60, null: false
     t.integer "minimum_slots", default: 1, null: false
     t.integer "reschedule_notice_hours"
+    t.integer "display_position", default: 0, null: false
     t.index ["box_type"], name: "index_boxes_on_box_type"
     t.index ["city"], name: "index_boxes_on_city"
     t.index ["commune"], name: "index_boxes_on_commune"
@@ -292,11 +295,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
     t.datetime "updated_at", null: false
     t.integer "payment_kind", default: 0, null: false
     t.bigint "membership_id"
+    t.bigint "spot_offer_id"
     t.index ["booking_id"], name: "index_payments_on_booking_id", unique: true
     t.index ["membership_id"], name: "index_payments_on_membership_id"
     t.index ["mercadopago_payment_id"], name: "index_payments_on_mercadopago_payment_id"
     t.index ["mercadopago_preference_id"], name: "index_payments_on_mercadopago_preference_id"
     t.index ["payer_id"], name: "index_payments_on_payer_id"
+    t.index ["spot_offer_id"], name: "index_payments_on_spot_offer_id"
   end
 
   create_table "pricing_rules", force: :cascade do |t|
@@ -377,11 +382,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
     t.index ["space_id"], name: "index_schedule_blocks_on_space_id"
   end
 
-  create_table "site_brandings", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "site_settings", force: :cascade do |t|
     t.string "key", null: false
     t.text "value"
@@ -421,6 +421,27 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["box_id", "position"], name: "index_space_photos_on_box_id_and_position"
+  end
+
+  create_table "spot_offers", force: :cascade do |t|
+    t.bigint "space_id", null: false
+    t.bigint "created_by_id", null: false
+    t.bigint "profesional_id"
+    t.string "token", null: false
+    t.string "title"
+    t.integer "total_price_cents", null: false
+    t.date "starts_on", null: false
+    t.date "ends_on", null: false
+    t.time "daily_start_time", null: false
+    t.time "daily_end_time", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "occurrence_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_spot_offers_on_created_by_id"
+    t.index ["profesional_id"], name: "index_spot_offers_on_profesional_id"
+    t.index ["space_id"], name: "index_spot_offers_on_space_id"
+    t.index ["token"], name: "index_spot_offers_on_token", unique: true
   end
 
   create_table "testimonials", force: :cascade do |t|
@@ -471,6 +492,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
   add_foreign_key "bookings", "discount_codes"
   add_foreign_key "bookings", "jornada_definitions"
   add_foreign_key "bookings", "reschedule_credits"
+  add_foreign_key "bookings", "spot_offers"
   add_foreign_key "bookings", "users", column: "renter_id"
   add_foreign_key "boxes", "offices"
   add_foreign_key "boxes", "users", column: "owner_id"
@@ -484,6 +506,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
   add_foreign_key "memberships", "users"
   add_foreign_key "payments", "bookings"
   add_foreign_key "payments", "memberships"
+  add_foreign_key "payments", "spot_offers"
   add_foreign_key "payments", "users", column: "payer_id"
   add_foreign_key "pricing_rules", "boxes", column: "space_id"
   add_foreign_key "professional_profiles", "users"
@@ -495,6 +518,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_20_000002) do
   add_foreign_key "schedule_blocks", "boxes", column: "space_id"
   add_foreign_key "slot_rates", "boxes", column: "space_id"
   add_foreign_key "space_photos", "boxes"
+  add_foreign_key "spot_offers", "boxes", column: "space_id"
+  add_foreign_key "spot_offers", "users", column: "created_by_id"
+  add_foreign_key "spot_offers", "users", column: "profesional_id"
   add_foreign_key "testimonials", "bookings"
   add_foreign_key "testimonials", "boxes"
   add_foreign_key "testimonials", "users", column: "profesional_id"

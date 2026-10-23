@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SpacesController < ApplicationController
+  include SpaceScheduleWeeks
+
   def index
     @spaces = Space.published_spaces.includes(space_photos: { image_attachment: :blob })
     @spaces = @spaces.by_city(params[:city]) if params[:city].present?
@@ -33,8 +35,7 @@ class SpacesController < ApplicationController
                   .includes(space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     authorize @space
-    @week_start = schedule_week_start(@space)
-    @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
+    load_space_schedule(@space)
     @prefill_date = params[:date]
     @prefill_slot_count = params[:slot_count] || params[:hours]
     @prefill_start_time = params[:start_time]
@@ -44,28 +45,11 @@ class SpacesController < ApplicationController
     @space = Space.published_spaces
                   .includes(space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
-    @week_start = schedule_week_start(@space)
-    @schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
-    render partial: 'spaces/availability_schedule',
-           locals: {
-             space: @space,
-             schedule: @schedule,
-             week_start: @week_start,
-             interactive: user_signed_in? && current_user.can_book?
-           }
+    load_space_schedule(@space)
+    render 'spaces/availability', layout: false
   end
 
   private
-
-  def schedule_week_start(space)
-    if params[:week_start].present?
-      Date.parse(params[:week_start]).beginning_of_week(:monday)
-    else
-      space.preferred_schedule_week_start
-    end
-  rescue ArgumentError
-    space.preferred_schedule_week_start
-  end
 
   def availability_window(date:, slot_count:, start_time:, slot_duration_minutes: nil)
     parsed_date = Date.parse(date.to_s)

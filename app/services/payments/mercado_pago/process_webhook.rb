@@ -19,6 +19,8 @@ module Payments
 
         if external_reference.start_with?('membership-')
           process_membership_payment(external_reference, payment_id, mp_payment)
+        elsif external_reference.start_with?('spot-')
+          process_spot_offer_payment(external_reference, payment_id, mp_payment)
         else
           process_booking_payment(external_reference, payment_id, mp_payment)
         end
@@ -43,6 +45,33 @@ module Payments
         elsif status == 'rejected'
           payment.status = :rejected
           BookingMailer.payment_rejected(booking).deliver_later
+        end
+
+        payment.save!
+        GenerateInvoiceJob.perform_later(payment.id) if payment.approved?
+        true
+      end
+
+      def process_spot_offer_payment(external_reference, payment_id, mp_payment)
+        spot_offer_id = external_reference.delete_prefix('spot-')
+        spot_offer = SpotOffer.find_by(id: spot_offer_id)
+        return false unless spot_offer
+
+        payment = spot_offer.payment || Payment.new(spot_offer: spot_offer, payer: spot_offer.profesional, payment_kind: :spot_offer)
+        payment.mercadopago_payment_id = payment_id.to_s
+        payment.raw_webhook = @params
+        payment.amount_cents ||= spot_offer.total_price_cents
+
+        status = mp_payment&.dig('status') || @params.dig('data', 'status') || @params['status']
+        if APPROVED_STATUSES.include?(status)
+          payment.status = :approved
+          spot_offer.bookings.pending_payment.find_each do |booking|
+            booking.update!(status: :confirmed, payment_expires_at: nil)
+            BookingMailer.booking_confirmed(booking).deliver_later
+          end
+          spot_offer.update!(status: :paid)
+        elsif status == 'rejected'
+          payment.status = :rejected
         end
 
         payment.save!

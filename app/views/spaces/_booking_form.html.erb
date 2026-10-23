@@ -74,14 +74,6 @@
             <p class="mt-1 text-xs text-gray-500" data-booking-form-target="jornadaDurationLabel"></p>
           </div>
         </div>
-        <% if current_user.reschedule_credits.usable.any? %>
-          <div>
-            <%= label_tag :reschedule_credit_id, "Usar crédito de reagendamiento", class: "mb-1 block text-sm font-medium" %>
-            <%= select_tag :reschedule_credit_id,
-                  options_from_collection_for_select(current_user.reschedule_credits.usable, :id, ->(c) { "#{format_clp(c.amount_cents)} (#{c.hours}h)" }),
-                  { include_blank: "No usar crédito" }, class: "input-field" %>
-          </div>
-        <% end %>
         <% if space.terms_and_conditions.attached? %>
           <div class="flex items-start gap-2">
             <%= check_box_tag :accept_terms, "1", false, required: true, class: "mt-1 rounded border-gray-300" %>

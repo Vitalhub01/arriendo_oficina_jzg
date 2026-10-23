@@ -23,6 +23,7 @@ module Spaces
 
       assert result.success?
       morning = @space.slot_rates.find_by(name: 'Mañana')
+      assert_equal '14:00', morning.end_time.strftime('%H:%M')
       assert_equal 7_000, morning.price_per_slot_cents
       assert_equal 30_000, morning.block_price_cents
       assert_equal 55_000, @space.primary_jornada_definition.price_cents

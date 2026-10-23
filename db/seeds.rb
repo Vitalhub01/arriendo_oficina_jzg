@@ -116,8 +116,8 @@ spaces_data.each_with_index do |data, photo_index|
   end
 
   [
-    { name: 'Mañana', start: '08:00', end: '13:00', price: data[:morning_block_price] },
-    { name: 'Tarde', start: '14:00', end: '19:00', price: data[:afternoon_block_price] }
+    { name: 'Mañana', start: '08:00', end: '14:00', price: data[:morning_block_price] },
+    { name: 'Tarde', start: '14:00', end: '20:00', price: data[:afternoon_block_price] }
   ].each_with_index do |rate, i|
     slot_rate = SlotRate.find_or_initialize_by(space: space, name: rate[:name])
     slot_rate.assign_attributes(

@@ -15,6 +15,7 @@ class Space < ApplicationRecord
   has_many :schedule_blocks, dependent: :destroy, inverse_of: :space
   has_many :schedule_block_overrides, dependent: :destroy, inverse_of: :space
   has_many :pricing_rules, dependent: :destroy, inverse_of: :space
+  has_many :spot_offers, dependent: :destroy, inverse_of: :space
   has_many :space_photos, -> { ordered }, foreign_key: :box_id, dependent: :destroy, inverse_of: :space
   has_one_attached :terms_and_conditions
 
@@ -194,6 +195,11 @@ class Space < ApplicationRecord
 
   def schedule_interval_for_jornada(date, jornada_definition)
     blocks = schedule_blocks_within_time_range(date, jornada_definition.start_time, jornada_definition.end_time)
+    interval_from_contiguous_blocks(date, blocks)
+  end
+
+  def schedule_interval_for_daily_window(date, daily_start_time, daily_end_time)
+    blocks = schedule_blocks_within_time_range(date, daily_start_time, daily_end_time)
     interval_from_contiguous_blocks(date, blocks)
   end
 

@@ -13,18 +13,14 @@ class PreprocessSpacePhotoVariantsJobTest < ActiveJob::TestCase
     )
     photo.save!
 
-    processed_limits = []
-    variant_proxy = Object.new
-    variant_proxy.define_singleton_method(:processed) { self }
-
-    photo.image.stub(:variant, lambda { |**kwargs|
-      processed_limits << kwargs[:resize_to_limit]
-      variant_proxy
+    captured_limits = nil
+    ImageVariantPreprocessor.stub(:preprocess!, lambda { |_attachment, limits|
+      captured_limits = limits
     }) do
       PreprocessSpacePhotoVariantsJob.perform_now(photo.id)
     end
 
-    assert_equal ImageVariantPreprocessor::SPACE_PHOTO_LIMITS, processed_limits
+    assert_equal ImageVariantPreprocessor::SPACE_PHOTO_LIMITS, captured_limits
   end
 
   test 'no-op when photo was deleted' do

@@ -1,0 +1,12 @@
+<%= turbo_frame_tag "availability_schedule",
+      data: {
+        controller: "availability-schedule",
+        availability_schedule_loading_class: "opacity-50 pointer-events-none"
+      } do %>
+  <%= render "spaces/availability_schedule",
+        space: @space,
+        schedule: @schedule,
+        week_start: @week_start,
+        interactive: user_signed_in? && current_user.can_book?,
+        schedule_week_entries: @schedule_week_entries %>
+<% end %>

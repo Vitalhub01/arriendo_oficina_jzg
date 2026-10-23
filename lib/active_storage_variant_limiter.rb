@@ -22,7 +22,8 @@ module ActiveStorageVariantLimiter
   def self.synchronize
     return yield unless ENV['REDIS_URL'].present?
 
-    redis = Redis.new(url: ENV['REDIS_URL'])
+    redis = redis_client
+    return yield unless redis
     token = SecureRandom.hex(8)
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + MAX_WAIT_SEC
 
@@ -39,5 +40,13 @@ module ActiveStorageVariantLimiter
 
       sleep(WAIT_SEC)
     end
+  end
+
+  def self.redis_client
+    redis = Redis.new(url: ENV['REDIS_URL'])
+    redis.ping
+    redis
+  rescue Redis::CannotConnectError, Redis::ConnectionError
+    nil
   end
 end
