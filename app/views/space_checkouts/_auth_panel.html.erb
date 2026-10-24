@@ -1,0 +1,30 @@
+<section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" data-controller="checkout-auth">
+  <h2 class="text-lg font-semibold">Tu cuenta</h2>
+  <p class="mt-1 text-sm text-gray-600">Ingresa o crea una cuenta profesional para completar el pago.</p>
+
+  <div class="mt-4 flex gap-2 border-b border-gray-200">
+    <button type="button"
+            class="border-b-2 border-brand px-4 py-2 text-sm font-medium text-brand"
+            data-checkout-auth-target="tab"
+            data-tab="login"
+            data-action="checkout-auth#showTab">
+      Iniciar sesión
+    </button>
+    <button type="button"
+            class="border-b-2 border-transparent px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800"
+            data-checkout-auth-target="tab"
+            data-tab="register"
+            data-action="checkout-auth#showTab">
+      Registrarse
+    </button>
+  </div>
+
+  <div class="mt-6" data-checkout-auth-target="panel" data-tab="login">
+    <%= render "shared/session_form", show_register_link: false %>
+  </div>
+
+  <div class="mt-6 hidden" data-checkout-auth-target="panel" data-tab="register">
+    <p class="mb-4 text-sm text-gray-600">Nombre y RUT son obligatorios para validar tu registro en el área de la salud.</p>
+    <%= render "shared/registration_form", resource: User.new, submit_label: "Crear cuenta y continuar" %>
+  </div>
+</section>

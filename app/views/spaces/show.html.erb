@@ -5,6 +5,7 @@
 <% content_for :json_ld, space_offer_json_ld(@space) %>
 <% content_for :body_class, "pb-24 lg:pb-0" %>
 <% booking_interactive = user_signed_in? && current_user.can_book? %>
+<% login_prompt_on_slots = !user_signed_in? %>
 <% if booking_interactive %>
   <div data-controller="booking-form"
        data-booking-form-minimum-slots-value="<%= @space.minimum_slots %>"
@@ -70,6 +71,7 @@
                 schedule: @schedule,
                 week_start: @week_start,
                 interactive: booking_interactive,
+                login_prompt_on_slots: login_prompt_on_slots,
                 schedule_week_entries: @schedule_week_entries %>
         <% end %>
       </section>
@@ -91,7 +93,7 @@
     <% if user_signed_in? %>
       <a href="#booking-form-mobile" class="btn-primary">Reservar</a>
     <% else %>
-      <%= link_to "Ingresar para reservar", new_user_session_path, class: "btn-primary" %>
+      <%= link_to "Reservar", checkout_space_path(@space), class: "btn-primary" %>
     <% end %>
   </div>
 </div>

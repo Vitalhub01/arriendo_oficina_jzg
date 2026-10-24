@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 module SpacesHelper
+  def space_slot_checkout_path(space, date:, start_time:)
+    checkout_space_path(
+      space,
+      date: date.to_date.iso8601,
+      start_time: start_time,
+      reservation_mode: "hora",
+      slot_count: space.minimum_slots
+    )
+  end
+
   def space_booking_blocks_by_day(space)
     space.schedule_blocks.ordered.group_by(&:day_of_week).transform_values do |blocks|
       blocks.map do |b|

@@ -8,5 +8,6 @@
         schedule: @schedule,
         week_start: @week_start,
         interactive: user_signed_in? && current_user.can_book?,
+        login_prompt_on_slots: !user_signed_in?,
         schedule_week_entries: @schedule_week_entries %>
 <% end %>

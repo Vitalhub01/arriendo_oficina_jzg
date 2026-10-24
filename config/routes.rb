@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   resources :spaces, only: %i[index show] do
     member do
       get :availability
+      get :checkout, to: 'space_checkouts#show'
     end
     resources :bookings, only: %i[create]
   end

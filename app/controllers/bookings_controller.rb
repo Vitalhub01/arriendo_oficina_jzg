@@ -55,13 +55,19 @@ class BookingsController < ApplicationController
       flash[:ga_event] = { name: 'booking_started', params: { space_id: @space.id, slot_count: booking_params[:slot_count] } }
       if result.booking.confirmed?
         redirect_to result.booking, notice: booking_created_notice('Reserva confirmada con tu crédito')
+      elsif params[:from_checkout].present? && result.booking.pending_payment? && result.booking.total_amount_cents.positive?
+        redirect_to checkout_booking_path(result.booking), notice: booking_created_notice, status: :see_other
       else
         redirect_to result.booking, notice: booking_created_notice, status: :see_other
       end
     else
-      load_space_show_vars
-      @errors = result.errors
-      render 'spaces/show', status: :unprocessable_content
+      if params[:from_checkout].present?
+        redirect_to checkout_space_path(@space, checkout_return_params), alert: result.errors.join(', ')
+      else
+        load_space_show_vars
+        @errors = result.errors
+        render 'spaces/show', status: :unprocessable_content
+      end
     end
   end
 
@@ -165,7 +171,11 @@ class BookingsController < ApplicationController
 
   def booking_params
     params.permit(:date, :start_time, :slot_count, :hours, :reschedule_credit_id, :accept_terms,
-                  :reservation_mode, :slot_rate_id)
+                  :reservation_mode, :slot_rate_id, :from_checkout)
+  end
+
+  def checkout_return_params
+    booking_params.except(:from_checkout, :accept_terms, :reschedule_credit_id)
   end
 
   def reschedule_params

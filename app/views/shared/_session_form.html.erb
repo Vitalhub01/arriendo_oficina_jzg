@@ -1,0 +1,16 @@
+<%= form_for(User.new, as: :user, url: session_path(:user), html: { class: "mt-4 space-y-4" }) do |f| %>
+  <div>
+    <%= f.label :email, class: "block text-sm font-medium" %>
+    <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field" %>
+  </div>
+  <div>
+    <%= f.label :password, class: "block text-sm font-medium" %>
+    <%= f.password_field :password, autocomplete: "current-password", class: "input-field" %>
+  </div>
+  <%= f.submit "Ingresar", class: "btn-primary w-full" %>
+<% end %>
+<% if local_assigns.fetch(:show_register_link, true) %>
+  <p class="mt-4 text-center text-sm text-gray-600">
+    <%= link_to "Registrarse", new_user_registration_path, class: "text-brand hover:underline" %>
+  </p>
+<% end %>

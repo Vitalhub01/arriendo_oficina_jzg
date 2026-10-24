@@ -96,6 +96,6 @@
   <% elsif user_signed_in? %>
     <p class="mt-4 text-sm text-gray-600">Tu cuenta no puede reservar en este momento. Si crees que es un error, contáctanos.</p>
   <% else %>
-    <%= link_to "Ingresa para reservar", new_user_session_path, class: "btn-primary mt-4 block w-full text-center" %>
+    <%= link_to "Continuar a reservar", checkout_space_path(space), class: "btn-primary mt-4 block w-full text-center" %>
   <% end %>
 </div>

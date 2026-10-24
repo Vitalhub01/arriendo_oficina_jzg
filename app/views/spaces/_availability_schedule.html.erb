@@ -1,4 +1,5 @@
 <% interactive = local_assigns.fetch(:interactive, false) %>
+<% login_prompt_on_slots = local_assigns.fetch(:login_prompt_on_slots, false) %>
 <% schedule_week_entries = local_assigns.fetch(:schedule_week_entries, []) %>
 <div class="relative mt-4">
   <div data-availability-schedule-target="loading" class="hidden absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70">
@@ -9,7 +10,8 @@
           space: space,
           schedule: schedule,
           week_start: week_start,
-          interactive: interactive %>
+          interactive: interactive,
+          login_prompt_on_slots: login_prompt_on_slots %>
   </div>
   <% schedule_week_entries.each do |entry| %>
     <% next if entry[:week_start] == week_start %>
@@ -18,10 +20,13 @@
             space: space,
             schedule: entry[:schedule],
             week_start: entry[:week_start],
-            interactive: interactive %>
+            interactive: interactive,
+            login_prompt_on_slots: login_prompt_on_slots %>
     </template>
   <% end %>
 </div>
 <% if interactive %>
   <p class="mt-3 text-xs text-gray-500">Haz clic en una franja disponible para elegir fecha y bloque (mañana / tarde) en el formulario de reserva.</p>
+<% elsif login_prompt_on_slots %>
+  <p class="mt-3 text-xs text-gray-500">Haz clic en una franja disponible para confirmar tu reserva y pagar.</p>
 <% end %>

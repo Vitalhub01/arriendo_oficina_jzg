@@ -28,6 +28,10 @@ module Users
 
     protected
 
+    def after_sign_up_path_for(resource)
+      stored_location_for(resource) || super
+    end
+
     def build_resource(hash = {})
       super(hash.except(:rut, 'rut')).tap do |user|
         user.role = :profesional

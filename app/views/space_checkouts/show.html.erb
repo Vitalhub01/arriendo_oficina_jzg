@@ -1,0 +1,167 @@
+<% content_for :title, "Confirmar reserva — #{@space.title} | VitalHub" %>
+<% content_for :body_class, "pb-12" %>
+
+<div class="mx-auto max-w-6xl px-4 py-8">
+  <div class="mb-6">
+    <%= link_to "← Volver al espacio", space_path(@space), class: "text-sm font-medium text-brand hover:underline" %>
+  </div>
+
+  <h1 class="text-2xl font-bold text-gray-900">Confirmar reserva</h1>
+  <p class="mt-1 text-sm text-gray-600">Revisa tu horario y continúa al pago seguro con Mercado Pago.</p>
+
+  <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
+    <div class="lg:col-span-3 space-y-6">
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold">Detalle de la reserva</h2>
+        <%= form_with url: checkout_space_path(@space), method: :get, class: "mt-4 space-y-4", data: { turbo: false } do %>
+          <div>
+            <%= label_tag :reservation_mode, "Tipo de reserva", class: "mb-1 block text-sm font-medium" %>
+            <%= select_tag :reservation_mode,
+                  options_for_select(
+                    [
+                      ["Por hora", "hora"],
+                      ["Bloque (mañana / tarde)", "bloque"],
+                      ["Jornada (día completo)", "jornada"]
+                    ],
+                    @checkout_params["reservation_mode"]
+                  ),
+                  class: "input-field",
+                  onchange: "this.form.requestSubmit()" %>
+          </div>
+          <div>
+            <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
+            <%= date_field_tag :date, @checkout_params["date"], min: Date.current, class: "input-field", required: true %>
+          </div>
+          <% if @checkout_params["reservation_mode"] == "hora" %>
+            <div>
+              <%= label_tag :start_time, "Hora de inicio", class: "mb-1 block text-sm font-medium" %>
+              <%= select_tag :start_time,
+                    options_for_select(
+                      space_booking_start_time_options(@space, @checkout_params["date"]),
+                      @checkout_params["start_time"]
+                    ),
+                    class: "input-field" %>
+            </div>
+            <div>
+              <%= label_tag :slot_count, "Cantidad de horas (bloques)", class: "mb-1 block text-sm font-medium" %>
+              <%= number_field_tag :slot_count,
+                    @checkout_params["slot_count"] || @space.minimum_slots,
+                    min: @space.minimum_slots,
+                    class: "input-field" %>
+            </div>
+          <% elsif @checkout_params["reservation_mode"] == "bloque" %>
+            <div>
+              <%= label_tag :slot_rate_id, "Bloque del día", class: "mb-1 block text-sm font-medium" %>
+              <%= select_tag :slot_rate_id,
+                    options_from_collection_for_select(
+                      @space.slot_rates.ordered,
+                      :id,
+                      ->(r) {
+                        "#{r.name} (#{r.start_time.strftime('%H:%M')} – #{r.end_time.strftime('%H:%M')}) — #{Money.new(r.block_price_cents_effective, 'CLP').format(no_cents_if_whole: true)}"
+                      },
+                      @checkout_params["slot_rate_id"]
+                    ),
+                    class: "input-field" %>
+            </div>
+          <% end %>
+          <%= submit_tag "Actualizar resumen", class: "btn-secondary" %>
+        <% end %>
+
+        <% if @quote.success? %>
+          <dl class="mt-6 space-y-2 border-t border-gray-100 pt-6 text-sm">
+            <div class="flex justify-between gap-4">
+              <dt class="text-gray-500">Modalidad</dt>
+              <dd class="font-medium text-gray-900"><%= @quote.mode_label %></dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-gray-500">Fecha</dt>
+              <dd class="font-medium text-gray-900"><%= l(@quote.start_at.to_date, format: :long) %></dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-gray-500">Horario</dt>
+              <dd class="font-medium text-gray-900">
+                <%= l(@quote.start_at, format: "%H:%M") %> — <%= l(@quote.end_at, format: "%H:%M") %>
+              </dd>
+            </div>
+            <% if @checkout_params["reservation_mode"] == "hora" %>
+              <div class="flex justify-between gap-4">
+                <dt class="text-gray-500">Duración</dt>
+                <dd class="font-medium text-gray-900"><%= @quote.slot_count %> bloque(s)</dd>
+              </div>
+            <% end %>
+          </dl>
+        <% else %>
+          <div class="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-800">
+            <ul class="list-disc pl-5">
+              <% @quote.errors.each do |error| %>
+                <li><%= error %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </section>
+
+      <% unless user_signed_in? %>
+        <%= render "space_checkouts/auth_panel" %>
+      <% end %>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+        <div class="overflow-hidden rounded-xl">
+          <%= render "shared/place_cover_photo", record: @space, title: @space.title %>
+        </div>
+        <h2 class="mt-4 text-lg font-semibold"><%= @space.title %></h2>
+        <p class="text-sm text-gray-600"><%= @space.commune %>, <%= @space.city %></p>
+
+        <% if @quote.success? %>
+          <div class="mt-6 border-t border-gray-100 pt-4">
+            <div class="flex items-baseline justify-between">
+              <span class="text-sm text-gray-600">Total</span>
+              <span class="text-2xl font-bold text-gray-900"><%= @quote.formatted_total %></span>
+            </div>
+            <% if @quote.pricing[:discount_cents].to_i.positive? %>
+              <p class="mt-1 text-xs text-green-700">Incluye descuentos aplicables a tu cuenta</p>
+            <% end %>
+          </div>
+
+          <% if user_signed_in? && current_user.can_book? %>
+            <%= form_with url: space_bookings_path(@space), method: :post, class: "mt-6 space-y-4", data: { turbo: false } do %>
+              <%= hidden_field_tag :date, @checkout_params["date"] %>
+              <%= hidden_field_tag :start_time, @checkout_params["start_time"] %>
+              <%= hidden_field_tag :slot_count, @checkout_params["slot_count"] %>
+              <%= hidden_field_tag :reservation_mode, @checkout_params["reservation_mode"] %>
+              <%= hidden_field_tag :slot_rate_id, @checkout_params["slot_rate_id"] %>
+              <%= hidden_field_tag :from_checkout, "1" %>
+              <% unless current_user.profile_complete? %>
+                <div>
+                  <%= render "shared/profile_incomplete_reminder" %>
+                </div>
+              <% end %>
+              <% if @space.terms_and_conditions.attached? %>
+                <div class="flex items-start gap-2">
+                  <%= check_box_tag :accept_terms, "1", false, required: true, class: "mt-1 rounded border-gray-300" %>
+                  <label for="accept_terms" class="text-sm text-gray-700">
+                    Acepto los
+                    <%= link_to "términos y condiciones",
+                          rails_blob_path(@space.terms_and_conditions, disposition: "inline"),
+                          class: "text-brand hover:underline",
+                          target: "_blank",
+                          rel: "noopener" %>
+                  </label>
+                </div>
+              <% end %>
+              <%= submit_tag "Confirmar y pagar", class: "btn-primary w-full" %>
+            <% end %>
+          <% elsif user_signed_in? %>
+            <p class="mt-6 text-sm text-gray-600">Tu cuenta no puede reservar en este momento. Si crees que es un error, contáctanos.</p>
+          <% else %>
+            <p class="mt-6 text-sm text-gray-600">Inicia sesión o regístrate a la izquierda para confirmar y pagar.</p>
+          <% end %>
+        <% else %>
+          <p class="mt-6 text-sm text-amber-800">Corrige el detalle de la reserva para ver el total y continuar.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
