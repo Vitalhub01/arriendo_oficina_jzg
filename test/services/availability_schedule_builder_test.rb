@@ -51,4 +51,26 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
 
     assert_empty monday[:slots]
   end
+
+  test 'build_weeks returns multiple weeks in one pass' do
+    weeks = AvailabilityScheduleBuilder.new(@space, week_start: @week_start, week_count: 3).build_weeks
+
+    assert_equal 3, weeks.size
+    assert_equal @week_start, weeks.first[:week_start]
+    assert_equal @week_start + 2.weeks, weeks.last[:week_start]
+    weeks.each do |entry|
+      assert_equal 7, entry[:schedule].size
+    end
+  end
+
+  test 'build_weeks uses a bounded number of queries' do
+    queries = []
+    callback = lambda { |*, payload| queries << payload[:sql] if payload[:sql] }
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      AvailabilityScheduleBuilder.new(@space, week_start: @week_start, week_count: 5).build_weeks
+    end
+
+    assert_operator queries.size, :<=, 10
+  end
 end

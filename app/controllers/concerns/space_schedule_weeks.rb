@@ -9,14 +9,12 @@ module SpaceScheduleWeeks
 
   def load_space_schedule(space)
     @week_start = schedule_week_start(space)
-    @schedule = AvailabilityScheduleBuilder.new(space, week_start: @week_start).build
-    @schedule_week_entries = (0...PRELOAD_WEEKS).map do |offset|
-      week_start = @week_start + offset.weeks
-      {
-        week_start: week_start,
-        schedule: AvailabilityScheduleBuilder.new(space, week_start: week_start).build
-      }
-    end
+    @schedule_week_entries = AvailabilityScheduleBuilder.new(
+      space,
+      week_start: @week_start,
+      week_count: PRELOAD_WEEKS
+    ).build_weeks
+    @schedule = @schedule_week_entries.first[:schedule]
   end
 
   def schedule_week_start(space)
