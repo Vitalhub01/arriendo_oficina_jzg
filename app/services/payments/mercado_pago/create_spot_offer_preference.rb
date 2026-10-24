@@ -10,6 +10,9 @@ module Payments
 
       def call
         return failure('Mercado Pago no configurado') if access_token.blank?
+        if SiteUrl.production_localhost?(success_url)
+          return failure('APP_HOST o APP_BASE_URL debe apuntar al dominio público en producción')
+        end
 
         sdk = ::Mercadopago::SDK.new(access_token)
         preference_data = {

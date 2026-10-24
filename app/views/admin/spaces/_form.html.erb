@@ -24,6 +24,10 @@
   <%= f.label :office_id, "Oficina", class: "block text-sm font-medium" %>
   <%= f.collection_select :office_id, Office.all, :id, :name, {}, class: "input-field" %>
   <%= render "admin/spaces/pricing_fields", space: @space %>
+  <%= render "admin/spaces/feature_fields",
+             space: @space,
+             equipment_items: @equipment_items,
+             amenity_tags: @amenity_tags %>
   <% if @space.persisted? %>
     <p class="text-xs text-gray-600">
       <%= link_to "Calendario y excepciones de precio", admin_space_schedule_blocks_path(@space), class: "text-brand hover:underline" %>

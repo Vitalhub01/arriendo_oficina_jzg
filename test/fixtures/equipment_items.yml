@@ -1,0 +1,4 @@
+wifi_equipment:
+  name: WiFi
+  position: 0
+  active: true

@@ -30,4 +30,16 @@ class BookingPolicyTest < ActiveSupport::TestCase
     policy = BookingPolicy.new(users(:admin), @booking)
     assert policy.cancel?
   end
+
+  test 'renter cannot cancel confirmed booking' do
+    @booking.update!(status: :confirmed, payment_expires_at: nil)
+    policy = BookingPolicy.new(users(:renter), @booking)
+    assert_not policy.cancel?
+  end
+
+  test 'admin can cancel confirmed booking' do
+    @booking.update!(status: :confirmed, payment_expires_at: nil)
+    policy = BookingPolicy.new(users(:admin), @booking)
+    assert policy.cancel?
+  end
 end

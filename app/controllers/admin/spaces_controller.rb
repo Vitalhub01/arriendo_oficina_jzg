@@ -20,10 +20,12 @@ module Admin
     def new
       @space = Space.new(office: Office.first, price_per_hour_cents: 6_000)
       @pricing_values = default_pricing_values
+      load_feature_catalog
     end
 
     def edit
       @pricing_values = @space.admin_pricing_values
+      load_feature_catalog
     end
 
     def create
@@ -34,6 +36,7 @@ module Admin
       if save_space_with_pricing!
         redirect_to edit_admin_space_path(@space), notice: 'Espacio creado'
       else
+        load_feature_catalog
         render :new, status: :unprocessable_content
       end
     end
@@ -46,6 +49,7 @@ module Admin
         redirect_to edit_admin_space_path(@space), notice: 'Espacio actualizado'
       else
         @pricing_values = pricing_values_from_request
+        load_feature_catalog
         render :edit, status: :unprocessable_content
       end
     end
@@ -68,7 +72,8 @@ module Admin
         :slot_duration_minutes, :minimum_slots, :reschedule_notice_hours,
         :minimum_hours, :status, :capacity, :dimensions,
         :terms_and_conditions,
-        amenities: {}, equipment: []
+        equipment_item_ids: [],
+        amenity_tag_ids: []
       )
 
       terms = raw[:terms_and_conditions]
@@ -98,6 +103,9 @@ module Admin
         unless apply_pricing!
           raise ActiveRecord::Rollback
         end
+        unless apply_features!
+          raise ActiveRecord::Rollback
+        end
         success = true
       end
       success
@@ -121,6 +129,23 @@ module Admin
       @pricing_errors = result.errors
       @space.errors.add(:base, result.errors.join(', '))
       false
+    end
+
+    def apply_features!
+      ::Spaces::SyncFeatures.new(
+        space: @space,
+        equipment_item_ids: feature_ids_param(:equipment_item_ids),
+        amenity_tag_ids: feature_ids_param(:amenity_tag_ids)
+      ).call
+    end
+
+    def feature_ids_param(key)
+      Array(params.dig(:space, key)).reject(&:blank?)
+    end
+
+    def load_feature_catalog
+      @equipment_items = EquipmentItem.active.ordered
+      @amenity_tags = AmenityTag.active.ordered
     end
 
     def default_pricing_values

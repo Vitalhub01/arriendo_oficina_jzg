@@ -37,17 +37,9 @@
 
   <p class="text-sm text-gray-600">Las fotos del espacio se gestionan desde el panel de administración.</p>
 
-  <fieldset>
-    <legend class="text-sm font-medium">Amenities</legend>
-    <div class="mt-2 grid grid-cols-2 gap-2">
-      <% Box::AMENITY_OPTIONS.each do |amenity| %>
-        <label class="flex items-center gap-2 text-sm">
-          <%= check_box_tag "box[amenities][#{amenity}]", "1", box.amenities&.dig(amenity), class: "rounded" %>
-          <%= amenity_label(amenity) %>
-        </label>
-      <% end %>
-    </div>
-  </fieldset>
+  <p class="text-sm text-gray-600">
+    Implementos y etiquetas del espacio se configuran en el panel de administración.
+  </p>
 
   <%= f.submit class: "btn-primary" %>
 <% end %>

@@ -1,0 +1,7 @@
+published_wifi:
+  space: published_box
+  amenity_tag: wifi_tag
+
+published_bathroom:
+  space: published_box
+  amenity_tag: bathroom_tag

@@ -16,9 +16,7 @@
     <div class="shop-product-card__body">
       <h3 class="shop-product-card__title"><%= space.title %></h3>
       <p class="mt-1 text-sm text-gray-500"><%= space.commune %>, <%= space.city %></p>
-      <p class="shop-product-card__price">
-        <span class="font-medium text-gray-900"><%= format_clp(space.price_per_hour_cents) %></span> / hora
-      </p>
+      <%= render "shared/space_pricing_summary", space: space %>
     </div>
   <% end %>
 </article>

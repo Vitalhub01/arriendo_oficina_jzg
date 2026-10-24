@@ -12,8 +12,6 @@ published_box:
   slot_duration_minutes: 60
   minimum_slots: 2
   status: 1
-  amenities: <%= { "wifi" => true, "bathroom" => true }.to_json %>
-  equipment: <%= [].to_json %>
 
 draft_box:
   title: Box Draft
@@ -27,8 +25,6 @@ draft_box:
   slot_duration_minutes: 60
   minimum_slots: 1
   status: 0
-  amenities: <%= {}.to_json %>
-  equipment: <%= [].to_json %>
 
 suspended_box:
   title: Box Suspendido
@@ -42,5 +38,3 @@ suspended_box:
   price_per_hour_cents: 8000
   minimum_hours: 1
   status: 2
-  amenities: <%= { "wifi" => true }.to_json %>
-  equipment: <%= [].to_json %>

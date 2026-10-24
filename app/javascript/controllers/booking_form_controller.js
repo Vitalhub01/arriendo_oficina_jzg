@@ -15,12 +15,16 @@ export default class extends Controller {
     "bloqueTotal",
     "bloqueDurationLabel",
     "jornadaTotal",
-    "jornadaDurationLabel"
+    "jornadaDurationLabel",
+    "bloqueWarning",
+    "jornadaWarning",
+    "submit"
   ]
   static values = {
     minimumSlots: Number,
     blocksByDay: Object,
     overrides: Array,
+    reservedIntervals: Array,
     today: String,
     nowTime: String,
     slotRates: Array,
@@ -28,7 +32,14 @@ export default class extends Controller {
   }
 
   connect() {
+    this.periodBlockedMessage =
+      "Hay al menos una hora reservada o bloqueada en esa fecha; no se puede reservar el bloque o la jornada completa."
     this.modeChanged()
+    this.refreshStarts()
+    this.updateTotal()
+  }
+
+  dateChanged() {
     this.refreshStarts()
     this.updateTotal()
   }
@@ -113,7 +124,8 @@ export default class extends Controller {
       (block) =>
         this.isActiveOnDate(block, dateIso) &&
         !this.isBlockedOnDate(block, dateIso) &&
-        !this.isPastBlock(block, dateIso)
+        !this.isPastBlock(block, dateIso) &&
+        !this.isReservedBlock(block, dateIso)
     )
 
     this.startTimeTargets.forEach((select) => {
@@ -151,6 +163,10 @@ export default class extends Controller {
       return
     }
 
+    this.hidePeriodWarning(this.bloqueWarningTargets)
+    this.hidePeriodWarning(this.jornadaWarningTargets)
+    this.setSubmitDisabled(false)
+
     const slotCount = parseInt(this.slotCountTargets[0]?.value || this.minimumSlotsValue, 10)
     const startTime = this.hasStartTimeTarget ? this.startTimeTargets[0]?.value : ""
     const total = this.calculateTotal(slotCount, startTime)
@@ -165,6 +181,22 @@ export default class extends Controller {
 
   updateBloqueTotal() {
     const rate = this.selectedSlotRate()
+    const dateIso = this.hasDateTarget ? this.dateTargets[0]?.value : ""
+    const windowIssue = rate && dateIso ? this.periodWindowIssue(dateIso, rate.start, rate.end) : "no_schedule"
+
+    if (windowIssue) {
+      this.showPeriodWarning(this.bloqueWarningTargets, windowIssue)
+      this.bloqueTotalTargets.forEach((el) => {
+        el.textContent = "—"
+      })
+      this.bloqueDurationLabelTargets.forEach((el) => {
+        el.textContent = ""
+      })
+      this.setSubmitDisabled(true)
+      return
+    }
+
+    this.hidePeriodWarning(this.bloqueWarningTargets)
     const durationMinutes = rate ? this.minutesBetween(rate.start, rate.end) : 0
     const total = rate?.block_price || 0
 
@@ -172,10 +204,30 @@ export default class extends Controller {
       el.textContent = this.formatCLP(total)
     })
     this.updateDurationLabel(this.bloqueDurationLabelTargets, durationMinutes, rate?.name)
+    this.setSubmitDisabled(false)
   }
 
   updateJornadaTotal() {
     const jornada = this.jornadaValue
+    const dateIso = this.hasDateTarget ? this.dateTargets[0]?.value : ""
+    const windowIssue =
+      jornada?.start && jornada?.end && dateIso
+        ? this.periodWindowIssue(dateIso, jornada.start, jornada.end)
+        : "no_schedule"
+
+    if (windowIssue) {
+      this.showPeriodWarning(this.jornadaWarningTargets, windowIssue)
+      this.jornadaTotalTargets.forEach((el) => {
+        el.textContent = "—"
+      })
+      this.jornadaDurationLabelTargets.forEach((el) => {
+        el.textContent = ""
+      })
+      this.setSubmitDisabled(true)
+      return
+    }
+
+    this.hidePeriodWarning(this.jornadaWarningTargets)
     const durationMinutes = jornada?.start && jornada?.end
       ? this.minutesBetween(jornada.start, jornada.end)
       : 0
@@ -185,6 +237,7 @@ export default class extends Controller {
       el.textContent = this.formatCLP(total)
     })
     this.updateDurationLabel(this.jornadaDurationLabelTargets, durationMinutes, "Jornada completa")
+    this.setSubmitDisabled(false)
   }
 
   selectedSlotRate() {
@@ -233,6 +286,7 @@ export default class extends Controller {
       if (!this.isActiveOnDate(block, dateIso)) return 0
       if (this.isBlockedOnDate(block, dateIso)) return 0
       if (this.isPastBlock(block, dateIso)) return 0
+      if (this.isReservedBlock(block, dateIso)) return 0
       if (i > 0 && blocks[startIndex + i - 1].end !== block.start) return 0
       total += this.priceForBlock(block, dateIso)
     }
@@ -251,6 +305,82 @@ export default class extends Controller {
     return this.overridesValue.some(
       (o) => o.schedule_block_id === block.id && o.date === dateIso && o.blocked
     )
+  }
+
+  isReservedBlock(block, dateIso) {
+    const blockStart = this.parseDateTime(dateIso, block.start)
+    const blockEnd = this.parseDateTime(dateIso, block.end)
+    return (this.reservedIntervalsValue || []).some((interval) => {
+      const start = new Date(interval.start)
+      const end = new Date(interval.end)
+      return start < blockEnd && end > blockStart
+    })
+  }
+
+  periodWindowIssue(dateIso, windowStart, windowEnd) {
+    const blocks = this.blocksInWindow(dateIso, windowStart, windowEnd)
+    if (blocks.length === 0) return "no_schedule"
+
+    const contiguous = blocks.every((block, index) => {
+      if (index === 0) return true
+      return blocks[index - 1].end === block.start
+    })
+    if (!contiguous) return "no_schedule"
+
+    for (const block of blocks) {
+      if (!this.isActiveOnDate(block, dateIso)) return "unavailable"
+      if (this.isBlockedOnDate(block, dateIso)) return "blocked"
+      if (this.isPastBlock(block, dateIso)) return "past"
+      if (this.isReservedBlock(block, dateIso)) return "reserved"
+    }
+
+    return null
+  }
+
+  blocksInWindow(dateIso, windowStart, windowEnd) {
+    const blocks = this.blocksForDate(dateIso)
+    return blocks
+      .filter((block) => block.start >= windowStart && block.end <= windowEnd)
+      .sort((a, b) => a.start.localeCompare(b.start))
+  }
+
+  blocksForDate(dateIso) {
+    if (!dateIso) return []
+    const date = new Date(dateIso + "T12:00:00")
+    const day = (date.getDay() + 6) % 7
+    return this.blocksByDayValue[String(day)] || []
+  }
+
+  showPeriodWarning(targets, issue) {
+    const message =
+      issue === "reserved" || issue === "blocked"
+        ? this.periodBlockedMessage
+        : "No hay horario disponible para esa fecha en la franja elegida."
+
+    targets.forEach((el) => {
+      el.textContent = message
+      el.classList.remove("hidden")
+    })
+  }
+
+  hidePeriodWarning(targets) {
+    targets.forEach((el) => {
+      el.textContent = ""
+      el.classList.add("hidden")
+    })
+  }
+
+  setSubmitDisabled(disabled) {
+    if (!this.hasSubmitTarget) return
+    this.submitTargets.forEach((el) => {
+      el.disabled = disabled
+    })
+  }
+
+  parseDateTime(dateIso, time) {
+    const [year, month, day] = dateIso.split("-").map(Number)
+    const [hour, minute] = time.split(":").map(Number)
+    return new Date(year, month - 1, day, hour, minute, 0, 0)
   }
 
   isActiveOnDate(block, dateIso) {

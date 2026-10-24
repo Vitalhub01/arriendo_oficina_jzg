@@ -1,0 +1,9 @@
+wifi_tag:
+  name: WiFi
+  position: 0
+  active: true
+
+bathroom_tag:
+  name: Baño
+  position: 1
+  active: true

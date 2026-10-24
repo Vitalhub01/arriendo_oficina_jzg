@@ -112,6 +112,10 @@
     @apply mt-1 text-sm text-gray-600;
   }
 
+  .shop-product-card__pricing {
+    @apply mt-2 space-y-1 text-sm text-gray-600;
+  }
+
   .shop-icon-block {
     @apply flex flex-col items-center text-center;
   }

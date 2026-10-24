@@ -64,6 +64,8 @@ services:
           type: redis
           name: rentabox-redis
           property: connectionString
+      - key: APP_HOST
+        value: www.vitalhub.cl
       - key: ACTIVE_STORAGE_SERVICE
         value: supabase
       - key: SUPABASE_PROJECT_REF

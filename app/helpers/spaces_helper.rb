@@ -50,6 +50,15 @@ module SpacesHelper
     end
   end
 
+  def space_booking_reserved_intervals(space)
+    space.bookings.blocking_availability.where('end_at >= ?', Time.current).map do |booking|
+      {
+        start: booking.start_at.iso8601,
+        end: booking.end_at.iso8601
+      }
+    end
+  end
+
   def space_booking_jornada_payload(space)
     jornada = space.primary_jornada_definition
     return nil unless jornada

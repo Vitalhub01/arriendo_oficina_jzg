@@ -10,6 +10,8 @@ class HomeIndexQuery
       office: Office.first,
       spaces: featured_spaces,
       home_min_hourly_price_cents: pricing[:min_hourly_cents],
+      home_morning_hourly_price_cents: pricing[:min_morning_hourly_cents],
+      home_afternoon_hourly_price_cents: pricing[:min_afternoon_hourly_cents],
       home_morning_block_price_cents: pricing[:min_morning_block_cents],
       home_afternoon_block_price_cents: pricing[:min_afternoon_block_cents],
       min_jornada_price_cents: pricing[:min_jornada_cents],
@@ -25,7 +27,7 @@ class HomeIndexQuery
 
   def featured_spaces
     Space.published_spaces
-         .includes(space_photos: { image_attachment: :blob })
+         .includes(:slot_rates, :jornada_definitions, space_photos: { image_attachment: :blob })
          .ordered_for_display
          .limit(3)
   end

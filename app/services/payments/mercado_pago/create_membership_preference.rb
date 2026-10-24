@@ -12,6 +12,10 @@ module Payments
 
       def call
         return failure('Mercado Pago no configurado') if access_token.blank?
+        success_url = SiteUrl.path('/membership')
+        if SiteUrl.production_localhost?(success_url)
+          return failure('APP_HOST o APP_BASE_URL debe apuntar al dominio público en producción')
+        end
 
         membership = @user.memberships.create!(
           membership_plan: @plan,

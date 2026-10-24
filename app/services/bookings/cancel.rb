@@ -22,7 +22,7 @@ module Bookings
       return false unless @booking.profesional_id == @actor.id
       return false if @booking.completed? || @booking.cancelled? || @booking.rescheduled?
 
-      @booking.pending_payment? || (@booking.confirmed? && @booking.start_at > Time.current)
+      @booking.pending_payment?
     end
 
     private

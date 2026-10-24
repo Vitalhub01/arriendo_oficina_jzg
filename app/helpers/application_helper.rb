@@ -101,7 +101,7 @@ module ApplicationHelper
   end
 
   def equipment_list(space)
-    Array(space.equipment).reject(&:blank?)
+    space.equipment_items.ordered.pluck(:name)
   end
 
   def ga_event_script(event_name, params = {})

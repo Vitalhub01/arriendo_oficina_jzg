@@ -48,7 +48,8 @@ spaces_data = [
     jornada_price: 48_000,
     capacity: 2,
     dimensions: '8m²',
-    equipment: %w[Sillón Té WiFi Timbre independiente Iluminación regulable]
+    equipment: %w[Sillón Té WiFi Timbre independiente Iluminación regulable],
+    amenity_tags: %w[WiFi Baño Aire acondicionado Sala de espera]
   },
   {
     title: 'Box de Atención 2',
@@ -59,7 +60,8 @@ spaces_data = [
     jornada_price: 48_000,
     capacity: 2,
     dimensions: '10m²',
-    equipment: %w[Sillón Camilla Té WiFi Timbre independiente]
+    equipment: %w[Sillón Camilla Té WiFi Timbre independiente],
+    amenity_tags: %w[WiFi Baño Aire acondicionado Sala de espera]
   },
   {
     title: 'Sala de Reuniones',
@@ -70,7 +72,8 @@ spaces_data = [
     jornada_price: 68_000,
     capacity: 10,
     dimensions: '15m²',
-    equipment: %w[Pizarra Proyector Mesa WiFi Té]
+    equipment: %w[Pizarra Proyector Mesa WiFi Té],
+    amenity_tags: %w[WiFi Baño Aire acondicionado Sala de espera]
   }
 ]
 
@@ -91,10 +94,20 @@ spaces_data.each_with_index do |data, photo_index|
     status: :draft,
     capacity: data[:capacity],
     dimensions: data[:dimensions],
-    equipment: data[:equipment],
-    amenities: { 'wifi' => true, 'bathroom' => true, 'air_conditioning' => true, 'waiting_room' => true }
   )
   space.save!
+
+  equipment_ids = data[:equipment].map do |name|
+    EquipmentItem.find_or_create_by!(name: name) { |item| item.position = EquipmentItem.count }.id
+  end
+  amenity_ids = data.fetch(:amenity_tags, []).map do |name|
+    AmenityTag.find_or_create_by!(name: name) { |tag| tag.position = AmenityTag.count }.id
+  end
+  Spaces::SyncFeatures.new(
+    space: space,
+    equipment_item_ids: equipment_ids,
+    amenity_tag_ids: amenity_ids
+  ).call
 
   photo_path = VITALHUB_OFFICE_PHOTOS[photo_index % VITALHUB_OFFICE_PHOTOS.size]
   space.space_photos.destroy_all

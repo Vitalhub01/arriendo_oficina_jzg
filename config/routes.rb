@@ -46,6 +46,8 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: 'dashboard#index'
     resource :office, only: %i[edit update], controller: 'office'
+    resources :equipment_items, path: 'equipment-items'
+    resources :amenity_tags, path: 'amenity-tags'
     resources :spaces do
       collection do
         patch :reorder

@@ -4,7 +4,8 @@ class SpacesController < ApplicationController
   include SpaceScheduleWeeks
 
   def index
-    @spaces = Space.published_spaces.includes(space_photos: { image_attachment: :blob })
+    @spaces = Space.published_spaces.includes(:slot_rates, :jornada_definitions,
+                                              space_photos: { image_attachment: :blob })
     @spaces = @spaces.by_city(params[:city]) if params[:city].present?
     @spaces = @spaces.by_commune(params[:commune]) if params[:commune].present?
     @spaces = @spaces.by_type(params[:space_type]) if params[:space_type].present?
@@ -32,7 +33,7 @@ class SpacesController < ApplicationController
 
   def show
     @space = Space.published_spaces
-                  .includes(space_photos: { image_attachment: :blob })
+                  .includes(:equipment_items, :amenity_tags, space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     authorize @space
     load_space_schedule(@space)
@@ -43,7 +44,7 @@ class SpacesController < ApplicationController
 
   def availability
     @space = Space.published_spaces
-                  .includes(space_photos: { image_attachment: :blob })
+                  .includes(:equipment_items, :amenity_tags, space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     load_space_schedule(@space)
     render 'spaces/availability', layout: false

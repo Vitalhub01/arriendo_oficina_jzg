@@ -2,7 +2,8 @@
 
 class BoxesController < ApplicationController
   def index
-    @boxes = Box.published_boxes.includes(space_photos: { image_attachment: :blob })
+    @boxes = Box.published_boxes.includes(:slot_rates, :jornada_definitions,
+                                          space_photos: { image_attachment: :blob })
     @boxes = @boxes.by_city(params[:city]) if params[:city].present?
     @boxes = @boxes.by_commune(params[:commune]) if params[:commune].present?
     @boxes = @boxes.by_type(params[:box_type]) if params[:box_type].present?

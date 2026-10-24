@@ -63,6 +63,11 @@ module Bookings
       @slot_rate = space.slot_rates.find_by(id: params[:slot_rate_id])
       return failure('Elige mañana o tarde') unless slot_rate
 
+      checker = AvailabilityChecker.new(space)
+      unless checker.slot_rate_window_available?(date, slot_rate)
+        return failure(checker.error_message)
+      end
+
       interval = space.schedule_interval_for_slot_rate(date, slot_rate)
       return failure('No hay horario disponible para ese bloque en la fecha elegida') unless interval
 
@@ -73,6 +78,11 @@ module Bookings
     def resolve_jornada(date)
       @jornada_definition = space.jornada_definitions.active.order(:position, :id).first
       return failure('Este espacio no tiene jornada completa configurada') unless jornada_definition
+
+      checker = AvailabilityChecker.new(space)
+      unless checker.jornada_window_available?(date, jornada_definition)
+        return failure(checker.error_message)
+      end
 
       interval = space.schedule_interval_for_jornada(date, jornada_definition)
       return failure('No hay horario disponible para jornada completa en la fecha elegida') unless interval

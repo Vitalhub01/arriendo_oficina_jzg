@@ -27,7 +27,7 @@
         </div>
         <div>
           <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
-          <%= date_field_tag :date, booking_date, min: Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#refreshStarts" } %>
+          <%= date_field_tag :date, booking_date, min: Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#dateChanged" } %>
         </div>
         <div data-booking-form-target="horaFields" class="space-y-4">
           <div>
@@ -57,6 +57,7 @@
             <p class="text-sm text-gray-600">Total estimado</p>
             <p class="text-xl font-bold" data-booking-form-target="bloqueTotal"></p>
             <p class="mt-1 text-xs text-gray-500" data-booking-form-target="bloqueDurationLabel"></p>
+            <p class="mt-2 hidden text-sm text-red-700" data-booking-form-target="bloqueWarning"></p>
           </div>
         </div>
         <div data-booking-form-target="jornadaFields" class="hidden space-y-4">
@@ -72,6 +73,7 @@
             <p class="text-sm text-gray-600">Total estimado</p>
             <p class="text-xl font-bold" data-booking-form-target="jornadaTotal"></p>
             <p class="mt-1 text-xs text-gray-500" data-booking-form-target="jornadaDurationLabel"></p>
+            <p class="mt-2 hidden text-sm text-red-700" data-booking-form-target="jornadaWarning"></p>
           </div>
         </div>
         <% if space.terms_and_conditions.attached? %>
@@ -88,7 +90,7 @@
             </label>
           </div>
         <% end %>
-        <%= submit_tag "Reservar y pagar", class: "btn-primary w-full" %>
+        <%= submit_tag "Reservar y pagar", class: "btn-primary w-full", data: { booking_form_target: "submit" } %>
       <% end %>
     </div>
   <% elsif user_signed_in? %>

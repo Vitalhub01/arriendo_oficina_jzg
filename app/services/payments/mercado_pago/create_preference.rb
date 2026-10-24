@@ -12,6 +12,9 @@ module Payments
 
       def call
         return failure('Mercado Pago no configurado') if access_token.blank?
+        if SiteUrl.production_localhost?(success_url)
+          return failure('APP_HOST o APP_BASE_URL debe apuntar al dominio público en producción')
+        end
 
         existing = reusable_pending_payment
         if existing && preference_back_urls_current?(existing)
@@ -84,7 +87,10 @@ module Payments
         pref = response[:response]
         return false unless pref.is_a?(Hash)
 
-        pref.dig('back_urls', 'success') == success_url
+        stored = pref.dig('back_urls', 'success')
+        return false if SiteUrl.production_localhost?(stored)
+
+        stored == success_url
       rescue StandardError
         false
       end

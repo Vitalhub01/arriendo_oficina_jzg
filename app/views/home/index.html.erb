@@ -88,15 +88,13 @@
         <div class="border border-gray-200 bg-white p-8 md:p-10">
           <p class="text-xs font-medium uppercase tracking-widest text-brand">Más flexible</p>
           <h3 class="mt-3 text-xl font-medium text-gray-900">Hora a tu medida</h3>
-          <p class="mt-4 flex flex-wrap items-baseline gap-x-2 text-4xl font-medium tracking-tight text-gray-900">
-            <% if @home_min_hourly_price_cents %>
-              <span class="text-base font-normal text-gray-500">Desde</span>
-              <%= format_clp(@home_min_hourly_price_cents) %>
-              <span class="text-base font-normal text-gray-500">/ hora</span>
-            <% else %>
-              <span class="text-2xl">Consultar</span>
-            <% end %>
-          </p>
+          <div class="mt-4">
+            <%= render "home/period_price_cycle",
+                       morning_cents: @home_morning_hourly_price_cents,
+                       afternoon_cents: @home_afternoon_hourly_price_cents,
+                       fallback_cents: @home_min_hourly_price_cents,
+                       unit: "hora" %>
+          </div>
           <p class="mt-4 leading-relaxed text-gray-600">Elige la duración que necesites: puede ser más o menos de una hora. Ideal para coordinar con tus pacientes.</p>
           <%= link_to "Ver disponibilidad", spaces_path, class: "btn-primary mt-8 w-full justify-center" %>
         </div>

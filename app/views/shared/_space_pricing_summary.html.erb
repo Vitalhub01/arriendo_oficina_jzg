@@ -1,0 +1,32 @@
+<%# locals: space, compact: false %>
+<% compact = local_assigns.fetch(:compact, false) %>
+<div class="<%= compact ? 'space-y-0.5 text-xs leading-snug text-gray-600' : 'shop-product-card__pricing' %>">
+  <p>
+    <span class="font-medium text-gray-900"><%= format_clp(space.morning_hourly_price_cents || space.price_per_hour_cents) %></span>
+    <span>/ hora mañana</span>
+  </p>
+  <p>
+    <span class="font-medium text-gray-900"><%= format_clp(space.afternoon_hourly_price_cents || space.price_per_hour_cents) %></span>
+    <span>/ hora tarde</span>
+  </p>
+  <% unless compact %>
+    <% if (morning = space.morning_block_price_cents) %>
+      <p>
+        <span class="font-medium text-gray-900"><%= format_clp(morning) %></span>
+        <span>/ bloque mañana</span>
+      </p>
+    <% end %>
+    <% if (afternoon = space.afternoon_block_price_cents) %>
+      <p>
+        <span class="font-medium text-gray-900"><%= format_clp(afternoon) %></span>
+        <span>/ bloque tarde</span>
+      </p>
+    <% end %>
+    <% if (jornada_cents = space.primary_jornada_definition&.price_cents) %>
+      <p>
+        <span class="font-medium text-gray-900"><%= format_clp(jornada_cents) %></span>
+        <span>/ jornada</span>
+      </p>
+    <% end %>
+  <% end %>
+</div>

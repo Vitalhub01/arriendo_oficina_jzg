@@ -1,0 +1,33 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <h1 class="text-2xl font-bold">Implementos (catálogo)</h1>
+  <%= link_to "Nuevo implemento", new_admin_equipment_item_path, class: "btn-primary" %>
+</div>
+<p class="mt-2 text-sm text-gray-600">Lista maestra de implementos. Asigna cuáles tiene cada espacio al editarlo.</p>
+
+<% if @equipment_items.any? %>
+  <table class="mt-6 w-full text-left text-sm">
+    <thead>
+      <tr class="border-b text-gray-500">
+        <th class="py-2">Nombre</th>
+        <th class="py-2">Orden</th>
+        <th class="py-2">Activo</th>
+        <th class="py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @equipment_items.each do |item| %>
+        <tr class="border-b border-gray-100">
+          <td class="py-3 font-medium text-gray-900"><%= item.name %></td>
+          <td class="py-3"><%= item.position %></td>
+          <td class="py-3"><%= item.active? ? 'Sí' : 'No' %></td>
+          <td class="py-3 text-right">
+            <%= link_to "Editar", edit_admin_equipment_item_path(item), class: "text-brand hover:underline" %>
+            <%= button_to "Eliminar", admin_equipment_item_path(item), method: :delete, class: "ml-3 text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar este implemento del catálogo?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="mt-6 text-gray-600">Aún no hay implementos en el catálogo.</p>
+<% end %>

@@ -1,0 +1,17 @@
+<%= form_with model: [:admin, equipment_item], class: "mt-6 max-w-xl space-y-4" do |f| %>
+  <% if equipment_item.errors.any? %>
+    <div class="rounded-xl bg-red-50 p-4 text-red-800"><%= equipment_item.errors.full_messages.to_sentence %></div>
+  <% end %>
+  <%= f.label :name, "Nombre", class: "block text-sm font-medium" %>
+  <%= f.text_field :name, class: "input-field", required: true %>
+  <%= f.label :position, "Orden", class: "block text-sm font-medium" %>
+  <%= f.number_field :position, class: "input-field", min: 0, step: 1 %>
+  <div class="flex items-center gap-2">
+    <%= f.check_box :active, class: "rounded border-gray-300" %>
+    <%= f.label :active, "Visible en el catálogo", class: "text-sm font-medium" %>
+  </div>
+  <div class="flex gap-3">
+    <%= f.submit "Guardar", class: "btn-primary" %>
+    <%= link_to "Cancelar", admin_equipment_items_path, class: "btn-secondary" %>
+  </div>
+<% end %>

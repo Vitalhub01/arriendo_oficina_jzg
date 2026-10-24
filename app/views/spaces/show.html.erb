@@ -13,7 +13,8 @@
        data-booking-form-today-value="<%= Date.current.iso8601 %>"
        data-booking-form-now-time-value="<%= Time.zone.now.strftime('%H:%M') %>"
        data-booking-form-slot-rates-value="<%= space_booking_slot_rates_payload(@space).to_json %>"
-       data-booking-form-jornada-value="<%= space_booking_jornada_payload(@space).to_json %>">
+       data-booking-form-jornada-value="<%= space_booking_jornada_payload(@space).to_json %>"
+       data-booking-form-reserved-intervals-value="<%= space_booking_reserved_intervals(@space).to_json %>">
 <% end %>
 <div class="mx-auto max-w-7xl px-4 py-6">
   <% if @errors.present? %>
@@ -47,11 +48,11 @@
           </ul>
         <% end %>
 
-        <% if @space.amenities.present? %>
-          <div class="mt-6 flex flex-wrap gap-2">
-            <% @space.amenities.each do |key, enabled| %>
-              <% next unless enabled == true || enabled == "1" %>
-              <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"><%= amenity_label(key) %></span>
+        <% if @space.amenity_tags.any? %>
+          <h2 class="mt-6 text-lg font-semibold">Comodidades y servicios</h2>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <% @space.amenity_tags.ordered.each do |tag| %>
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"><%= tag.name %></span>
             <% end %>
           </div>
         <% end %>
@@ -84,9 +85,8 @@
 
 <div class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white p-4 shadow-lg lg:hidden">
   <div class="flex items-center justify-between gap-4">
-    <div>
-      <p class="text-sm text-gray-500">Desde</p>
-      <p class="text-lg font-bold"><%= format_clp(@space.price_per_hour_cents) %> <span class="text-sm font-normal text-gray-500">/ hora</span></p>
+    <div class="min-w-0">
+      <%= render "shared/space_pricing_summary", space: @space, compact: true %>
     </div>
     <% if user_signed_in? %>
       <a href="#booking-form-mobile" class="btn-primary">Reservar</a>

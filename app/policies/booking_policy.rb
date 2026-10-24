@@ -34,6 +34,9 @@ class BookingPolicy < ApplicationPolicy
   end
 
   def cancel?
+    return false unless user
+    return false if record.confirmed? && !user.admin?
+
     Bookings::Cancel.new(booking: record, actor: user).cancellable?
   end
 

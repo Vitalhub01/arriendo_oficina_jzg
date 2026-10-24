@@ -56,6 +56,14 @@ class ScheduleBlockResolver
   end
 
   def interval_matches_schedule?(start_at, end_at)
-    blocks_for_exact_interval(start_at, end_at).any?
+    interval_covers_schedule?(start_at, end_at)
+  end
+
+  def interval_covers_schedule?(start_at, end_at)
+    blocks = blocks_for_exact_interval(start_at, end_at)
+    return false if blocks.empty?
+
+    date = start_at.to_date
+    blocks.first.starts_at_on(date) == start_at && blocks.last.ends_at_on(date) == end_at
   end
 end

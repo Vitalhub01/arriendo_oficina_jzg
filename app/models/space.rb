@@ -28,7 +28,10 @@ class Space < ApplicationRecord
     'workspace' => 'Workspace'
   }.freeze
 
-  AMENITY_OPTIONS = %w[wifi bathroom parking air_conditioning waiting_room wheelchair_access].freeze
+  has_many :space_equipment_items, dependent: :destroy
+  has_many :equipment_items, through: :space_equipment_items
+  has_many :space_amenity_assignments, dependent: :destroy
+  has_many :amenity_tags, through: :space_amenity_assignments
 
   validates :title, :city, presence: true
   validates :address, :commune, presence: true, unless: :inherits_location_from_office?
@@ -87,12 +90,14 @@ class Space < ApplicationRecord
   end
 
   def self.home_pricing_snapshot
-    Rails.cache.fetch('spaces/home_pricing_snapshot/v1', expires_in: 2.minutes) do
+    Rails.cache.fetch('spaces/home_pricing_snapshot/v2', expires_in: 2.minutes) do
       slot_rates = SlotRate.joins(:space).merge(published_spaces)
       block_effective = Arel.sql('COALESCE(slot_rates.block_price_cents, slot_rates.price_per_slot_cents)')
 
       {
         min_hourly_cents: published_spaces.minimum(:price_per_hour_cents),
+        min_morning_hourly_cents: slot_rates.where(name: 'Mañana').minimum(:price_per_slot_cents),
+        min_afternoon_hourly_cents: slot_rates.where(name: 'Tarde').minimum(:price_per_slot_cents),
         min_morning_block_cents: slot_rates.where(name: 'Mañana').minimum(block_effective),
         min_afternoon_block_cents: slot_rates.where(name: 'Tarde').minimum(block_effective),
         min_jornada_cents: JornadaDefinition.active.where(space_id: published_spaces.select(:id)).minimum(:price_cents)
@@ -104,6 +109,14 @@ class Space < ApplicationRecord
     SlotRate.joins(:space)
             .merge(published_spaces)
             .minimum(:price_per_slot_cents)
+  end
+
+  def morning_hourly_price_cents
+    slot_rate_for_period('Mañana')&.price_per_slot_cents
+  end
+
+  def afternoon_hourly_price_cents
+    slot_rate_for_period('Tarde')&.price_per_slot_cents
   end
 
   def morning_block_price_cents
@@ -217,8 +230,8 @@ class Space < ApplicationRecord
     jornada = primary_jornada_definition
 
     {
-      morning_hourly_price_cents: morning&.price_per_slot_cents || price_per_hour_cents,
-      afternoon_hourly_price_cents: afternoon&.price_per_slot_cents || price_per_hour_cents,
+      morning_hourly_price_cents: morning_hourly_price_cents || price_per_hour_cents,
+      afternoon_hourly_price_cents: afternoon_hourly_price_cents || price_per_hour_cents,
       morning_block_price_cents: morning&.block_price_cents_effective || price_per_hour_cents,
       afternoon_block_price_cents: afternoon&.block_price_cents_effective || price_per_hour_cents,
       jornada_price_cents: jornada&.price_cents

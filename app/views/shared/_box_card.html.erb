@@ -16,9 +16,8 @@
       <span class="shrink-0 text-xs rounded-full bg-brand-pale px-2 py-1 text-brand"><%= box.box_type_label %></span>
     </div>
     <p class="mt-1 text-sm text-gray-500"><%= box.commune %>, <%= box.city %></p>
-    <p class="mt-2 text-sm">
-      <span class="font-semibold"><%= format_clp(box.price_per_hour_cents) %></span>
-      <span class="text-gray-500">/ hora</span>
-    </p>
+    <div class="mt-2 text-sm text-gray-600">
+      <%= render "shared/space_pricing_summary", space: box %>
+    </div>
   </div>
 <% end %>

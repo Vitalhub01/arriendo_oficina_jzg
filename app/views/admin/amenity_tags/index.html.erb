@@ -1,0 +1,33 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <h1 class="text-2xl font-bold">Etiquetas de espacio</h1>
+  <%= link_to "Nueva etiqueta", new_admin_amenity_tag_path, class: "btn-primary" %>
+</div>
+<p class="mt-2 text-sm text-gray-600">Comodidades y servicios (WiFi, baño, etc.). Asigna cuáles aplican a cada espacio.</p>
+
+<% if @amenity_tags.any? %>
+  <table class="mt-6 w-full text-left text-sm">
+    <thead>
+      <tr class="border-b text-gray-500">
+        <th class="py-2">Nombre</th>
+        <th class="py-2">Orden</th>
+        <th class="py-2">Activo</th>
+        <th class="py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @amenity_tags.each do |tag| %>
+        <tr class="border-b border-gray-100">
+          <td class="py-3 font-medium text-gray-900"><%= tag.name %></td>
+          <td class="py-3"><%= tag.position %></td>
+          <td class="py-3"><%= tag.active? ? 'Sí' : 'No' %></td>
+          <td class="py-3 text-right">
+            <%= link_to "Editar", edit_admin_amenity_tag_path(tag), class: "text-brand hover:underline" %>
+            <%= button_to "Eliminar", admin_amenity_tag_path(tag), method: :delete, class: "ml-3 text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar esta etiqueta del catálogo?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="mt-6 text-gray-600">Aún no hay etiquetas en el catálogo.</p>
+<% end %>
