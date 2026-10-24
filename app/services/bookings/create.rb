@@ -40,7 +40,7 @@ module Bookings
       )
       booking.reservation_slot_rate = interval.slot_rate
       booking.reservation_mode = interval.mode
-      booking.equipment_usage = @space.equipment_usage_from_params(@params)
+      booking.rented_equipment_item_ids = @space.rented_equipment_items_from_params(@params).pluck(:id)
 
       if booking.save
         mark_credit_applied!(booking) if booking.reschedule_credit_id.present?

@@ -37,7 +37,6 @@ class Space < ApplicationRecord
   validates :address, :commune, presence: true, unless: :inherits_location_from_office?
 
   before_validation :inherit_location_from_office
-  before_validation :normalize_equipment_usage_pricing
   before_validation :geocode_from_address, if: :needs_geocoding?
   before_create :assign_display_position
   validates :price_per_hour_cents, numericality: { greater_than: 0 }
@@ -45,8 +44,6 @@ class Space < ApplicationRecord
   validates :slot_duration_minutes, numericality: { greater_than: 0, only_integer: true }
   validates :minimum_slots, numericality: { greater_than: 0, only_integer: true }
   validates :reschedule_notice_hours,
-            numericality: { greater_than: 0, only_integer: true, allow_nil: true }
-  validates :equipment_usage_price_per_hour_cents,
             numericality: { greater_than: 0, only_integer: true, allow_nil: true }
   validate :slot_duration_multiple_of_thirty
   validate :photos_required_for_publish, if: :published?
@@ -83,18 +80,13 @@ class Space < ApplicationRecord
     hours * price_per_hour_cents
   end
 
-  def equipment_usage_rentable?
-    equipment_usage_price_per_hour_cents.to_i.positive?
+  def checkout_rentable_equipment_items
+    equipment_items.merge(EquipmentItem.rentable).ordered
   end
 
-  def equipment_usage_label_display
-    equipment_usage_label.presence || 'Uso de implementos'
-  end
-
-  def equipment_usage_from_params(params)
-    return false unless equipment_usage_rentable?
-
-    ActiveModel::Type::Boolean.new.cast(params[:equipment_usage] || params['equipment_usage'])
+  def rented_equipment_items_from_params(params)
+    ids = Array(params[:rented_equipment_item_ids] || params['rented_equipment_item_ids']).map(&:to_i).uniq
+    checkout_rentable_equipment_items.where(id: ids)
   end
 
   def default_price_per_slot_cents
@@ -318,14 +310,6 @@ class Space < ApplicationRecord
   end
 
   private
-
-  def normalize_equipment_usage_pricing
-    cents = equipment_usage_price_per_hour_cents
-    if cents.blank? || cents.to_i <= 0
-      self.equipment_usage_price_per_hour_cents = nil
-      self.equipment_usage_label = nil
-    end
-  end
 
   def inherit_location_from_office
     return unless office

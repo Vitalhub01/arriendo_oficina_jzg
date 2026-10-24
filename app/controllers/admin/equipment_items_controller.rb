@@ -44,7 +44,7 @@ module Admin
     end
 
     def equipment_item_params
-      params.expect(equipment_item: %i[name position active])
+      params.expect(equipment_item: %i[name position active price_per_hour_cents])
     end
   end
 end

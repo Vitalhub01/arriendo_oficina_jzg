@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_24_140000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_24_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -150,8 +150,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_140000) do
     t.integer "minimum_slots", default: 1, null: false
     t.integer "reschedule_notice_hours"
     t.integer "display_position", default: 0, null: false
-    t.integer "equipment_usage_price_per_hour_cents"
-    t.string "equipment_usage_label"
     t.index ["box_type"], name: "index_boxes_on_box_type"
     t.index ["city"], name: "index_boxes_on_city"
     t.index ["commune"], name: "index_boxes_on_commune"
@@ -184,6 +182,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_140000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "price_per_hour_cents"
     t.index ["name"], name: "index_equipment_items_on_name", unique: true
   end
 

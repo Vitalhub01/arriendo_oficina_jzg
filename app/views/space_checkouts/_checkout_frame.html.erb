@@ -29,8 +29,8 @@
             <dt class="text-gray-500">Modalidad</dt>
             <dd class="font-medium text-gray-900"><%= quote.mode_label %></dd>
           </div>
-          <% equipment_line = quote.pricing[:breakdown]&.find { |line| line[:type] == "equipment_usage" } %>
-          <% if equipment_line %>
+          <% equipment_lines = quote.pricing[:breakdown]&.select { |line| line[:type] == "equipment_rental" } || [] %>
+          <% equipment_lines.each do |equipment_line| %>
             <div class="sm:col-span-2">
               <dt class="text-gray-500">Adicional</dt>
               <dd class="font-medium text-gray-900">
@@ -69,7 +69,9 @@
             <%= hidden_field_tag :slot_count, checkout_params["slot_count"] %>
             <%= hidden_field_tag :reservation_mode, checkout_params["reservation_mode"] %>
             <%= hidden_field_tag :slot_rate_id, checkout_params["slot_rate_id"] %>
-            <%= hidden_field_tag :equipment_usage, checkout_params["equipment_usage"] if checkout_params["equipment_usage"].present? %>
+            <% Array(checkout_params["rented_equipment_item_ids"]).each do |equipment_id| %>
+              <%= hidden_field_tag "rented_equipment_item_ids[]", equipment_id %>
+            <% end %>
             <%= hidden_field_tag :from_checkout, "1" %>
             <% unless current_user.profile_complete? %>
               <%= render "shared/profile_incomplete_reminder" %>

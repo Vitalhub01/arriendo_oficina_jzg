@@ -71,7 +71,6 @@ module Admin
         :latitude, :longitude, :box_type, :price_per_hour_cents,
         :slot_duration_minutes, :minimum_slots, :reschedule_notice_hours,
         :minimum_hours, :status, :capacity, :dimensions,
-        :equipment_usage_price_per_hour_cents, :equipment_usage_label,
         :terms_and_conditions,
         equipment_item_ids: [],
         amenity_tag_ids: []

@@ -2,31 +2,11 @@
 <fieldset class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 space-y-4">
   <legend class="px-1 text-sm font-semibold text-gray-900">Implementos y etiquetas</legend>
   <p class="text-xs text-gray-600">
-    Elige del catálogo.
+    Elige del catálogo. El precio por hora de arriendo de cada implemento se define al editarlo en el catálogo.
     <%= link_to "Gestionar implementos", admin_equipment_items_path, class: "text-brand hover:underline" %>
     ·
     <%= link_to "Gestionar etiquetas", admin_amenity_tags_path, class: "text-brand hover:underline" %>
   </p>
-
-  <div class="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
-    <p class="text-sm font-medium text-gray-900">Arriendo opcional de implementos (por hora)</p>
-    <p class="text-xs text-gray-600">
-      Si defines un precio, en el checkout por hora aparecerá un checkbox para sumar ese valor por cada hora reservada.
-      Déjalo vacío para desactivar la opción en este espacio.
-    </p>
-    <%= label_tag "space[equipment_usage_price_per_hour_cents]", "Precio adicional por hora (CLP)", class: "block text-sm font-medium" %>
-    <%= number_field_tag "space[equipment_usage_price_per_hour_cents]",
-          space.equipment_usage_price_per_hour_cents,
-          class: "input-field max-w-xs",
-          min: 1,
-          step: 1,
-          placeholder: "Ej. 500" %>
-    <%= label_tag "space[equipment_usage_label]", "Texto en el checkout (opcional)", class: "block text-sm font-medium" %>
-    <%= text_field_tag "space[equipment_usage_label]",
-          space.equipment_usage_label,
-          class: "input-field",
-          placeholder: "Uso de implementos" %>
-  </div>
 
   <div>
     <p class="text-sm font-medium text-gray-900">Implementos de este espacio</p>

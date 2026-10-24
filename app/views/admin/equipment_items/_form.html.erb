@@ -6,6 +6,9 @@
   <%= f.text_field :name, class: "input-field", required: true %>
   <%= f.label :position, "Orden", class: "block text-sm font-medium" %>
   <%= f.number_field :position, class: "input-field", min: 0, step: 1 %>
+  <%= f.label :price_per_hour_cents, "Precio de arriendo por hora (CLP)", class: "block text-sm font-medium" %>
+  <%= f.number_field :price_per_hour_cents, class: "input-field max-w-xs", min: 1, step: 1, placeholder: "Opcional" %>
+  <p class="text-xs text-gray-500">Si tiene precio y el implemento está asignado a un espacio, en el checkout por hora se podrá agregar al arriendo.</p>
   <div class="flex items-center gap-2">
     <%= f.check_box :active, class: "rounded border-gray-300" %>
     <%= f.label :active, "Visible en el catálogo", class: "text-sm font-medium" %>

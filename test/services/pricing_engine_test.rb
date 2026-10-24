@@ -23,19 +23,22 @@ class PricingEngineTest < ActiveSupport::TestCase
     assert_equal 10_000, result[:subtotal_cents]
   end
 
-  test 'adds optional equipment usage per hour' do
-    @space.update_columns(equipment_usage_price_per_hour_cents: 500, equipment_usage_label: 'Uso de implementos')
+  test 'adds optional equipment rental per hour' do
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 500)
 
-    result = PricingEngine.calculate(@space, @user, @start_at, 2, end_at: @start_at + 2.hours, equipment_usage: true)
+    result = PricingEngine.calculate(
+      @space, @user, @start_at, 2, end_at: @start_at + 2.hours, rented_equipment_items: [item]
+    )
 
     assert_equal 31_000, result[:subtotal_cents]
     assert_equal 31_000, result[:total_cents]
-    equipment_line = result[:breakdown].find { |line| line[:type] == 'equipment_usage' }
+    equipment_line = result[:breakdown].find { |line| line[:type] == 'equipment_rental' }
     assert_equal 1000, equipment_line[:amount_cents]
   end
 
-  test 'ignores equipment usage when not offered on space' do
-    result = PricingEngine.calculate(@space, @user, @start_at, 2, end_at: @start_at + 2.hours, equipment_usage: true)
+  test 'ignores equipment rental when none selected' do
+    result = PricingEngine.calculate(@space, @user, @start_at, 2, end_at: @start_at + 2.hours, rented_equipment_items: [])
 
     assert_equal 30_000, result[:subtotal_cents]
   end

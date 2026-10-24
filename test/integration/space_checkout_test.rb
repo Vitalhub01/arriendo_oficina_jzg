@@ -61,8 +61,9 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     assert_no_match 'Iniciar sesión', response.body
   end
 
-  test 'checkout shows equipment usage option and total when enabled' do
-    @space.update_columns(equipment_usage_price_per_hour_cents: 500)
+  test 'checkout shows equipment rental option and total when enabled' do
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 500)
 
     get checkout_space_path(
       @space,
@@ -70,11 +71,11 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
       start_time: '10:00',
       reservation_mode: 'hora',
       slot_count: 2,
-      equipment_usage: '1'
+      rented_equipment_item_ids: [item.id]
     )
 
     assert_response :success
-    assert_match 'Agregar uso de implementos', response.body
+    assert_match "Agregar #{item.name}", response.body
     assert_match '$31.000', response.body
   end
 

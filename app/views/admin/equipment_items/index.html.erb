@@ -10,6 +10,7 @@
       <tr class="border-b text-gray-500">
         <th class="py-2">Nombre</th>
         <th class="py-2">Orden</th>
+        <th class="py-2">Arriendo/hora</th>
         <th class="py-2">Activo</th>
         <th class="py-2"></th>
       </tr>
@@ -19,6 +20,13 @@
         <tr class="border-b border-gray-100">
           <td class="py-3 font-medium text-gray-900"><%= item.name %></td>
           <td class="py-3"><%= item.position %></td>
+          <td class="py-3 tabular-nums">
+            <% if item.rentable? %>
+              <%= format_clp(item.price_per_hour_cents) %>
+            <% else %>
+              <span class="text-gray-400">—</span>
+            <% end %>
+          </td>
           <td class="py-3"><%= item.active? ? 'Sí' : 'No' %></td>
           <td class="py-3 text-right">
             <%= link_to "Editar", edit_admin_equipment_item_path(item), class: "text-brand hover:underline" %>

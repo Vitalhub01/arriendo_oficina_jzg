@@ -67,17 +67,18 @@
             class: "input-field max-w-[8rem]",
             data: { action: "input->checkout-form#submitDebounced change->checkout-form#submit" } %>
     </div>
-    <% if space.equipment_usage_rentable? %>
+    <% selected_equipment_ids = Array(checkout_params["rented_equipment_item_ids"]).map(&:to_s) %>
+    <% space.checkout_rentable_equipment_items.each do |item| %>
       <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 px-4 py-3.5 hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-        <%= check_box_tag :equipment_usage,
-              "1",
-              ActiveModel::Type::Boolean.new.cast(checkout_params["equipment_usage"]),
+        <%= check_box_tag "rented_equipment_item_ids[]",
+              item.id,
+              selected_equipment_ids.include?(item.id.to_s),
               class: "mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand",
               data: { action: "checkout-form#submit" } %>
         <span class="min-w-0 flex-1">
-          <span class="block text-sm font-medium text-gray-900">Agregar <%= space.equipment_usage_label_display.downcase %></span>
+          <span class="block text-sm font-medium text-gray-900">Agregar <%= item.name %></span>
           <span class="text-xs text-gray-500 tabular-nums">
-            +<%= Money.new(space.equipment_usage_price_per_hour_cents, "CLP").format(no_cents_if_whole: true) %> por hora
+            +<%= Money.new(item.price_per_hour_cents, "CLP").format(no_cents_if_whole: true) %> por hora
           </span>
         </span>
       </label>

@@ -2,15 +2,16 @@
 
 class PricingEngine
   def self.calculate(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
-                     slot_rate: nil, equipment_usage: false)
+                     slot_rate: nil, rented_equipment_items: [])
     new(
       space, user, start_at, slot_count, end_at: end_at, booking_type: booking_type,
-      jornada_definition: jornada_definition, slot_rate: slot_rate, equipment_usage: equipment_usage
+      jornada_definition: jornada_definition, slot_rate: slot_rate,
+      rented_equipment_items: rented_equipment_items
     ).calculate
   end
 
   def initialize(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
-                 slot_rate: nil, equipment_usage: false)
+                 slot_rate: nil, rented_equipment_items: [])
     @space = space
     @user = user
     @start_at = start_at
@@ -19,16 +20,14 @@ class PricingEngine
     @booking_type = booking_type
     @jornada_definition = jornada_definition
     @slot_rate = slot_rate
-    @equipment_usage = equipment_usage
+    @rented_equipment_items = Array(rented_equipment_items)
   end
 
   def calculate
     space_subtotal = base_subtotal
     breakdown = [base_line(space_subtotal)]
-    equipment_cents = equipment_usage_subtotal_cents
-    if equipment_cents.positive?
-      breakdown << equipment_usage_line(equipment_cents)
-    end
+    equipment_cents = equipment_rental_subtotal_cents
+    breakdown.concat(equipment_rental_lines)
     subtotal_cents = space_subtotal + equipment_cents
     discount_cents = 0
 
@@ -55,16 +54,16 @@ class PricingEngine
   private
 
   attr_reader :space, :user, :start_at, :slot_count, :end_at, :booking_type, :jornada_definition, :slot_rate,
-              :equipment_usage
+              :rented_equipment_items
 
-  def equipment_usage_subtotal_cents
-    return 0 unless equipment_usage_applicable?
+  def equipment_rental_subtotal_cents
+    return 0 unless equipment_rental_applicable?
 
-    space.equipment_usage_price_per_hour_cents * equipment_billable_hours
+    equipment_rental_lines.sum { |line| line[:amount_cents] }
   end
 
-  def equipment_usage_applicable?
-    equipment_usage && space.equipment_usage_rentable? && !block_period_booking? && !jornada_booking?
+  def equipment_rental_applicable?
+    !block_period_booking? && !jornada_booking? && rented_equipment_items.any?
   end
 
   def equipment_billable_hours
@@ -74,18 +73,22 @@ class PricingEngine
     slot_count
   end
 
-  def equipment_usage_line(amount_cents)
+  def equipment_rental_lines
+    return [] unless equipment_rental_applicable?
+
     hours = equipment_billable_hours
-    label = if hours == hours.to_i
-              "#{space.equipment_usage_label_display} (#{hours.to_i} hora(s))"
-            else
-              space.equipment_usage_label_display
-            end
-    {
-      type: 'equipment_usage',
-      label: label,
-      amount_cents: amount_cents
-    }
+    hour_label = hours == hours.to_i ? "#{hours.to_i} hora(s)" : nil
+
+    rented_equipment_items.map do |item|
+      amount_cents = item.price_per_hour_cents * equipment_billable_hours
+      label = hour_label ? "#{item.name} (#{hour_label})" : item.name
+      {
+        type: 'equipment_rental',
+        equipment_item_id: item.id,
+        label: label,
+        amount_cents: amount_cents
+      }
+    end
   end
 
   def base_subtotal

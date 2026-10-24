@@ -27,7 +27,7 @@ class SpaceCheckoutsController < ApplicationController
 
   def normalized_checkout_params
     raw = params.permit(:date, :start_time, :slot_count, :hours, :reservation_mode, :slot_rate_id,
-                        :equipment_usage).to_h
+                        rented_equipment_item_ids: []).to_h
     available_modes = helpers.space_checkout_mode_values(@space)
     mode = raw['reservation_mode'].presence || 'hora'
     mode = 'hora' unless available_modes.include?(mode)
