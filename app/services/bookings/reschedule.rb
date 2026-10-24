@@ -2,6 +2,8 @@
 
 module Bookings
   class Reschedule
+    MAX_MODIFICATIONS = 3
+
     def initialize(booking:, actor:, params:)
       @booking = booking
       @actor = actor
@@ -9,6 +11,7 @@ module Bookings
     end
 
     def call
+      return failure(modification_limit_message) if modification_limit_reached?
       return failure('La reserva no puede reprogramarse') unless rescheduleable?
       return failure('Indica la nueva fecha y horario') if @params[:date].blank?
 
@@ -41,6 +44,9 @@ module Bookings
         end
 
         new_booking = result.booking
+        new_booking.update!(
+          reschedule_modifications_count: @booking.reschedule_modifications_count + 1
+        )
       end
 
       if new_booking
@@ -56,8 +62,28 @@ module Bookings
       return true if @actor.admin?
       return false unless @booking.profesional_id == @actor.id
       return false if @booking.cancelled? || @booking.completed? || @booking.rescheduled? || @booking.pending_payment?
+      return false if modification_limit_reached?
 
       @booking.confirmed? && @booking.start_at > reschedule_cutoff
+    end
+
+    def modification_limit_reached?
+      return false if @actor.admin?
+
+      @booking.reschedule_modifications_count >= MAX_MODIFICATIONS
+    end
+
+    def modification_limit_message
+      'Has alcanzado el límite de modificaciones para esta reserva'
+    end
+
+    def credit_amount_cents
+      return @booking.total_amount_cents if @booking.total_amount_cents.positive?
+
+      inherited = @booking.reschedule_credit&.amount_cents
+      return inherited if inherited.to_i.positive?
+
+      @booking.payment&.amount_cents.to_i
     end
 
     private
@@ -65,7 +91,7 @@ module Bookings
     def reschedule_cutoff
       notice_hours = @booking.space.reschedule_notice_hours
       if notice_hours.blank?
-        notice_hours = SiteSetting.get('reschedule_notice_hours', ENV.fetch('RESCHEDULE_NOTICE_HOURS', '24')).to_i
+        notice_hours = SiteSetting.get('reschedule_notice_hours', ENV.fetch('RESCHEDULE_NOTICE_HOURS', '12')).to_i
       end
       notice_hours.to_i.hours.from_now
     end
@@ -74,7 +100,7 @@ module Bookings
       RescheduleCredit.create!(
         user: @booking.profesional,
         source_booking: @booking,
-        amount_cents: @booking.total_amount_cents,
+        amount_cents: credit_amount_cents,
         hours: @booking.hours.to_i,
         status: :available,
         expires_at: 6.months.from_now

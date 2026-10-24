@@ -40,6 +40,16 @@
       <% if policy(@booking).cancel? %>
         <%= button_to "Cancelar reserva", cancel_booking_path(@booking), method: :patch, class: "btn-secondary", data: { turbo_confirm: "¿Cancelar esta reserva?" } %>
       <% end %>
+      <% if @booking.confirmed? && current_user == @booking.profesional %>
+        <p class="w-full text-sm text-gray-600">
+          Puedes reagendar hasta <%= @booking.reschedule_notice_hours %> horas antes del inicio.
+          <% if @booking.reschedule_modifications_remaining.positive? %>
+            Modificaciones restantes: <%= @booking.reschedule_modifications_remaining %>.
+          <% else %>
+            Ya usaste el máximo de modificaciones permitidas.
+          <% end %>
+        </p>
+      <% end %>
       <% if @booking.confirmed? && policy(@booking).reschedule? %>
         <%= form_with url: reschedule_booking_path(@booking), method: :patch, class: "w-full space-y-3 rounded-xl border border-gray-200 p-4" do %>
           <p class="font-medium">Reagendar (sin reembolso, con crédito aplicado)</p>

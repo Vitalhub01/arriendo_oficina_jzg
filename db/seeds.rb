@@ -241,7 +241,7 @@ end
   end
 end
 
-SiteSetting.set('reschedule_notice_hours', '24')
+SiteSetting.set('reschedule_notice_hours', '12')
 SiteSetting.set('google_analytics_id', ENV.fetch('GOOGLE_ANALYTICS_ID', ''))
 
 if GalleryItem.none?

@@ -38,4 +38,23 @@ class AvailabilityCheckerPeriodTest < ActiveSupport::TestCase
   test 'slot rate window available when no conflicts' do
     assert @checker.slot_rate_window_available?(@date, @morning)
   end
+
+  test 'jornada window unavailable when an hour inside is booked' do
+    jornada = @space.primary_jornada_definition
+
+    Booking.create!(
+      space: @space,
+      profesional: users(:renter),
+      start_at: @slot,
+      end_at: @slot + 2.hours,
+      hours: 2,
+      duration_minutes: 120,
+      total_amount_cents: 30_000,
+      status: :confirmed,
+      booking_type: :slot_based
+    )
+
+    assert_not @checker.jornada_window_available?(@date, jornada)
+    assert_equal AvailabilityChecker::PERIOD_BOOKING_BLOCKED_MESSAGE, @checker.error_message
+  end
 end

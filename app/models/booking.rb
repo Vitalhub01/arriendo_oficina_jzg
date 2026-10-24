@@ -22,6 +22,8 @@ class Booking < ApplicationRecord
   validates :start_at, :end_at, :duration_minutes, presence: true
   validates :duration_minutes, numericality: { greater_than: 0, only_integer: true }
   validates :total_amount_cents, numericality: { greater_than_or_equal_to: 0 }
+  validates :reschedule_modifications_count,
+            numericality: { greater_than_or_equal_to: 0, only_integer: true }
   validate :minimum_slots_met, on: :create
   validate :availability_check, on: :create
   validate :start_at_not_in_past, on: :create
@@ -85,6 +87,18 @@ class Booking < ApplicationRecord
 
   def box
     space
+  end
+
+  def reschedule_notice_hours
+    hours = space.reschedule_notice_hours
+    if hours.blank?
+      hours = SiteSetting.get('reschedule_notice_hours', ENV.fetch('RESCHEDULE_NOTICE_HOURS', '12')).to_i
+    end
+    hours.to_i
+  end
+
+  def reschedule_modifications_remaining
+    [Bookings::Reschedule::MAX_MODIFICATIONS - reschedule_modifications_count, 0].max
   end
 
   private

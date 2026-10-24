@@ -79,6 +79,26 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     assert_match '$31.000', response.body
   end
 
+  test 'checkout total increases when equipment checkbox is selected' do
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 500)
+    base_params = {
+      date: @slot_time.to_date,
+      start_time: '10:00',
+      reservation_mode: 'hora',
+      slot_count: 2
+    }
+
+    get checkout_space_path(@space, **base_params)
+    assert_response :success
+    assert_match '$30.000', response.body
+    assert_no_match '$31.000', response.body
+
+    get checkout_space_path(@space, **base_params, rented_equipment_item_ids: [item.id])
+    assert_response :success
+    assert_match '$31.000', response.body
+  end
+
   test 'checkout stores return path for sign in' do
     checkout_url = checkout_space_path(
       @space,

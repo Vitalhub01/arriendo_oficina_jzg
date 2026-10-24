@@ -23,5 +23,25 @@ module Bookings
       assert result.success?
       assert_equal 30_000, result.total_cents
     end
+
+    test 'adds equipment rental per hour to quote total' do
+      item = equipment_items(:wifi_equipment)
+      item.update_columns(price_per_hour_cents: 500)
+
+      result = Quote.new(
+        space: @space,
+        user: users(:renter),
+        params: {
+          'date' => @slot_time.to_date.iso8601,
+          'start_time' => '10:00',
+          'reservation_mode' => 'hora',
+          'slot_count' => '2',
+          'rented_equipment_item_ids' => [item.id]
+        }
+      ).call
+
+      assert result.success?
+      assert_equal 31_000, result.total_cents
+    end
   end
 end
