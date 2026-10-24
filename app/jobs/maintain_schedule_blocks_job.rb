@@ -7,7 +7,8 @@ class MaintainScheduleBlocksJob < ApplicationJob
     Space.published_spaces.find_each do |space|
       next if space.schedule_blocks.exists?
 
-      ScheduleBlocks::GenerateFromRules.call(space)
+      next if ScheduleBlocks::GenerateFromRules.call(space)
+      next unless ScheduleBlocks::SeedDefaults.call(space).success?
     end
   end
 end

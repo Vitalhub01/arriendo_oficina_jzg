@@ -33,7 +33,7 @@ module Admin
       @pricing_values = pricing_values_from_request
       assign_hourly_price_from_pricing!
 
-      if save_space_with_pricing!
+      if save_space_with_pricing!(seed_default_schedule: true)
         redirect_to edit_admin_space_path(@space), notice: 'Espacio creado'
       else
         load_feature_catalog
@@ -94,7 +94,7 @@ module Admin
       )
     end
 
-    def save_space_with_pricing!
+    def save_space_with_pricing!(seed_default_schedule: false)
       success = false
       ActiveRecord::Base.transaction do
         unless @space.save
@@ -106,9 +106,20 @@ module Admin
         unless apply_features!
           raise ActiveRecord::Rollback
         end
+        if seed_default_schedule && !seed_default_schedule_blocks!
+          raise ActiveRecord::Rollback
+        end
         success = true
       end
       success
+    end
+
+    def seed_default_schedule_blocks!
+      result = ScheduleBlocks::SeedDefaults.call(@space)
+      return true if result.success?
+
+      @space.errors.add(:base, result.errors.to_sentence)
+      false
     end
 
     def assign_hourly_price_from_pricing!
