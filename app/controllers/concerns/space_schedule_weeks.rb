@@ -3,7 +3,7 @@
 module SpaceScheduleWeeks
   extend ActiveSupport::Concern
 
-  PRELOAD_WEEKS = 3
+  PRELOAD_WEEKS = 5
 
   private
 
