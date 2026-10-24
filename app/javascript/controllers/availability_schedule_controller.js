@@ -4,9 +4,20 @@ export default class extends Controller {
   static targets = ["content", "loading"]
 
   connect() {
-    this.element.addEventListener("turbo:before-fetch-request", this.showLoading.bind(this))
-    this.element.addEventListener("turbo:frame-load", this.hideLoading.bind(this))
-    this.element.addEventListener("turbo:frame-missing", this.hideLoading.bind(this))
+    this.onBeforeFetchRequest = (event) => this.showLoading(event)
+    this.onHideLoading = () => this.hideLoading()
+
+    this.element.addEventListener("turbo:before-fetch-request", this.onBeforeFetchRequest)
+    this.element.addEventListener("turbo:frame-load", this.onHideLoading)
+    this.element.addEventListener("turbo:frame-missing", this.onHideLoading)
+    this.element.addEventListener("turbo:fetch-request-error", this.onHideLoading)
+  }
+
+  disconnect() {
+    this.element.removeEventListener("turbo:before-fetch-request", this.onBeforeFetchRequest)
+    this.element.removeEventListener("turbo:frame-load", this.onHideLoading)
+    this.element.removeEventListener("turbo:frame-missing", this.onHideLoading)
+    this.element.removeEventListener("turbo:fetch-request-error", this.onHideLoading)
   }
 
   navigate(event) {
@@ -22,9 +33,22 @@ export default class extends Controller {
     this.hideLoading()
   }
 
-  showLoading() {
+  showLoading(event) {
+    if (event && this.isPrefetchRequest(event)) return
+
     this.element.classList.add(...this.loadingClassNames)
     if (this.hasLoadingTarget) this.loadingTarget.classList.remove("hidden")
+  }
+
+  isPrefetchRequest(event) {
+    const headers = event.detail?.fetchOptions?.headers
+    if (!headers) return false
+
+    if (typeof headers.get === "function") {
+      return headers.get("X-Sec-Purpose") === "prefetch"
+    }
+
+    return headers["X-Sec-Purpose"] === "prefetch"
   }
 
   hideLoading() {

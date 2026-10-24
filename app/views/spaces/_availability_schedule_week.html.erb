@@ -9,6 +9,7 @@
           class: "text-sm font-medium text-rose-600 hover:underline",
           data: {
             turbo_frame: "availability_schedule",
+            turbo_prefetch: false,
             week_start: prev_week.iso8601,
             action: "click->availability-schedule#navigate"
           } %>
@@ -21,6 +22,7 @@
         class: "text-sm font-medium text-rose-600 hover:underline",
         data: {
           turbo_frame: "availability_schedule",
+          turbo_prefetch: false,
           week_start: next_week.iso8601,
           action: "click->availability-schedule#navigate"
         } %>
@@ -72,6 +74,7 @@
           class: "font-medium text-rose-700 hover:underline",
           data: {
             turbo_frame: "availability_schedule",
+            turbo_prefetch: false,
             week_start: next_week.iso8601,
             action: "click->availability-schedule#navigate"
           } %>
