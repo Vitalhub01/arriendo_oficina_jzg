@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -41,6 +41,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "amenity_tags", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_amenity_tags_on_name", unique: true
   end
 
   create_table "availability_blocks", force: :cascade do |t|
@@ -132,13 +141,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
     t.integer "price_per_hour_cents", default: 0, null: false
     t.integer "minimum_hours", default: 1, null: false
     t.integer "status", default: 0, null: false
-    t.jsonb "amenities", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "office_id"
     t.integer "capacity"
     t.string "dimensions"
-    t.jsonb "equipment", default: [], null: false
     t.integer "slot_duration_minutes", default: 60, null: false
     t.integer "minimum_slots", default: 1, null: false
     t.integer "reschedule_notice_hours"
@@ -167,6 +174,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
     t.boolean "applies_to_slot_based", default: true, null: false
     t.boolean "applies_to_jornada", default: true, null: false
     t.index "lower((code)::text)", name: "index_discount_codes_on_lower_code", unique: true
+  end
+
+  create_table "equipment_items", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_equipment_items_on_name", unique: true
   end
 
   create_table "faqs", force: :cascade do |t|
@@ -414,6 +430,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "space_amenity_assignments", force: :cascade do |t|
+    t.bigint "space_id", null: false
+    t.bigint "amenity_tag_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["amenity_tag_id"], name: "index_space_amenity_assignments_on_amenity_tag_id"
+    t.index ["space_id", "amenity_tag_id"], name: "index_space_amenity_assignments_on_space_and_tag", unique: true
+    t.index ["space_id"], name: "index_space_amenity_assignments_on_space_id"
+  end
+
+  create_table "space_equipment_items", force: :cascade do |t|
+    t.bigint "space_id", null: false
+    t.bigint "equipment_item_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["equipment_item_id"], name: "index_space_equipment_items_on_equipment_item_id"
+    t.index ["space_id", "equipment_item_id"], name: "index_space_equipment_items_on_space_id_and_equipment_item_id", unique: true
+    t.index ["space_id"], name: "index_space_equipment_items_on_space_id"
+  end
+
   create_table "space_photos", force: :cascade do |t|
     t.bigint "box_id", null: false
     t.integer "position", default: 0, null: false
@@ -517,6 +553,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_23_110000) do
   add_foreign_key "schedule_block_overrides", "schedule_blocks"
   add_foreign_key "schedule_blocks", "boxes", column: "space_id"
   add_foreign_key "slot_rates", "boxes", column: "space_id"
+  add_foreign_key "space_amenity_assignments", "amenity_tags"
+  add_foreign_key "space_amenity_assignments", "boxes", column: "space_id"
+  add_foreign_key "space_equipment_items", "boxes", column: "space_id"
+  add_foreign_key "space_equipment_items", "equipment_items"
   add_foreign_key "space_photos", "boxes"
   add_foreign_key "spot_offers", "boxes", column: "space_id"
   add_foreign_key "spot_offers", "users", column: "created_by_id"

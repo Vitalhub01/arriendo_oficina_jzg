@@ -23,10 +23,10 @@ class AvailabilityCheckerPeriodTest < ActiveSupport::TestCase
       space: @space,
       profesional: users(:renter),
       start_at: @slot,
-      end_at: @slot + 1.hour,
-      hours: 1,
-      duration_minutes: 60,
-      total_amount_cents: 7_000,
+      end_at: @slot + 2.hours,
+      hours: 2,
+      duration_minutes: 120,
+      total_amount_cents: 14_000,
       status: :confirmed,
       booking_type: :slot_based
     )

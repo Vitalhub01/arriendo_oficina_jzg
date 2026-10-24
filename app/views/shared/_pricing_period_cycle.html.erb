@@ -1,0 +1,27 @@
+<%# locals: morning_cents:, afternoon_cents:, unit:, fallback_cents: nil %>
+<% fallback = local_assigns[:fallback_cents]
+   morning = morning_cents.presence || fallback
+   afternoon = afternoon_cents.presence || fallback
+   period_prices = []
+   period_prices << { label: "mañana", amount: format_clp(morning) } if morning.present?
+   period_prices << { label: "tarde", amount: format_clp(afternoon) } if afternoon.present?
+   period_prices.uniq! { |item| [item[:label], item[:amount]] }
+   first = period_prices.first %>
+<% if first %>
+  <p>
+    <% if period_prices.size > 1 %>
+      <span
+        class="inline-flex flex-wrap items-baseline gap-x-1"
+        data-controller="price-cycle"
+        data-price-cycle-items-value="<%= period_prices.to_json %>"
+      >
+        <span class="font-medium text-gray-900 transition-all duration-300 ease-out" data-price-cycle-target="amount"><%= first[:amount] %></span>
+        <span>/ <%= unit %> </span>
+        <span class="transition-opacity duration-300 ease-out" data-price-cycle-target="period"><%= first[:label] %></span>
+      </span>
+    <% else %>
+      <span class="font-medium text-gray-900"><%= first[:amount] %></span>
+      <span>/ <%= unit %> <%= first[:label] %></span>
+    <% end %>
+  </p>
+<% end %>
