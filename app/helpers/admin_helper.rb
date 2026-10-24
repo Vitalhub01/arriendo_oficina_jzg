@@ -6,14 +6,22 @@ module AdminHelper
     { label: 'Oficina', path: :edit_admin_office_path, match: ->(req) { req.path.start_with?('/admin/office') } },
     { label: 'Espacios', path: :admin_spaces_path, match: ->(req) { req.path.start_with?('/admin/spaces') } },
     {
-      label: 'Implementos',
-      path: :admin_equipment_items_path,
-      match: ->(req) { req.path.start_with?('/admin/equipment-items') }
-    },
-    {
-      label: 'Etiquetas espacio',
-      path: :admin_amenity_tags_path,
-      match: ->(req) { req.path.start_with?('/admin/amenity-tags') }
+      label: 'Implementos y etiquetas',
+      match: lambda { |req|
+        req.path.start_with?('/admin/equipment-items', '/admin/amenity-tags')
+      },
+      children: [
+        {
+          label: 'Implementos',
+          path: :admin_equipment_items_path,
+          match: ->(req) { req.path.start_with?('/admin/equipment-items') }
+        },
+        {
+          label: 'Etiquetas de espacio',
+          path: :admin_amenity_tags_path,
+          match: ->(req) { req.path.start_with?('/admin/amenity-tags') }
+        }
+      ]
     },
     {
       label: 'Descuentos membresía',

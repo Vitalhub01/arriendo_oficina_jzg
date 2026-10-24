@@ -2,49 +2,37 @@
 <fieldset class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 space-y-4">
   <legend class="px-1 text-sm font-semibold text-gray-900">Implementos y etiquetas</legend>
   <p class="text-xs text-gray-600">
-    Elige del catálogo. El precio por hora de arriendo de cada implemento se define al editarlo en el catálogo.
-    <%= link_to "Gestionar implementos", admin_equipment_items_path, class: "text-brand hover:underline" %>
-    ·
-    <%= link_to "Gestionar etiquetas", admin_amenity_tags_path, class: "text-brand hover:underline" %>
+    Marca lo que ofrece este espacio. Puedes agregar ítems al catálogo aquí mismo o
+    <%= link_to "gestionar implementos", admin_equipment_items_path, class: "text-brand hover:underline" %>
+    y
+    <%= link_to "gestionar etiquetas", admin_amenity_tags_path, class: "text-brand hover:underline" %>.
   </p>
 
   <div>
     <p class="text-sm font-medium text-gray-900">Implementos de este espacio</p>
     <%= hidden_field_tag "space[equipment_item_ids][]", "", id: nil %>
-    <div class="mt-2 grid gap-2 sm:grid-cols-2">
+    <div id="space_equipment_items_list" class="mt-2 grid gap-2 sm:grid-cols-2">
       <% equipment_items.each do |item| %>
-        <label class="flex items-center gap-2 text-sm text-gray-700">
-          <%= check_box_tag "space[equipment_item_ids][]",
-                            item.id,
-                            space.equipment_item_ids.include?(item.id),
-                            id: "space_equipment_item_#{item.id}",
-                            class: "rounded border-gray-300" %>
-          <%= item.name %>
-        </label>
+        <%= render "admin/equipment_items/catalog_checkbox", item: item, space: space %>
       <% end %>
     </div>
     <% if equipment_items.empty? %>
-      <p class="mt-2 text-sm text-amber-800">No hay implementos en el catálogo. Crea algunos primero.</p>
+      <p class="mt-2 text-sm text-gray-500">Aún no hay implementos en el catálogo.</p>
     <% end %>
+    <%= render "admin/equipment_items/quick_add_form", equipment_item: EquipmentItem.new, space: space %>
   </div>
 
   <div>
     <p class="text-sm font-medium text-gray-900">Etiquetas de este espacio</p>
     <%= hidden_field_tag "space[amenity_tag_ids][]", "", id: nil %>
-    <div class="mt-2 flex flex-wrap gap-3">
+    <div id="space_amenity_tags_list" class="mt-2 flex flex-wrap gap-3">
       <% amenity_tags.each do |tag| %>
-        <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700">
-          <%= check_box_tag "space[amenity_tag_ids][]",
-                            tag.id,
-                            space.amenity_tag_ids.include?(tag.id),
-                            id: "space_amenity_tag_#{tag.id}",
-                            class: "rounded border-gray-300" %>
-          <%= tag.name %>
-        </label>
+        <%= render "admin/amenity_tags/catalog_checkbox", tag: tag, space: space %>
       <% end %>
     </div>
     <% if amenity_tags.empty? %>
-      <p class="mt-2 text-sm text-amber-800">No hay etiquetas en el catálogo. Crea algunas primero.</p>
+      <p class="mt-2 text-sm text-gray-500">Aún no hay etiquetas en el catálogo.</p>
     <% end %>
+    <%= render "admin/amenity_tags/quick_add_form", amenity_tag: AmenityTag.new, space: space %>
   </div>
 </fieldset>

@@ -1,0 +1,6 @@
+<%= turbo_stream.append "space_equipment_items_list" do %>
+  <%= render "catalog_checkbox", item: @equipment_item, space: @space_for_form %>
+<% end %>
+<%= turbo_stream.replace "equipment_item_quick_add" do %>
+  <%= render "quick_add_form", equipment_item: EquipmentItem.new, space: @space_for_form %>
+<% end %>

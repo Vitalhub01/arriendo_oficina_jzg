@@ -1,0 +1,9 @@
+<%# locals: tag:, space: %>
+<label class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700">
+  <%= check_box_tag "space[amenity_tag_ids][]",
+        tag.id,
+        space.amenity_tag_ids.include?(tag.id),
+        id: "space_amenity_tag_#{tag.id}",
+        class: "rounded border-gray-300" %>
+  <%= tag.name %>
+</label>

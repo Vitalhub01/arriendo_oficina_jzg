@@ -1,0 +1,22 @@
+<%# locals: equipment_item:, space: %>
+<div id="equipment_item_quick_add">
+  <%= form_with model: [:admin, equipment_item],
+        url: admin_equipment_items_path,
+        class: "mt-3 rounded-lg border border-dashed border-gray-300 bg-white p-3" do |f| %>
+    <%= hidden_field_tag :inline, "1" %>
+    <%= hidden_field_tag :from_space_id, space.id if space.persisted? %>
+    <% if equipment_item.errors.any? %>
+      <p class="mb-2 text-sm text-red-700"><%= equipment_item.errors.full_messages.to_sentence %></p>
+    <% end %>
+    <p class="text-xs font-medium text-gray-700">Agregar implemento al catálogo</p>
+    <div class="mt-2 flex flex-wrap items-end gap-2">
+      <%= f.text_field :name, placeholder: "Nombre", class: "input-field min-w-[10rem] flex-1", required: true %>
+      <%= f.number_field :price_per_hour_cents,
+            placeholder: "CLP/h (opc.)",
+            class: "input-field w-32",
+            min: 1,
+            step: 1 %>
+      <%= f.submit "Agregar", class: "btn-secondary shrink-0" %>
+    </div>
+  <% end %>
+</div>

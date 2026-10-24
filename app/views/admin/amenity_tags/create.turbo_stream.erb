@@ -1,0 +1,6 @@
+<%= turbo_stream.append "space_amenity_tags_list" do %>
+  <%= render "catalog_checkbox", tag: @amenity_tag, space: @space_for_form %>
+<% end %>
+<%= turbo_stream.replace "amenity_tag_quick_add" do %>
+  <%= render "quick_add_form", amenity_tag: AmenityTag.new, space: @space_for_form %>
+<% end %>

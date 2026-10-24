@@ -1,0 +1,12 @@
+<%# locals: item:, space: %>
+<label class="flex items-center gap-2 text-sm text-gray-700">
+  <%= check_box_tag "space[equipment_item_ids][]",
+        item.id,
+        space.equipment_item_ids.include?(item.id),
+        id: "space_equipment_item_#{item.id}",
+        class: "rounded border-gray-300" %>
+  <%= item.name %>
+  <% if item.rentable? %>
+    <span class="text-xs text-gray-400 tabular-nums">(+<%= format_clp(item.price_per_hour_cents) %>/h)</span>
+  <% end %>
+</label>
