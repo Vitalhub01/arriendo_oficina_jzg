@@ -171,7 +171,7 @@ class BookingsController < ApplicationController
 
   def booking_params
     params.permit(:date, :start_time, :slot_count, :hours, :reschedule_credit_id, :accept_terms,
-                  :reservation_mode, :slot_rate_id, :from_checkout)
+                  :reservation_mode, :slot_rate_id, :from_checkout, :equipment_usage)
   end
 
   def checkout_return_params

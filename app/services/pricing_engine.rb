@@ -2,15 +2,15 @@
 
 class PricingEngine
   def self.calculate(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
-                     slot_rate: nil)
+                     slot_rate: nil, equipment_usage: false)
     new(
       space, user, start_at, slot_count, end_at: end_at, booking_type: booking_type,
-      jornada_definition: jornada_definition, slot_rate: slot_rate
+      jornada_definition: jornada_definition, slot_rate: slot_rate, equipment_usage: equipment_usage
     ).calculate
   end
 
   def initialize(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
-                 slot_rate: nil)
+                 slot_rate: nil, equipment_usage: false)
     @space = space
     @user = user
     @start_at = start_at
@@ -19,11 +19,17 @@ class PricingEngine
     @booking_type = booking_type
     @jornada_definition = jornada_definition
     @slot_rate = slot_rate
+    @equipment_usage = equipment_usage
   end
 
   def calculate
-    subtotal_cents = base_subtotal
-    breakdown = [base_line(subtotal_cents)]
+    space_subtotal = base_subtotal
+    breakdown = [base_line(space_subtotal)]
+    equipment_cents = equipment_usage_subtotal_cents
+    if equipment_cents.positive?
+      breakdown << equipment_usage_line(equipment_cents)
+    end
+    subtotal_cents = space_subtotal + equipment_cents
     discount_cents = 0
 
     applicable_rules.each do |rule|
@@ -48,7 +54,39 @@ class PricingEngine
 
   private
 
-  attr_reader :space, :user, :start_at, :slot_count, :end_at, :booking_type, :jornada_definition, :slot_rate
+  attr_reader :space, :user, :start_at, :slot_count, :end_at, :booking_type, :jornada_definition, :slot_rate,
+              :equipment_usage
+
+  def equipment_usage_subtotal_cents
+    return 0 unless equipment_usage_applicable?
+
+    space.equipment_usage_price_per_hour_cents * equipment_billable_hours
+  end
+
+  def equipment_usage_applicable?
+    equipment_usage && space.equipment_usage_rentable? && !block_period_booking? && !jornada_booking?
+  end
+
+  def equipment_billable_hours
+    hours = duration_hours
+    return hours if hours.positive?
+
+    slot_count
+  end
+
+  def equipment_usage_line(amount_cents)
+    hours = equipment_billable_hours
+    label = if hours == hours.to_i
+              "#{space.equipment_usage_label_display} (#{hours.to_i} hora(s))"
+            else
+              space.equipment_usage_label_display
+            end
+    {
+      type: 'equipment_usage',
+      label: label,
+      amount_cents: amount_cents
+    }
+  end
 
   def base_subtotal
     return slot_rate.block_price_cents_effective if block_period_booking?

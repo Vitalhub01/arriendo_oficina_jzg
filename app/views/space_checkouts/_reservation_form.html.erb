@@ -1,0 +1,123 @@
+<% booking_date = checkout_params["date"].to_date %>
+<% modes = space_checkout_modes(space, date: booking_date, checkout_params: checkout_params, user: current_user) %>
+<% current_mode = checkout_params["reservation_mode"] %>
+<% current_mode = "hora" unless modes.any? { |m| m[:value] == current_mode } %>
+
+<%= form_with url: checkout_space_path(space),
+      method: :get,
+      class: "mt-5 space-y-5",
+      data: {
+        controller: "checkout-form",
+        turbo_frame: "space_checkout",
+        turbo_action: "advance"
+      } do %>
+  <% if modes.size > 1 %>
+    <div class="grid grid-cols-1 gap-2 sm:grid-cols-3" role="group" aria-label="Modalidad de reserva">
+      <% modes.each do |mode| %>
+        <label class="group cursor-pointer">
+          <input type="radio"
+                 name="reservation_mode"
+                 value="<%= mode[:value] %>"
+                 class="peer sr-only"
+                 <%= "checked" if mode[:value] == current_mode %>
+                 data-action="checkout-form#submit">
+          <span class="flex flex-col items-center justify-center rounded-xl border border-gray-200 px-3 py-4 text-center transition hover:border-gray-400 group-has-[:checked]:border-gray-900 group-has-[:checked]:bg-gray-900">
+            <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 group-has-[:checked]:text-white/70">
+              <%= mode[:title] %>
+            </span>
+            <% if mode[:price_label].present? %>
+              <span class="mt-1 text-xl font-semibold tracking-tight text-gray-900 tabular-nums group-has-[:checked]:text-white">
+                <%= mode[:price_label] %>
+              </span>
+            <% end %>
+          </span>
+        </label>
+      <% end %>
+    </div>
+  <% else %>
+    <%= hidden_field_tag :reservation_mode, "hora" %>
+  <% end %>
+
+  <div>
+    <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium text-gray-900" %>
+    <%= date_field_tag :date,
+          booking_date,
+          min: Date.current,
+          class: "input-field",
+          required: true,
+          data: { action: "checkout-form#submit" } %>
+  </div>
+
+  <% if current_mode == "hora" %>
+    <div>
+      <%= label_tag :start_time, "Inicio", class: "mb-1 block text-sm font-medium text-gray-900" %>
+      <%= select_tag :start_time,
+            options_for_select(
+              space_checkout_start_time_options(space, booking_date),
+              checkout_params["start_time"]
+            ),
+            class: "input-field",
+            data: { action: "checkout-form#submit" } %>
+    </div>
+    <div>
+      <%= label_tag :slot_count, "Horas", class: "mb-1 block text-sm font-medium text-gray-900" %>
+      <%= number_field_tag :slot_count,
+            checkout_params["slot_count"] || space.minimum_slots,
+            min: space.minimum_slots,
+            class: "input-field max-w-[8rem]",
+            data: { action: "input->checkout-form#submitDebounced change->checkout-form#submit" } %>
+    </div>
+    <% if space.equipment_usage_rentable? %>
+      <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 px-4 py-3.5 hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
+        <%= check_box_tag :equipment_usage,
+              "1",
+              ActiveModel::Type::Boolean.new.cast(checkout_params["equipment_usage"]),
+              class: "mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand",
+              data: { action: "checkout-form#submit" } %>
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm font-medium text-gray-900">Agregar <%= space.equipment_usage_label_display.downcase %></span>
+          <span class="text-xs text-gray-500 tabular-nums">
+            +<%= Money.new(space.equipment_usage_price_per_hour_cents, "CLP").format(no_cents_if_whole: true) %> por hora
+          </span>
+        </span>
+      </label>
+    <% end %>
+  <% elsif current_mode == "bloque" %>
+    <div class="divide-y divide-gray-100 rounded-xl border border-gray-200">
+      <% space.bloque_slot_rates.each do |rate| %>
+        <% quote = space_checkout_bloque_quote(space, rate, date: booking_date, user: current_user) %>
+        <label class="flex cursor-pointer items-center gap-3 px-4 py-3.5 hover:bg-gray-50 has-[:checked]:bg-gray-50">
+          <input type="radio"
+                 name="slot_rate_id"
+                 value="<%= rate.id %>"
+                 class="h-4 w-4 border-gray-300 text-brand focus:ring-brand"
+                 <%= "checked" if checkout_params["slot_rate_id"].to_s == rate.id.to_s %>
+                 data-action="checkout-form#submit">
+          <span class="min-w-0 flex-1">
+            <span class="block text-sm font-medium text-gray-900"><%= rate.name %></span>
+            <span class="text-xs text-gray-500 tabular-nums">
+              <%= rate.start_time.strftime("%H:%M") %>–<%= rate.end_time.strftime("%H:%M") %>
+            </span>
+          </span>
+          <% if quote&.success? %>
+            <span class="shrink-0 text-lg font-semibold tracking-tight text-gray-900 tabular-nums">
+              <%= quote.formatted_total %>
+            </span>
+          <% end %>
+        </label>
+      <% end %>
+    </div>
+  <% else %>
+    <% jornada = space.primary_jornada_definition %>
+    <% if jornada %>
+      <div class="flex items-end justify-between gap-4 border-b border-gray-100 pb-4">
+        <p class="text-xs text-gray-500 tabular-nums">
+          <%= jornada.start_time.strftime("%H:%M") %>–<%= jornada.end_time.strftime("%H:%M") %>
+        </p>
+        <p class="text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+          <%= Money.new(jornada.price_cents, "CLP").format(no_cents_if_whole: true) %>
+        </p>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

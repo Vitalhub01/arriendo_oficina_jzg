@@ -31,6 +31,20 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     assert_match 'reservation_mode=hora', response.body
   end
 
+  test 'turbo frame refresh returns checkout frame' do
+    get checkout_space_path(
+      @space,
+      date: @slot_time.to_date,
+      start_time: '10:00',
+      reservation_mode: 'hora',
+      slot_count: 2
+    ), headers: { 'Turbo-Frame' => 'space_checkout' }
+
+    assert_response :success
+    assert_match 'id="space_checkout"', response.body
+    assert_no_match 'Confirmar reserva</h1>', response.body
+  end
+
   test 'signed in user sees confirm and pay on checkout' do
     sign_in users(:renter)
 
@@ -45,6 +59,23 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'Confirmar y pagar', response.body
     assert_no_match 'Iniciar sesión', response.body
+  end
+
+  test 'checkout shows equipment usage option and total when enabled' do
+    @space.update_columns(equipment_usage_price_per_hour_cents: 500)
+
+    get checkout_space_path(
+      @space,
+      date: @slot_time.to_date,
+      start_time: '10:00',
+      reservation_mode: 'hora',
+      slot_count: 2,
+      equipment_usage: '1'
+    )
+
+    assert_response :success
+    assert_match 'Agregar uso de implementos', response.body
+    assert_match '$31.000', response.body
   end
 
   test 'checkout stores return path for sign in' do

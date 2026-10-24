@@ -1,0 +1,8 @@
+published_jornada:
+  space: published_box
+  name: Jornada completa
+  start_time: 2000-01-01 08:00:00
+  end_time: 2000-01-01 20:00:00
+  price_cents: 48000
+  active: true
+  position: 0

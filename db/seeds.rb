@@ -143,6 +143,9 @@ spaces_data.each_with_index do |data, photo_index|
     slot_rate.save!
   end
 
+  bloque_names = SpaceBlockPeriods::PERIODS.map { |period| period[:name] }
+  space.slot_rates.where.not(name: bloque_names).destroy_all
+
   jornada = JornadaDefinition.find_or_initialize_by(space: space, name: 'Jornada completa')
   jornada.assign_attributes(
     office: office,

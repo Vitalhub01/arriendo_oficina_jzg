@@ -15,6 +15,7 @@ import LazyImageController from "controllers/lazy_image_controller"
 import SortableListController from "controllers/sortable_list_controller"
 import AvailabilityScheduleController from "controllers/availability_schedule_controller"
 import CheckoutAuthController from "controllers/checkout_auth_controller"
+import CheckoutFormController from "controllers/checkout_form_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -33,6 +34,7 @@ application.register("lazy-image", LazyImageController)
 application.register("sortable-list", SortableListController)
 application.register("availability-schedule", AvailabilityScheduleController)
 application.register("checkout-auth", CheckoutAuthController)
+application.register("checkout-form", CheckoutFormController)
 window.Stimulus = application
 
 export { application }

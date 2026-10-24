@@ -17,6 +17,8 @@ module Bookings
       duration_minutes = ((end_at - start_at) / 60).to_i
       slot_count = slot_count_for(start_at, end_at, duration_minutes)
 
+      equipment_usage = @space.equipment_usage_from_params(@params)
+
       pricing = PricingEngine.calculate(
         @space,
         @user,
@@ -25,7 +27,8 @@ module Bookings
         end_at: end_at,
         booking_type: interval.booking_type,
         jornada_definition: interval.jornada_definition,
-        slot_rate: interval.slot_rate
+        slot_rate: interval.slot_rate,
+        equipment_usage: equipment_usage
       )
 
       Result.new(

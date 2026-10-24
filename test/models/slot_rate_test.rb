@@ -20,6 +20,22 @@ class SlotRateTest < ActiveSupport::TestCase
     assert_not @rate.covers_time?(Time.zone.parse('2000-01-01 14:00'))
   end
 
+  test 'for_bloque_reservation excludes non period rates' do
+    SlotRate.create!(
+      space: @space,
+      name: 'Jornada completa',
+      start_time: Time.zone.parse('2000-01-01 08:00'),
+      end_time: Time.zone.parse('2000-01-01 20:00'),
+      price_per_slot_cents: 40_000,
+      block_price_cents: 40_000,
+      position: 2
+    )
+
+    names = @space.bloque_slot_rates.pluck(:name)
+    assert_includes names, 'Mañana'
+    assert_not_includes names, 'Jornada completa'
+  end
+
   test 'validates end after start' do
     rate = SlotRate.new(
       space: @space,

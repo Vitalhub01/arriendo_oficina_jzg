@@ -3,7 +3,7 @@
 class Booking < ApplicationRecord
   include OverlapCheckable
 
-  attr_accessor :reservation_slot_rate, :reservation_mode
+  attr_accessor :reservation_slot_rate, :reservation_mode, :equipment_usage
 
   belongs_to :space, class_name: 'Space', foreign_key: :box_id, inverse_of: :bookings
   belongs_to :profesional, class_name: 'User', foreign_key: :renter_id, inverse_of: :bookings
@@ -115,7 +115,8 @@ class Booking < ApplicationRecord
       end_at: end_at,
       booking_type: booking_type,
       jornada_definition: jornada_definition,
-      slot_rate: reservation_slot_rate
+      slot_rate: reservation_slot_rate,
+      equipment_usage: equipment_usage_applied?
     )
 
     self.total_amount_cents = result[:total_cents]
@@ -123,7 +124,8 @@ class Booking < ApplicationRecord
     self.pricing_breakdown = {
       breakdown: result[:breakdown],
       subtotal_cents: result[:subtotal_cents],
-      reservation_mode: reservation_mode
+      reservation_mode: reservation_mode,
+      equipment_usage: equipment_usage_applied?
     }
   end
 
@@ -150,6 +152,10 @@ class Booking < ApplicationRecord
     return unless start_at
 
     errors.add(:base, 'El horario seleccionado ya pasó') if start_at < Time.current
+  end
+
+  def equipment_usage_applied?
+    space.equipment_usage_from_params({ equipment_usage: equipment_usage })
   end
 
   def apply_reschedule_credit_deduction

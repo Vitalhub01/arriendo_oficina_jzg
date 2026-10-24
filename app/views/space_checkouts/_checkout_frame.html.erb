@@ -1,0 +1,102 @@
+<%= turbo_frame_tag "space_checkout", class: "contents" do %>
+  <section class="space-y-6 lg:col-span-3">
+    <div class="rounded-2xl border border-gray-200 bg-white p-6">
+      <h2 class="text-lg font-semibold text-gray-900">Detalle de la reserva</h2>
+      <%= render "space_checkouts/reservation_form",
+            space: space,
+            checkout_params: checkout_params,
+            quote: quote %>
+
+      <% if quote.success? %>
+        <dl class="mt-6 grid gap-2 border-t border-gray-100 pt-6 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="text-gray-500">Fecha</dt>
+            <dd class="font-medium text-gray-900"><%= l(quote.start_at.to_date, format: :long) %></dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">Horario</dt>
+            <dd class="font-medium text-gray-900">
+              <%= l(quote.start_at, format: "%H:%M") %> — <%= l(quote.end_at, format: "%H:%M") %>
+            </dd>
+          </div>
+          <% if checkout_params["reservation_mode"] == "hora" %>
+            <div>
+              <dt class="text-gray-500">Duración</dt>
+              <dd class="font-medium text-gray-900"><%= quote.slot_count %> hora(s)</dd>
+            </div>
+          <% end %>
+          <div>
+            <dt class="text-gray-500">Modalidad</dt>
+            <dd class="font-medium text-gray-900"><%= quote.mode_label %></dd>
+          </div>
+          <% equipment_line = quote.pricing[:breakdown]&.find { |line| line[:type] == "equipment_usage" } %>
+          <% if equipment_line %>
+            <div class="sm:col-span-2">
+              <dt class="text-gray-500">Adicional</dt>
+              <dd class="font-medium text-gray-900">
+                <%= equipment_line[:label] %>
+                <span class="text-gray-600 tabular-nums">(+<%= Money.new(equipment_line[:amount_cents], "CLP").format(no_cents_if_whole: true) %>)</span>
+              </dd>
+            </div>
+          <% end %>
+        </dl>
+      <% elsif quote.errors.any? %>
+        <div class="mt-6 border-t border-gray-100 pt-6 text-sm text-red-700">
+          <%= quote.errors.join(" · ") %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <aside class="lg:col-span-2">
+    <div class="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6">
+      <div class="overflow-hidden rounded-xl">
+        <%= render "shared/place_cover_photo", record: space, title: space.title %>
+      </div>
+      <h2 class="mt-4 text-lg font-semibold text-gray-900"><%= space.title %></h2>
+      <p class="text-sm text-gray-600"><%= space.commune %>, <%= space.city %></p>
+
+      <% if quote.success? %>
+        <div class="mt-6 flex items-baseline justify-between border-t border-gray-100 pt-4">
+          <span class="text-sm text-gray-500">Total</span>
+          <span class="text-3xl font-semibold tracking-tight text-gray-900 tabular-nums"><%= quote.formatted_total %></span>
+        </div>
+
+        <% if user_signed_in? && current_user.can_book? %>
+          <%= form_with url: space_bookings_path(space), method: :post, class: "mt-6 space-y-4", data: { turbo: false } do %>
+            <%= hidden_field_tag :date, checkout_params["date"] %>
+            <%= hidden_field_tag :start_time, checkout_params["start_time"] %>
+            <%= hidden_field_tag :slot_count, checkout_params["slot_count"] %>
+            <%= hidden_field_tag :reservation_mode, checkout_params["reservation_mode"] %>
+            <%= hidden_field_tag :slot_rate_id, checkout_params["slot_rate_id"] %>
+            <%= hidden_field_tag :equipment_usage, checkout_params["equipment_usage"] if checkout_params["equipment_usage"].present? %>
+            <%= hidden_field_tag :from_checkout, "1" %>
+            <% unless current_user.profile_complete? %>
+              <%= render "shared/profile_incomplete_reminder" %>
+            <% end %>
+            <% if space.terms_and_conditions.attached? %>
+              <div class="flex items-start gap-2">
+                <%= check_box_tag :accept_terms, "1", false, required: true, class: "mt-1 rounded border-gray-300" %>
+                <label for="accept_terms" class="text-sm text-gray-700">
+                  Acepto los
+                  <%= link_to "términos y condiciones",
+                        rails_blob_path(space.terms_and_conditions, disposition: "inline"),
+                        class: "text-brand hover:underline",
+                        target: "_blank",
+                        rel: "noopener" %>
+                </label>
+              </div>
+            <% end %>
+            <%= submit_tag "Confirmar y pagar", class: "btn-primary w-full" %>
+          <% end %>
+        <% elsif user_signed_in? %>
+          <p class="mt-6 text-sm text-gray-600">Tu cuenta no puede reservar en este momento.</p>
+        <% else %>
+          <p class="mt-6 text-sm text-gray-600">Inicia sesión o regístrate para confirmar y pagar.</p>
+        <% end %>
+      <% else %>
+        <p class="mt-6 text-sm text-gray-600">Ajusta fecha y horario para ver el total.</p>
+      <% end %>
+    </div>
+  </aside>
+<% end %>

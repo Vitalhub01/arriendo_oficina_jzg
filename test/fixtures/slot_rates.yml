@@ -1,0 +1,17 @@
+published_morning:
+  space: published_box
+  name: Mañana
+  start_time: 2000-01-01 08:00:00
+  end_time: 2000-01-01 14:00:00
+  price_per_slot_cents: 15000
+  block_price_cents: 25000
+  position: 0
+
+published_afternoon:
+  space: published_box
+  name: Tarde
+  start_time: 2000-01-01 14:00:00
+  end_time: 2000-01-01 20:00:00
+  price_per_slot_cents: 15000
+  block_price_cents: 28000
+  position: 1

@@ -13,6 +13,9 @@ class SlotRate < ApplicationRecord
   end
 
   scope :ordered, -> { order(:position, :start_time) }
+  scope :for_bloque_reservation, lambda {
+    where(name: SpaceBlockPeriods::PERIODS.map { |period| period[:name] })
+  }
 
   def formatted_price
     Money.new(price_per_slot_cents, 'CLP').format(no_cents_if_whole: true)
