@@ -77,8 +77,13 @@
       </section>
     </div>
 
-    <div class="hidden lg:block">
-      <div class="sticky top-24 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+    <div id="space-booking-panel"
+         class="fixed inset-0 z-50 hidden overflow-y-auto bg-white p-4 lg:static lg:z-auto lg:block lg:overflow-visible lg:bg-transparent lg:p-0">
+      <div class="mb-4 flex items-center justify-between lg:hidden">
+        <h2 class="text-lg font-semibold">Reservar</h2>
+        <button type="button" data-action="booking-form#closePanel" class="text-2xl leading-none" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="lg:sticky lg:top-24 lg:rounded-2xl lg:border lg:border-gray-200 lg:bg-white lg:p-6 lg:shadow-lg">
         <%= render "spaces/booking_form", space: @space %>
       </div>
     </div>
@@ -91,27 +96,12 @@
       <%= render "shared/space_pricing_summary", space: @space, compact: true %>
     </div>
     <% if user_signed_in? %>
-      <a href="#booking-form-mobile" class="btn-primary">Reservar</a>
+      <button type="button" class="btn-primary" data-action="booking-form#openPanel">Reservar</button>
     <% else %>
       <%= link_to "Reservar", checkout_space_path(@space), class: "btn-primary" %>
     <% end %>
   </div>
 </div>
-
-<div id="booking-form-mobile" class="fixed inset-0 z-50 hidden overflow-y-auto bg-white p-4 lg:hidden">
-  <div class="mb-4 flex items-center justify-between">
-    <h2 class="text-lg font-semibold">Reservar</h2>
-    <button type="button" onclick="document.getElementById('booking-form-mobile').classList.add('hidden')" class="text-2xl">&times;</button>
-  </div>
-  <%= render "spaces/booking_form", space: @space %>
-</div>
-
-<script>
-  document.querySelector('a[href="#booking-form-mobile"]')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('booking-form-mobile').classList.remove('hidden');
-  });
-</script>
 <% if booking_interactive %>
   </div>
 <% end %>

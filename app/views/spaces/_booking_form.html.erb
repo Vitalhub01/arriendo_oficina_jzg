@@ -16,14 +16,15 @@
           <%= select_tag :reservation_mode,
                 options_for_select(
                   [
-                    ["Hora", "hora"],
-                    ["Bloque (mañana / tarde)", "bloque"],
-                    ["Jornada (día completo)", "jornada"]
+                    ["Por hora (elige inicio y cantidad de horas)", "hora"],
+                    ["Bloque mañana o tarde (08:00–14:00 / 14:00–20:00)", "bloque"],
+                    ["Jornada completa (día)", "jornada"]
                   ],
                   @prefill_reservation_mode || "hora"
                 ),
                 class: "input-field",
                 data: { booking_form_target: "reservationMode", action: "change->booking-form#modeChanged" } %>
+          <p class="mt-2 text-sm text-gray-600" data-booking-form-target="modeSummary"></p>
         </div>
         <div>
           <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
@@ -35,7 +36,7 @@
             <%= select_tag :start_time,
                   options_for_select(space_booking_start_time_options(space, booking_date), @prefill_start_time),
                   class: "input-field",
-                  data: { booking_form_target: "startTime", action: "change->booking-form#updateTotal" } %>
+                  data: { booking_form_target: "startTime", action: "change->booking-form#startTimeChanged" } %>
           </div>
           <%= render "spaces/booking_slots_fields", space: space %>
         </div>
@@ -51,7 +52,7 @@
                     }
                   ),
                   class: "input-field",
-                  data: { booking_form_target: "slotRate", action: "change->booking-form#updateTotal" } %>
+                  data: { booking_form_target: "slotRate", action: "change->booking-form#slotRateChanged" } %>
           </div>
           <div class="rounded-xl bg-gray-50 p-4">
             <p class="text-sm text-gray-600">Total estimado</p>

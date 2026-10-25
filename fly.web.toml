@@ -1,0 +1,37 @@
+# Fly.io — servicio web (solo Puma). Deploy: fly deploy --config fly.web.toml
+# Requiere: fly secrets (DATABASE_URL, REDIS_URL, RAILS_MASTER_KEY, Mercado Pago, Supabase, etc.)
+
+app = "vitalhub-web"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  RAILS_ENV = "production"
+  RAILS_SERVE_STATIC_FILES = "true"
+  RAILS_LOG_TO_STDOUT = "true"
+  # No arrancar Sidekiq en el mismo contenedor (evita OOM como en Render 512MB).
+  SKIP_SIDEKIQ = "1"
+  APP_HOST = "www.vitalhub.cl"
+  ACTIVE_STORAGE_SERVICE = "supabase"
+  RAILS_MAX_THREADS = "2"
+  VIPS_CONCURRENCY = "1"
+  MALLOC_ARENA_MAX = "2"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 40
+    hard_limit = 50
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

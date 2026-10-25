@@ -1,0 +1,25 @@
+# Fly.io — Sidekiq. Deploy: fly deploy --config fly.worker.toml
+# Mismos secrets que la web (DATABASE_URL, REDIS_URL, RAILS_MASTER_KEY, Supabase…).
+
+app = "vitalhub-worker"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  RAILS_ENV = "production"
+  SKIP_DB_PREPARE = "1"
+  APP_HOST = "www.vitalhub.cl"
+  ACTIVE_STORAGE_SERVICE = "supabase"
+  VIPS_CONCURRENCY = "1"
+  MALLOC_ARENA_MAX = "2"
+
+# El entrypoint detecta "bundle exec sidekiq" y no levanta un segundo Sidekiq.
+[processes]
+  worker = "bundle exec sidekiq -C config/sidekiq.yml"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

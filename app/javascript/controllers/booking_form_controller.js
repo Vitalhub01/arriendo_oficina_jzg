@@ -18,7 +18,8 @@ export default class extends Controller {
     "jornadaDurationLabel",
     "bloqueWarning",
     "jornadaWarning",
-    "submit"
+    "submit",
+    "modeSummary"
   ]
   static values = {
     minimumSlots: Number,
@@ -34,9 +35,25 @@ export default class extends Controller {
   connect() {
     this.periodBlockedMessage =
       "Hay al menos una hora reservada o bloqueada en esa fecha; no se puede reservar el bloque o la jornada completa."
-    this.modeChanged()
+    this.modeSummaries = {
+      hora: "Elige la fecha, la hora de inicio y cuántas horas seguidas necesitas.",
+      bloque: "Reservas la mañana (08:00–14:00) o la tarde (14:00–20:00) completa en el día elegido.",
+      jornada: "Reservas el día completo en el horario de jornada configurado para este espacio."
+    }
+    this.applyModeUI(this.currentMode())
     this.refreshStarts()
     this.updateTotal()
+  }
+
+  openPanel() {
+    const panel = document.getElementById("space-booking-panel")
+    if (!panel) return
+    panel.classList.remove("hidden")
+    panel.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
+  closePanel() {
+    document.getElementById("space-booking-panel")?.classList.add("hidden")
   }
 
   dateChanged() {
@@ -52,7 +69,7 @@ export default class extends Controller {
       this.reservationModeTargets.forEach((field) => {
         field.value = "hora"
       })
-      this.modeChanged()
+      this.applyModeUI("hora")
     }
 
     this.dateTargets.forEach((field) => {
@@ -64,39 +81,94 @@ export default class extends Controller {
     })
     this.updateTotal()
 
-    const mobileSheet = document.getElementById("booking-form-mobile")
-    if (mobileSheet && window.matchMedia("(max-width: 1023px)").matches) {
-      mobileSheet.classList.remove("hidden")
-      mobileSheet.scrollIntoView({ behavior: "smooth", block: "start" })
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      this.openPanel()
     }
   }
 
-  modeChanged() {
-    const mode = this.currentMode()
+  modeChanged(event) {
+    const mode = this.modeFromEvent(event)
+    this.reservationModeTargets.forEach((el) => {
+      el.value = mode
+    })
+    this.applyModeUI(mode)
+    this.updateTotal()
+  }
 
+  startTimeChanged(event) {
+    const value = event?.target?.value
+    if (value) {
+      this.startTimeTargets.forEach((el) => {
+        el.value = value
+      })
+    }
+    this.updateTotal()
+  }
+
+  slotRateChanged(event) {
+    const value = event?.target?.value
+    if (value) {
+      this.slotRateTargets.forEach((el) => {
+        el.value = value
+      })
+    }
+    this.updateTotal()
+  }
+
+  slotCountChanged(event) {
+    const value = event?.target?.value
+    if (value !== undefined && value !== "") {
+      this.slotCountTargets.forEach((el) => {
+        el.value = value
+      })
+    }
+    this.updateTotal()
+  }
+
+  modeFromEvent(event) {
+    if (event?.target?.dataset?.bookingFormTarget === "reservationMode") {
+      return event.target.value
+    }
+    return this.currentMode()
+  }
+
+  applyModeUI(mode) {
     this.toggleSection(this.horaFieldsTargets, mode === "hora")
     this.toggleSection(this.bloqueFieldsTargets, mode === "bloque")
     this.toggleSection(this.jornadaFieldsTargets, mode === "jornada")
 
-    if (this.hasStartTimeTarget) {
-      this.startTimeTargets.forEach((el) => {
-        el.required = mode === "hora"
-        el.disabled = mode !== "hora"
-      })
-    }
-    if (this.hasSlotRateTarget) {
-      this.slotRateTargets.forEach((el) => {
-        el.required = mode === "bloque"
-        el.disabled = mode !== "bloque"
-      })
-    }
-    if (this.hasSlotCountTarget) {
-      this.slotCountTargets.forEach((el) => {
-        el.disabled = mode !== "hora"
+    const hora = mode === "hora"
+    const bloque = mode === "bloque"
+
+    this.startTimeTargets.forEach((el) => {
+      el.required = hora
+      el.disabled = !hora
+    })
+    this.slotCountTargets.forEach((el) => {
+      el.required = hora
+      el.disabled = !hora
+    })
+    this.slotRateTargets.forEach((el) => {
+      el.required = bloque
+      el.disabled = !bloque
+    })
+
+    if (this.hasModeSummaryTarget) {
+      const text = this.modeSummaries[mode] || ""
+      this.modeSummaryTargets.forEach((el) => {
+        el.textContent = text
       })
     }
 
-    this.updateTotal()
+    if (hora) {
+      this.hidePeriodWarning(this.bloqueWarningTargets)
+      this.hidePeriodWarning(this.jornadaWarningTargets)
+      this.refreshStarts()
+    } else if (mode === "bloque") {
+      this.hidePeriodWarning(this.jornadaWarningTargets)
+    } else if (mode === "jornada") {
+      this.hidePeriodWarning(this.bloqueWarningTargets)
+    }
   }
 
   toggleSection(targets, visible) {
@@ -165,7 +237,6 @@ export default class extends Controller {
 
     this.hidePeriodWarning(this.bloqueWarningTargets)
     this.hidePeriodWarning(this.jornadaWarningTargets)
-    this.setSubmitDisabled(false)
 
     const slotCount = parseInt(this.slotCountTargets[0]?.value || this.minimumSlotsValue, 10)
     const startTime = this.hasStartTimeTarget ? this.startTimeTargets[0]?.value : ""
@@ -177,6 +248,7 @@ export default class extends Controller {
     })
 
     this.updateDurationLabel(this.durationLabelTargets, durationMinutes)
+    this.setSubmitDisabled(slotCount < this.minimumSlotsValue || !startTime)
   }
 
   updateBloqueTotal() {
