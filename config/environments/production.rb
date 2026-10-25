@@ -55,12 +55,14 @@ Rails.application.configure do
 
   config.force_ssl = true
 
-  # Custom domain + Render default hostname (both must stay allowed).
+  # Custom domain + Render + Fly.io hostnames (all must stay allowed).
   config.hosts << 'vitalhub.cl'
   config.hosts << 'www.vitalhub.cl'
   config.hosts << 'arriendodebox.cl'
   config.hosts << 'rentabox.onrender.com'
   config.hosts << 'arriendo-oficina-jzg.onrender.com'
+  config.hosts << 'vitalhub-web.fly.dev'
+  config.hosts << 'vitalhub-worker.fly.dev'
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
