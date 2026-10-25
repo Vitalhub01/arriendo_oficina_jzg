@@ -94,6 +94,11 @@ class PricingEngine
   def base_subtotal
     return slot_rate.block_price_cents_effective if block_period_booking?
 
+    if jornada_booking?
+      jornada_price = effective_jornada_definition&.price_cents
+      return jornada_price if jornada_price&.positive?
+    end
+
     interval_end = resolved_end_at
     return space.price_for_interval(start_at, interval_end) if interval_end
 
@@ -180,9 +185,15 @@ class PricingEngine
       slot_count >= min_slots
     when 'membership_discount'
       rule.space_id.nil? && user&.active_membership?
+    when 'jornada_rate'
+      jornada_booking? && (rule.space_id.nil? || rule.space_id == space.id)
     else
       false
     end
+  end
+
+  def effective_jornada_definition
+    jornada_definition || space.primary_jornada_definition
   end
 
   def pricing_context(current_subtotal)

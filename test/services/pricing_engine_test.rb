@@ -43,6 +43,25 @@ class PricingEngineTest < ActiveSupport::TestCase
     assert_equal 30_000, result[:subtotal_cents]
   end
 
+  test 'jornada booking uses flat jornada price not sum of hourly blocks' do
+    jornada = @space.primary_jornada_definition
+    start_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 8, 0)
+    end_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 20, 0)
+
+    result = PricingEngine.calculate(
+      @space,
+      @user,
+      start_at,
+      @space.schedule_block_count_for_interval(start_at, end_at),
+      end_at: end_at,
+      booking_type: :jornada,
+      jornada_definition: jornada
+    )
+
+    assert_equal jornada.price_cents, result[:subtotal_cents]
+    assert_equal jornada.price_cents, result[:total_cents]
+  end
+
   test 'applies per-space volume discount' do
     @space.pricing_rules.create!(
       name: 'Volumen test',
