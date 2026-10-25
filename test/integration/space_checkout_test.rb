@@ -8,6 +8,33 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     @slot_time = next_monday_at(hour: 10)
   end
 
+  test 'guest checkout defaults to first bookable date' do
+    travel_to Time.zone.local(2026, 6, 14, 10, 0, 0) do
+      get checkout_space_path(@space)
+      assert_response :success
+      assert_match @space.first_bookable_date.iso8601, response.body
+    end
+  end
+
+  test 'guest checkout bloque mode shows both block prices' do
+    travel_to Time.zone.local(2026, 6, 15, 10, 0, 0) do
+      date = @space.first_bookable_date
+      morning = @space.bloque_slot_rates.find_by!(name: 'Mañana')
+      afternoon = @space.bloque_slot_rates.find_by!(name: 'Tarde')
+
+      get checkout_space_path(
+        @space,
+        date: date,
+        reservation_mode: 'bloque',
+        slot_rate_id: morning.id
+      )
+
+      assert_response :success
+      assert_match Money.new(morning.block_price_cents_effective, 'CLP').format(no_cents_if_whole: true), response.body
+      assert_match Money.new(afternoon.block_price_cents_effective, 'CLP').format(no_cents_if_whole: true), response.body
+    end
+  end
+
   test 'guest can open checkout with slot params' do
     get checkout_space_path(
       @space,

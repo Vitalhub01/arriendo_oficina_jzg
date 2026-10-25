@@ -172,6 +172,17 @@ class Space < ApplicationRecord
     end
   end
 
+  def first_bookable_date(from: Date.current, max_days: 60)
+    date = from.to_date
+    max_days.times do
+      return date if bookable_schedule_blocks_on(date).any?
+
+      date += 1.day
+    end
+
+    from.to_date
+  end
+
   def schedule_slots_in_week?(week_start)
     week = week_start.to_date.beginning_of_week(:monday)
     now = Time.current

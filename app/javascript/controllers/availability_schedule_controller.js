@@ -1,9 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["content", "loading"]
+  static targets = ["content", "loading", "viewToggle"]
 
   connect() {
+    this.view = this.hasContentTarget ? this.contentTarget.dataset.view || "hora" : "hora"
+    this.syncViewToggleStyles()
+
     this.onBeforeFetchRequest = (event) => this.showLoading(event)
     this.onHideLoading = () => this.hideLoading()
 
@@ -20,17 +23,59 @@ export default class extends Controller {
     this.element.removeEventListener("turbo:fetch-request-error", this.onHideLoading)
   }
 
+  setView(event) {
+    const view = event.currentTarget.dataset.view
+    if (!view || view === this.view) return
+
+    this.view = view
+    this.syncViewToggleStyles()
+    this.renderCurrentWeek()
+  }
+
   navigate(event) {
     const link = event.currentTarget
     const weekStart = link.dataset.weekStart
     if (!weekStart) return
 
-    const cached = this.element.querySelector(`template[data-week-start="${weekStart}"]`)
+    const cached = this.element.querySelector(
+      `template[data-week-start="${weekStart}"][data-view="${this.view}"]`
+    )
     if (!cached || !this.hasContentTarget) return
 
     event.preventDefault()
     this.contentTarget.innerHTML = cached.innerHTML
+    this.contentTarget.dataset.weekStart = weekStart
+    this.contentTarget.dataset.view = this.view
     this.hideLoading()
+  }
+
+  renderCurrentWeek() {
+    if (!this.hasContentTarget) return
+
+    const weekStart = this.contentTarget.dataset.weekStart
+    if (!weekStart) return
+
+    const cached = this.element.querySelector(
+      `template[data-week-start="${weekStart}"][data-view="${this.view}"]`
+    )
+    if (!cached) return
+
+    this.contentTarget.innerHTML = cached.innerHTML
+    this.contentTarget.dataset.view = this.view
+  }
+
+  syncViewToggleStyles() {
+    if (!this.hasViewToggleTarget) return
+
+    this.viewToggleTargets.forEach((button) => {
+      const active = button.dataset.view === this.view
+      button.setAttribute("aria-pressed", active ? "true" : "false")
+      button.classList.toggle("border-gray-900", active)
+      button.classList.toggle("bg-gray-900", active)
+      button.classList.toggle("text-white", active)
+      button.classList.toggle("border-gray-200", !active)
+      button.classList.toggle("text-gray-700", !active)
+    })
   }
 
   showLoading(event) {

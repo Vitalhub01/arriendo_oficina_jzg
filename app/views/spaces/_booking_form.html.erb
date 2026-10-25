@@ -8,7 +8,7 @@
         <%= render "shared/profile_incomplete_reminder" %>
       </div>
     <% end %>
-    <% booking_date = (@prefill_date || Date.current).to_date %>
+    <% booking_date = (@prefill_date || space.first_bookable_date).to_date %>
     <div class="mt-4">
       <%= form_with url: space_bookings_path(space), method: :post, class: "space-y-4", data: { turbo: false } do %>
         <div>

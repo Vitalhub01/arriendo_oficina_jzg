@@ -31,7 +31,7 @@ class SpaceCheckoutsController < ApplicationController
     available_modes = helpers.space_checkout_mode_values(@space)
     mode = raw['reservation_mode'].presence || 'hora'
     mode = 'hora' unless available_modes.include?(mode)
-    date = parse_date(raw['date']) || Date.current
+    date = parse_date(raw['date']) || @space.first_bookable_date
 
     defaults = {
       'reservation_mode' => mode,

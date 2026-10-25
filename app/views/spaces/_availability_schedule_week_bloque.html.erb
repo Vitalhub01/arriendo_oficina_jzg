@@ -1,0 +1,80 @@
+<% interactive = local_assigns.fetch(:interactive, false) %>
+<% login_prompt_on_slots = local_assigns.fetch(:login_prompt_on_slots, false) %>
+<% prev_week = week_start - 1.week %>
+<% next_week = week_start + 1.week %>
+<% show_prev_week = (prev_week + 6.days) >= Date.current %>
+<div class="flex items-center justify-between">
+  <% if show_prev_week %>
+    <%= link_to "← Semana anterior",
+          availability_space_path(space, week_start: prev_week),
+          class: "text-sm font-medium text-rose-600 hover:underline",
+          data: {
+            turbo_frame: "availability_schedule",
+            turbo_prefetch: false,
+            week_start: prev_week.iso8601,
+            action: "click->availability-schedule#navigate"
+          } %>
+  <% else %>
+    <span class="text-sm text-gray-300">← Semana anterior</span>
+  <% end %>
+  <span class="text-sm text-gray-600"><%= l(week_start, format: :short) %> — <%= l(week_start + 6.days, format: :short) %></span>
+  <%= link_to "Semana siguiente →",
+        availability_space_path(space, week_start: next_week),
+        class: "text-sm font-medium text-rose-600 hover:underline",
+        data: {
+          turbo_frame: "availability_schedule",
+          turbo_prefetch: false,
+          week_start: next_week.iso8601,
+          action: "click->availability-schedule#navigate"
+        } %>
+</div>
+
+<div class="mt-4 overflow-x-auto">
+  <div class="grid min-w-[640px] grid-cols-7 gap-2">
+    <% schedule.each do |day| %>
+      <div class="rounded-xl border border-gray-200 p-2">
+        <p class="text-center text-xs font-semibold text-gray-700"><%= day[:day_name][0..2] %></p>
+        <p class="text-center text-[10px] text-gray-400"><%= l(day[:date], format: "%d/%m") %></p>
+        <div class="mt-2 space-y-1">
+          <% entries = space_availability_bloque_entries(space, day[:date]) %>
+          <% if entries.any? %>
+            <% entries.each do |entry| %>
+              <% rate = entry[:rate] %>
+              <% label = rate.name %>
+              <% time_range = "#{rate.start_time.strftime('%H:%M')}–#{rate.end_time.strftime('%H:%M')}" %>
+              <% if interactive && entry[:available] %>
+                <button type="button"
+                        data-action="click->booking-form#selectBloque"
+                        data-date="<%= day[:date].iso8601 %>"
+                        data-slot-rate-id="<%= rate.id %>"
+                        class="w-full cursor-pointer rounded px-1 py-1 text-center text-[10px] transition bg-green-100 text-green-800 hover:bg-green-200 hover:ring-2 hover:ring-green-400 focus:outline-none focus:ring-2 focus:ring-green-500">
+                  <span class="block font-medium"><%= label %></span>
+                  <span class="block text-[9px] opacity-80"><%= time_range %></span>
+                </button>
+              <% elsif login_prompt_on_slots && entry[:available] %>
+                <%= link_to space_bloque_checkout_path(space, date: day[:date], slot_rate: rate),
+                      class: "block w-full cursor-pointer rounded px-1 py-1 text-center text-[10px] transition bg-green-100 text-green-800 hover:bg-green-200 hover:ring-2 hover:ring-green-400 focus:outline-none focus:ring-2 focus:ring-green-500",
+                      data: { turbo_frame: "_top" } do %>
+                  <span class="block font-medium"><%= label %></span>
+                  <span class="block text-[9px] opacity-80"><%= time_range %></span>
+                <% end %>
+              <% elsif entry[:available] %>
+                <div class="rounded px-1 py-1 text-center text-[10px] bg-green-100 text-green-800">
+                  <span class="block font-medium"><%= label %></span>
+                  <span class="block text-[9px] opacity-80"><%= time_range %></span>
+                </div>
+              <% else %>
+                <div class="rounded px-1 py-1 text-center text-[10px] bg-gray-100 text-gray-400 line-through">
+                  <span class="block font-medium"><%= label %></span>
+                  <span class="block text-[9px]"><%= time_range %></span>
+                </div>
+              <% end %>
+            <% end %>
+          <% else %>
+            <p class="text-center text-[10px] text-gray-300">—</p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

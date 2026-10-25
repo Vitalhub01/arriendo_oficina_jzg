@@ -107,6 +107,54 @@ module SpacesHelper
     )
   end
 
+  def space_bloque_checkout_path(space, date:, slot_rate:)
+    checkout_space_path(
+      space,
+      date: date.to_date.iso8601,
+      reservation_mode: "bloque",
+      slot_rate_id: slot_rate.id
+    )
+  end
+
+  def space_jornada_checkout_path(space, date:)
+    checkout_space_path(
+      space,
+      date: date.to_date.iso8601,
+      reservation_mode: "jornada"
+    )
+  end
+
+  def space_availability_view_modes(space)
+    modes = [{ value: "hora", title: "Por hora" }]
+    modes << { value: "bloque", title: "Por bloque" } if space.offers_bloque_reservation?
+    modes << { value: "jornada", title: "Por día" } if space.primary_jornada_definition.present?
+    modes
+  end
+
+  def space_availability_bloque_entries(space, date)
+    return [] if date.to_date < Date.current
+
+    checker = AvailabilityChecker.new(space)
+    space.bloque_slot_rates.map do |rate|
+      {
+        rate: rate,
+        available: checker.slot_rate_window_available?(date, rate)
+      }
+    end
+  end
+
+  def space_availability_jornada_entry(space, date)
+    jornada = space.primary_jornada_definition
+    return nil unless jornada
+    return nil if date.to_date < Date.current
+
+    checker = AvailabilityChecker.new(space)
+    {
+      jornada: jornada,
+      available: checker.jornada_window_available?(date, jornada)
+    }
+  end
+
   def space_booking_blocks_by_day(space)
     space.schedule_blocks.ordered.group_by(&:day_of_week).transform_values do |blocks|
       blocks.map do |b|

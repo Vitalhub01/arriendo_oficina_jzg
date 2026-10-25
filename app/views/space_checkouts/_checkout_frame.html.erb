@@ -1,5 +1,25 @@
-<%= turbo_frame_tag "space_checkout", class: "contents" do %>
-  <section class="space-y-6 lg:col-span-3">
+<% equipment_per_hour_cents = space.checkout_rentable_equipment_items.sum(:price_per_hour_cents) %>
+<%= turbo_frame_tag "space_checkout",
+      class: "contents",
+      data: {
+        controller: "checkout-form",
+        checkout_form_minimum_slots_value: space.minimum_slots,
+        checkout_form_blocks_by_day_value: space_booking_blocks_by_day(space).to_json,
+        checkout_form_overrides_value: space_booking_block_overrides(space).to_json,
+        checkout_form_today_value: Date.current.iso8601,
+        checkout_form_now_time_value: Time.zone.now.strftime("%H:%M"),
+        checkout_form_slot_rates_value: space_booking_slot_rates_payload(space).to_json,
+        checkout_form_jornada_value: space_booking_jornada_payload(space).to_json,
+        checkout_form_reserved_intervals_value: space_booking_reserved_intervals(space).to_json,
+        checkout_form_equipment_per_hour_cents_value: equipment_per_hour_cents
+      } do %>
+  <section class="relative space-y-6 lg:col-span-3">
+    <div data-checkout-form-target="loading" class="pointer-events-none absolute inset-0 z-20 hidden flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-[2px]">
+      <div class="flex flex-col items-center gap-2">
+        <div class="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" role="status" aria-label="Cargando"></div>
+        <p class="text-sm font-medium text-gray-600">Actualizando reserva…</p>
+      </div>
+    </div>
     <div class="rounded-2xl border border-gray-200 bg-white p-6">
       <h2 class="text-lg font-semibold text-gray-900">Detalle de la reserva</h2>
       <%= render "space_checkouts/reservation_form",
@@ -7,28 +27,32 @@
             checkout_params: checkout_params,
             quote: quote %>
 
-      <% if quote.success? %>
-        <dl class="mt-6 grid gap-2 border-t border-gray-100 pt-6 text-sm sm:grid-cols-2">
-          <div>
-            <dt class="text-gray-500">Fecha</dt>
-            <dd class="font-medium text-gray-900"><%= l(quote.start_at.to_date, format: :long) %></dd>
-          </div>
-          <div>
-            <dt class="text-gray-500">Horario</dt>
-            <dd class="font-medium text-gray-900">
+      <div data-checkout-form-target="quotePanel" class="<%= quote.success? ? "" : "hidden" %> mt-6 grid gap-2 border-t border-gray-100 pt-6 text-sm sm:grid-cols-2">
+        <div>
+          <dt class="text-gray-500">Fecha</dt>
+          <dd class="font-medium text-gray-900"><%= quote.success? ? l(quote.start_at.to_date, format: :long) : "—" %></dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Horario</dt>
+          <dd class="font-medium text-gray-900" data-checkout-form-target="scheduleRange">
+            <% if quote.success? %>
               <%= l(quote.start_at, format: "%H:%M") %> — <%= l(quote.end_at, format: "%H:%M") %>
-            </dd>
-          </div>
-          <% if checkout_params["reservation_mode"] == "hora" %>
-            <div>
-              <dt class="text-gray-500">Duración</dt>
-              <dd class="font-medium text-gray-900"><%= quote.slot_count %> hora(s)</dd>
-            </div>
-          <% end %>
+            <% else %>
+              —
+            <% end %>
+          </dd>
+        </div>
+        <% if checkout_params["reservation_mode"] == "hora" && quote.success? %>
           <div>
-            <dt class="text-gray-500">Modalidad</dt>
-            <dd class="font-medium text-gray-900"><%= quote.mode_label %></dd>
+            <dt class="text-gray-500">Duración</dt>
+            <dd class="font-medium text-gray-900"><%= quote.slot_count %> hora(s)</dd>
           </div>
+        <% end %>
+        <div>
+          <dt class="text-gray-500">Modalidad</dt>
+          <dd class="font-medium text-gray-900"><%= quote.success? ? quote.mode_label : "—" %></dd>
+        </div>
+        <% if quote.success? %>
           <% equipment_lines = quote.pricing[:breakdown]&.select { |line| line[:type] == "equipment_rental" } || [] %>
           <% equipment_lines.each do |equipment_line| %>
             <div class="sm:col-span-2">
@@ -39,12 +63,11 @@
               </dd>
             </div>
           <% end %>
-        </dl>
-      <% elsif quote.errors.any? %>
-        <div class="mt-6 border-t border-gray-100 pt-6 text-sm text-red-700">
-          <%= quote.errors.join(" · ") %>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
+      <p data-checkout-form-target="quoteError" class="<%= quote.success? ? "hidden" : "" %> mt-6 border-t border-gray-100 pt-6 text-sm text-red-700">
+        <%= quote.errors.any? ? quote.errors.join(" · ") : "Ajusta fecha y horario para ver el total." %>
+      </p>
     </div>
   </section>
 
@@ -56,48 +79,46 @@
       <h2 class="mt-4 text-lg font-semibold text-gray-900"><%= space.title %></h2>
       <p class="text-sm text-gray-600"><%= space.commune %>, <%= space.city %></p>
 
-      <% if quote.success? %>
-        <div class="mt-6 flex items-baseline justify-between border-t border-gray-100 pt-4">
-          <span class="text-sm text-gray-500">Total</span>
-          <span class="text-3xl font-semibold tracking-tight text-gray-900 tabular-nums"><%= quote.formatted_total %></span>
-        </div>
+      <div class="mt-6 flex items-baseline justify-between border-t border-gray-100 pt-4">
+        <span class="text-sm text-gray-500">Total</span>
+        <span class="text-3xl font-semibold tracking-tight text-gray-900 tabular-nums" data-checkout-form-target="total">
+          <%= quote.success? ? quote.formatted_total : "—" %>
+        </span>
+      </div>
 
-        <% if user_signed_in? && current_user.can_book? %>
-          <%= form_with url: space_bookings_path(space), method: :post, class: "mt-6 space-y-4", data: { turbo: false } do %>
-            <%= hidden_field_tag :date, checkout_params["date"] %>
-            <%= hidden_field_tag :start_time, checkout_params["start_time"] %>
-            <%= hidden_field_tag :slot_count, checkout_params["slot_count"] %>
-            <%= hidden_field_tag :reservation_mode, checkout_params["reservation_mode"] %>
-            <%= hidden_field_tag :slot_rate_id, checkout_params["slot_rate_id"] %>
-            <% Array(checkout_params["rented_equipment_item_ids"]).each do |equipment_id| %>
-              <%= hidden_field_tag "rented_equipment_item_ids[]", equipment_id %>
-            <% end %>
-            <%= hidden_field_tag :from_checkout, "1" %>
-            <% unless current_user.profile_complete? %>
-              <%= render "shared/profile_incomplete_reminder" %>
-            <% end %>
-            <% if space.terms_and_conditions.attached? %>
-              <div class="flex items-start gap-2">
-                <%= check_box_tag :accept_terms, "1", false, required: true, class: "mt-1 rounded border-gray-300" %>
-                <label for="accept_terms" class="text-sm text-gray-700">
-                  Acepto los
-                  <%= link_to "términos y condiciones",
-                        rails_blob_path(space.terms_and_conditions, disposition: "inline"),
-                        class: "text-brand hover:underline",
-                        target: "_blank",
-                        rel: "noopener" %>
-                </label>
-              </div>
-            <% end %>
-            <%= submit_tag "Confirmar y pagar", class: "btn-primary w-full" %>
+      <% if user_signed_in? && current_user.can_book? %>
+        <%= form_with url: space_bookings_path(space), method: :post, class: "mt-6 space-y-4", data: { turbo: false, checkout_form_target: "confirmForm" } do %>
+          <%= hidden_field_tag :date, checkout_params["date"], data: { checkout_form_target: "confirmDate" } %>
+          <%= hidden_field_tag :start_time, checkout_params["start_time"], data: { checkout_form_target: "confirmStartTime" } %>
+          <%= hidden_field_tag :slot_count, checkout_params["slot_count"], data: { checkout_form_target: "confirmSlotCount" } %>
+          <%= hidden_field_tag :reservation_mode, checkout_params["reservation_mode"], data: { checkout_form_target: "confirmReservationMode" } %>
+          <%= hidden_field_tag :slot_rate_id, checkout_params["slot_rate_id"], data: { checkout_form_target: "confirmSlotRateId" } %>
+          <% Array(checkout_params["rented_equipment_item_ids"]).each do |equipment_id| %>
+            <%= hidden_field_tag "rented_equipment_item_ids[]", equipment_id %>
           <% end %>
-        <% elsif user_signed_in? %>
-          <p class="mt-6 text-sm text-gray-600">Tu cuenta no puede reservar en este momento.</p>
-        <% else %>
-          <p class="mt-6 text-sm text-gray-600">Inicia sesión o regístrate para confirmar y pagar.</p>
+          <%= hidden_field_tag :from_checkout, "1" %>
+          <% unless current_user.profile_complete? %>
+            <%= render "shared/profile_incomplete_reminder" %>
+          <% end %>
+          <% if space.terms_and_conditions.attached? %>
+            <div class="flex items-start gap-2">
+              <%= check_box_tag :accept_terms, "1", false, required: true, class: "mt-1 rounded border-gray-300" %>
+              <label for="accept_terms" class="text-sm text-gray-700">
+                Acepto los
+                <%= link_to "términos y condiciones",
+                      rails_blob_path(space.terms_and_conditions, disposition: "inline"),
+                      class: "text-brand hover:underline",
+                      target: "_blank",
+                      rel: "noopener" %>
+              </label>
+            </div>
+          <% end %>
+          <%= submit_tag "Confirmar y pagar", class: "btn-primary w-full" %>
         <% end %>
+      <% elsif user_signed_in? %>
+        <p class="mt-6 text-sm text-gray-600">Tu cuenta no puede reservar en este momento.</p>
       <% else %>
-        <p class="mt-6 text-sm text-gray-600">Ajusta fecha y horario para ver el total.</p>
+        <p class="mt-6 text-sm text-gray-600">Inicia sesión o regístrate para confirmar y pagar.</p>
       <% end %>
     </div>
   </aside>

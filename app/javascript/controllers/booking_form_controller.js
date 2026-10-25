@@ -65,12 +65,7 @@ export default class extends Controller {
     const { date, startTime } = event.currentTarget.dataset
     if (!date || !startTime) return
 
-    if (this.hasReservationModeTarget) {
-      this.reservationModeTargets.forEach((field) => {
-        field.value = "hora"
-      })
-      this.applyModeUI("hora")
-    }
+    this.applyReservationMode("hora")
 
     this.dateTargets.forEach((field) => {
       field.value = date
@@ -84,6 +79,50 @@ export default class extends Controller {
     if (window.matchMedia("(max-width: 1023px)").matches) {
       this.openPanel()
     }
+  }
+
+  selectBloque(event) {
+    const { date, slotRateId } = event.currentTarget.dataset
+    if (!date || !slotRateId) return
+
+    this.applyReservationMode("bloque")
+
+    this.dateTargets.forEach((field) => {
+      field.value = date
+    })
+    this.slotRateTargets.forEach((field) => {
+      field.value = slotRateId
+    })
+    this.updateTotal()
+
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      this.openPanel()
+    }
+  }
+
+  selectJornada(event) {
+    const { date } = event.currentTarget.dataset
+    if (!date) return
+
+    this.applyReservationMode("jornada")
+
+    this.dateTargets.forEach((field) => {
+      field.value = date
+    })
+    this.updateTotal()
+
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      this.openPanel()
+    }
+  }
+
+  applyReservationMode(mode) {
+    if (!this.hasReservationModeTarget) return
+
+    this.reservationModeTargets.forEach((field) => {
+      field.value = mode
+    })
+    this.applyModeUI(mode)
   }
 
   modeChanged(event) {
