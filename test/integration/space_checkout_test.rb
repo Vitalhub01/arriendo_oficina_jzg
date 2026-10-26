@@ -8,6 +8,13 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     @slot_time = next_monday_at(hour: 10)
   end
 
+  test 'guest checkout prompts sign in to confirm' do
+    get checkout_space_path(@space)
+    assert_response :success
+    assert_match 'Inicia sesión o regístrate para confirmar y pagar', response.body
+    assert_match 'Iniciar sesión o registrarse', response.body
+  end
+
   test 'guest checkout defaults to first bookable date' do
     travel_to Time.zone.local(2026, 6, 14, 10, 0, 0) do
       get checkout_space_path(@space)

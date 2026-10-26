@@ -196,6 +196,34 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_match 'no está habilitado', flash[:alert]
   end
 
+  test 'signed in profesional sees booking form on space page' do
+    sign_in @renter
+
+    get space_path(@box)
+    assert_response :success
+    assert_match 'Reservar y pagar', response.body
+    assert_no_match 'no puede reservar', response.body
+  end
+
+  test 'guest is prompted to sign in on space page' do
+    get space_path(@box)
+    assert_response :success
+    assert_match 'Iniciar sesión o registrarse para reservar', response.body
+    assert_no_match 'Reservar y pagar', response.body
+  end
+
+  test 'profesional without professional profile can create booking' do
+    @renter.professional_profile.destroy
+    @renter.reload
+    assert @renter.can_book?
+
+    sign_in @renter
+
+    assert_difference 'Booking.count', 1 do
+      post space_bookings_path(@box), params: booking_params
+    end
+  end
+
   test 'pending validation_status profesional can create booking' do
     @renter.professional_profile.update!(
       validation_status: :pending,

@@ -94,9 +94,11 @@
         <%= submit_tag "Reservar y pagar", class: "btn-primary w-full", data: { booking_form_target: "submit" } %>
       <% end %>
     </div>
-  <% elsif user_signed_in? %>
-    <p class="mt-4 text-sm text-gray-600">Tu cuenta no puede reservar en este momento. Si crees que es un error, contáctanos.</p>
+  <% elsif user_signed_in? && current_user.banned? %>
+    <p class="mt-4 text-sm text-gray-600">Tu cuenta está suspendida. Si crees que es un error, contáctanos.</p>
+  <% elsif user_signed_in? && current_user.professional_profile&.rejected? %>
+    <p class="mt-4 text-sm text-gray-600">Tu perfil profesional no está habilitado para reservar. Contáctanos si necesitas ayuda.</p>
   <% else %>
-    <%= link_to "Continuar a reservar", checkout_space_path(space), class: "btn-primary mt-4 block w-full text-center" %>
+    <%= link_to "Iniciar sesión o registrarse para reservar", checkout_space_path(space), class: "btn-primary mt-4 block w-full text-center" %>
   <% end %>
 </div>

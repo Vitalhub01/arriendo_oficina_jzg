@@ -115,10 +115,13 @@
           <% end %>
           <%= submit_tag "Confirmar y pagar", class: "btn-primary w-full" %>
         <% end %>
-      <% elsif user_signed_in? %>
-        <p class="mt-6 text-sm text-gray-600">Tu cuenta no puede reservar en este momento.</p>
+      <% elsif user_signed_in? && current_user.banned? %>
+        <p class="mt-6 text-sm text-gray-600">Tu cuenta está suspendida.</p>
+      <% elsif user_signed_in? && current_user.professional_profile&.rejected? %>
+        <p class="mt-6 text-sm text-gray-600">Tu perfil profesional no está habilitado para reservar.</p>
       <% else %>
         <p class="mt-6 text-sm text-gray-600">Inicia sesión o regístrate para confirmar y pagar.</p>
+        <%= link_to "Iniciar sesión o registrarse", new_user_session_path, class: "btn-primary mt-4 block w-full text-center" %>
       <% end %>
     </div>
   </aside>
