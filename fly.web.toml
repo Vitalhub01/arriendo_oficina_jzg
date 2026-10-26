@@ -2,8 +2,8 @@
 # Requiere: fly secrets (DATABASE_URL, REDIS_URL, RAILS_MASTER_KEY, Mercado Pago, Supabase, etc.)
 
 app = "vitalhub-web"
-# US East — cerca de Supabase (us-east) / Upstash; antes gru (latencia con DB en US).
-primary_region = "iad"
+# US East — cerca de Supabase Ohio (us-east-2) / Upstash; antes gru.
+primary_region = "ord"
 
 [build]
   dockerfile = "Dockerfile"
