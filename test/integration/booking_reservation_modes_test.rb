@@ -51,6 +51,7 @@ class BookingReservationModesTest < ActionDispatch::IntegrationTest
     ).call
 
     assert_not result.success?
+    assert_includes result.errors.join(' '), AvailabilityChecker::PERIOD_BOOKING_BLOCKED_MESSAGE
   end
 
   test 'hourly booking blocks jornada reservation for same day' do
@@ -70,6 +71,7 @@ class BookingReservationModesTest < ActionDispatch::IntegrationTest
     ).call
 
     assert_not result.success?
+    assert_includes result.errors.join(' '), AvailabilityChecker::PERIOD_BOOKING_BLOCKED_MESSAGE
   end
 
   test 'cannot book same hour twice via HTTP' do

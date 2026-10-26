@@ -113,7 +113,10 @@
               </label>
             </div>
           <% end %>
-          <%= submit_tag "Confirmar y pagar", class: "btn-primary w-full" %>
+          <%= submit_tag "Confirmar y pagar",
+                class: "btn-primary w-full",
+                disabled: !quote.success?,
+                data: { checkout_form_target: "confirmSubmit" } %>
         <% end %>
       <% elsif user_signed_in? && current_user.banned? %>
         <p class="mt-6 text-sm text-gray-600">Tu cuenta está suspendida.</p>

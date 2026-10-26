@@ -20,6 +20,10 @@
     @apply inline-flex items-center justify-center rounded-none bg-brand px-8 py-3.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 min-h-[48px];
   }
 
+  .btn-primary:disabled {
+    @apply cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 focus:ring-gray-300;
+  }
+
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-none border border-gray-900 bg-transparent px-8 py-3.5 text-sm font-medium uppercase tracking-wide text-gray-900 transition hover:bg-gray-900 hover:text-white min-h-[48px];
   }

@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { periodIssueMessage } from "lib/reservation_pricing"
 
 export default class extends Controller {
   static targets = [
@@ -33,8 +34,6 @@ export default class extends Controller {
   }
 
   connect() {
-    this.periodBlockedMessage =
-      "Hay al menos una hora reservada o bloqueada en esa fecha; no se puede reservar el bloque o la jornada completa."
     this.modeSummaries = {
       hora: "Elige la fecha, la hora de inicio y cuántas horas seguidas necesitas.",
       bloque: "Reservas la mañana (08:00–14:00) o la tarde (14:00–20:00) completa en el día elegido.",
@@ -287,7 +286,7 @@ export default class extends Controller {
     })
 
     this.updateDurationLabel(this.durationLabelTargets, durationMinutes)
-    this.setSubmitDisabled(slotCount < this.minimumSlotsValue || !startTime)
+    this.setSubmitDisabled(slotCount < this.minimumSlotsValue || !startTime || total <= 0)
   }
 
   updateBloqueTotal() {
@@ -463,10 +462,7 @@ export default class extends Controller {
   }
 
   showPeriodWarning(targets, issue) {
-    const message =
-      issue === "reserved" || issue === "blocked"
-        ? this.periodBlockedMessage
-        : "No hay horario disponible para esa fecha en la franja elegida."
+    const message = periodIssueMessage(issue)
 
     targets.forEach((el) => {
       el.textContent = message
@@ -485,6 +481,7 @@ export default class extends Controller {
     if (!this.hasSubmitTarget) return
     this.submitTargets.forEach((el) => {
       el.disabled = disabled
+      el.setAttribute("aria-disabled", disabled ? "true" : "false")
     })
   }
 

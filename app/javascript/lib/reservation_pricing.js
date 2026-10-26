@@ -1,3 +1,13 @@
+export const PERIOD_BLOCKED_MESSAGE =
+  "Hay al menos una hora reservada o bloqueada en esa fecha; no se puede reservar el bloque o la jornada completa."
+
+export function periodIssueMessage(issue) {
+  if (issue === "reserved" || issue === "blocked") {
+    return PERIOD_BLOCKED_MESSAGE
+  }
+  return "No hay horario disponible para esa fecha en la franja elegida."
+}
+
 export function formatCLP(cents) {
   return new Intl.NumberFormat("es-CL", {
     style: "currency",

@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import {
   calculateHourlyTotal,
   formatCLP,
+  periodIssueMessage,
   periodWindowIssue,
   selectableHourlyBlocks
 } from "lib/reservation_pricing"
@@ -23,7 +24,8 @@ export default class extends Controller {
     "confirmStartTime",
     "confirmSlotCount",
     "confirmReservationMode",
-    "confirmSlotRateId"
+    "confirmSlotRateId",
+    "confirmSubmit"
   ]
 
   static values = {
@@ -265,7 +267,7 @@ export default class extends Controller {
     )
 
     if (issue) {
-      this.showQuoteError("No hay horario disponible para ese bloque en la fecha elegida.")
+      this.showQuoteError(periodIssueMessage(issue))
       return
     }
 
@@ -291,7 +293,7 @@ export default class extends Controller {
     )
 
     if (issue) {
-      this.showQuoteError("No hay horario disponible para jornada completa en la fecha elegida.")
+      this.showQuoteError(periodIssueMessage(issue))
       return
     }
 
@@ -328,6 +330,7 @@ export default class extends Controller {
   }
 
   showQuoteSuccess(startTime, endTime, totalCents, modeLabel) {
+    this.setConfirmSubmitEnabled(true)
     if (this.hasQuoteErrorTarget) {
       this.quoteErrorTargets.forEach((el) => el.classList.add("hidden"))
     }
@@ -347,6 +350,7 @@ export default class extends Controller {
   }
 
   showQuoteError(message) {
+    this.setConfirmSubmitEnabled(false)
     if (this.hasQuotePanelTarget) {
       this.quotePanelTargets.forEach((el) => el.classList.add("hidden"))
     }
@@ -453,5 +457,13 @@ export default class extends Controller {
       return headers.get("X-Sec-Purpose") === "prefetch"
     }
     return headers["X-Sec-Purpose"] === "prefetch"
+  }
+
+  setConfirmSubmitEnabled(enabled) {
+    if (!this.hasConfirmSubmitTarget) return
+    this.confirmSubmitTargets.forEach((el) => {
+      el.disabled = !enabled
+      el.setAttribute("aria-disabled", enabled ? "false" : "true")
+    })
   }
 }
