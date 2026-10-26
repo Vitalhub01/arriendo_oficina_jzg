@@ -53,6 +53,7 @@ Rails.application.configure do
     Rails.application.routes.default_url_options = config.action_controller.default_url_options
   end
 
+  config.assume_ssl = true
   config.force_ssl = true
 
   # Custom domain + Render + Fly.io hostnames (all must stay allowed).
@@ -63,6 +64,7 @@ Rails.application.configure do
   config.hosts << 'arriendo-oficina-jzg.onrender.com'
   config.hosts << 'vitalhub-web.fly.dev'
   config.hosts << 'vitalhub-worker.fly.dev'
+  config.hosts << '.fly.dev'
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
