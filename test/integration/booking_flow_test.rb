@@ -196,6 +196,25 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_match 'no está habilitado', flash[:alert]
   end
 
+  test 'pending validation_status profesional can create booking' do
+    @renter.professional_profile.update!(
+      validation_status: :pending,
+      onboarding_completed: false,
+      age: nil,
+      gender: nil,
+      profession: nil
+    )
+    assert @renter.can_book?
+
+    sign_in @renter
+
+    assert_difference 'Booking.count', 1 do
+      post space_bookings_path(@box), params: booking_params
+    end
+
+    assert_redirected_to booking_path(Booking.order(:created_at).last)
+  end
+
   test 'profesional with incomplete profile can create booking' do
     @renter.professional_profile.update!(onboarding_completed: false, age: nil, gender: nil, profession: nil)
     sign_in @renter

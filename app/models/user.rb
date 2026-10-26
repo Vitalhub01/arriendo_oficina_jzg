@@ -54,9 +54,13 @@ class User < ApplicationRecord
   def can_book?
     return true if admin?
     return false if banned?
-    return false if professional_profile&.rejected?
 
-    professional_profile.present? && professional_profile.rut.present?
+    profile = professional_profile
+    return false unless profile
+    return false if profile.rejected?
+
+    # pending, auto_verified y manual_verified pueden reservar; la verificación no bloquea el checkout.
+    true
   end
 
   def profile_complete?
