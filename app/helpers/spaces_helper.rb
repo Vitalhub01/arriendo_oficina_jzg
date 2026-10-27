@@ -204,8 +204,11 @@ module SpacesHelper
     end
   end
 
-  def space_booking_reserved_intervals(space)
-    space.bookings.blocking_availability.where('end_at >= ?', Time.current).map do |booking|
+  def space_booking_reserved_intervals(space, for_user: nil)
+    scope = space.bookings.blocking_availability.where('end_at >= ?', Time.current)
+    scope = scope.where.not(renter_id: for_user.id) if for_user
+
+    scope.map do |booking|
       {
         start: booking.start_at.iso8601,
         end: booking.end_at.iso8601

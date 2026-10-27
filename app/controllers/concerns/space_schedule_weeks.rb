@@ -7,12 +7,13 @@ module SpaceScheduleWeeks
 
   private
 
-  def load_space_schedule(space)
+  def load_space_schedule(space, exclude_renter_id: current_user&.id)
     @week_start = schedule_week_start(space)
     @schedule_week_entries = AvailabilityScheduleBuilder.new(
       space,
       week_start: @week_start,
-      week_count: PRELOAD_WEEKS
+      week_count: PRELOAD_WEEKS,
+      exclude_renter_id: exclude_renter_id
     ).build_weeks
     @schedule = @schedule_week_entries.first[:schedule]
   end

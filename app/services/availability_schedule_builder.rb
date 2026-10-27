@@ -3,12 +3,13 @@
 class AvailabilityScheduleBuilder
   Slot = Struct.new(:starts_at, :ends_at, :price_cents, :available, keyword_init: true)
 
-  def initialize(box, week_start:, week_count: 1)
+  def initialize(box, week_start:, week_count: 1, exclude_renter_id: nil)
     @box = box
     @week_start = week_start.to_date.beginning_of_week(:monday)
     @week_count = week_count.to_i
     @week_count = 1 if @week_count < 1
     @range_end_date = @week_start + (@week_count * 7 - 1).days
+    @exclude_renter_id = exclude_renter_id
   end
 
   def build
@@ -43,9 +44,10 @@ class AvailabilityScheduleBuilder
                                      .where(space: box, date: @week_start..@range_end_date)
                                      .index_by { |override| [override.schedule_block_id, override.date] }
 
-    @blocking_bookings = box.bookings.blocking_availability
-                            .where('start_at < ? AND end_at > ?', range_end, range_start)
-                            .pluck(:start_at, :end_at)
+    blocking_scope = box.bookings.blocking_availability
+                        .where('start_at < ? AND end_at > ?', range_end, range_start)
+    blocking_scope = blocking_scope.where.not(renter_id: @exclude_renter_id) if @exclude_renter_id
+    @blocking_bookings = blocking_scope.pluck(:start_at, :end_at)
 
     @availability_blocks = box.availability_blocks
                               .where('start_at < ? AND end_at > ?', range_end, range_start)

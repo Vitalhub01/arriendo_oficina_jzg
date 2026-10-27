@@ -133,6 +133,20 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     assert_match '$31.000', response.body
   end
 
+  test 'turbo frame refresh with multiple hours updates checkout' do
+    get checkout_space_path(
+      @space,
+      date: @slot_time.to_date,
+      start_time: '10:00',
+      reservation_mode: 'hora',
+      slot_count: 2
+    ), headers: { 'Turbo-Frame' => 'space_checkout' }
+
+    assert_response :success
+    assert_match '2 hora(s)', response.body
+    assert_match '$30.000', response.body
+  end
+
   test 'checkout stores return path for sign in' do
     checkout_url = checkout_space_path(
       @space,

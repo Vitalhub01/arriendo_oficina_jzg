@@ -10,7 +10,7 @@
         checkout_form_now_time_value: Time.zone.now.strftime("%H:%M"),
         checkout_form_slot_rates_value: space_booking_slot_rates_payload(space).to_json,
         checkout_form_jornada_value: space_booking_jornada_payload(space).to_json,
-        checkout_form_reserved_intervals_value: space_booking_reserved_intervals(space).to_json,
+        checkout_form_reserved_intervals_value: space_booking_reserved_intervals(space, for_user: current_user).to_json,
         checkout_form_equipment_per_hour_cents_value: equipment_per_hour_cents
       } do %>
   <section class="relative space-y-6 lg:col-span-3">

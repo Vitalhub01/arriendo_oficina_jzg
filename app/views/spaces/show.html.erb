@@ -15,7 +15,7 @@
        data-booking-form-now-time-value="<%= Time.zone.now.strftime('%H:%M') %>"
        data-booking-form-slot-rates-value="<%= space_booking_slot_rates_payload(@space).to_json %>"
        data-booking-form-jornada-value="<%= space_booking_jornada_payload(@space).to_json %>"
-       data-booking-form-reserved-intervals-value="<%= space_booking_reserved_intervals(@space).to_json %>">
+       data-booking-form-reserved-intervals-value="<%= space_booking_reserved_intervals(@space, for_user: current_user).to_json %>">
 <% end %>
 <div class="mx-auto max-w-7xl px-4 py-6">
   <% if @errors.present? %>

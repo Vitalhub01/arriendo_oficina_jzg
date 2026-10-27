@@ -63,6 +63,36 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
     end
   end
 
+  test 'exclude_renter_id omits that users pending booking from availability' do
+    renter = users(:renter)
+    slot_time = @week_start.to_time.change(hour: 10)
+    Booking.create!(
+      space: @space,
+      profesional: renter,
+      start_at: slot_time,
+      end_at: slot_time + 2.hours,
+      duration_minutes: 120,
+      status: :pending_payment,
+      payment_expires_at: 30.minutes.from_now,
+      total_amount_cents: 20_000,
+      booking_type: :slot_based
+    )
+
+    without_exclude = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
+    monday_blocked = without_exclude.find { |day| day[:date] == @week_start }
+    ten_am_blocked = monday_blocked[:slots].find { |s| s.starts_at.hour == 10 }
+    assert_not ten_am_blocked.available
+
+    with_exclude = AvailabilityScheduleBuilder.new(
+      @space,
+      week_start: @week_start,
+      exclude_renter_id: renter.id
+    ).build
+    monday_open = with_exclude.find { |day| day[:date] == @week_start }
+    ten_am_open = monday_open[:slots].find { |s| s.starts_at.hour == 10 }
+    assert ten_am_open.available
+  end
+
   test 'build_weeks uses a bounded number of queries' do
     queries = []
     callback = lambda { |*, payload| queries << payload[:sql] if payload[:sql] }

@@ -2,6 +2,8 @@ import { Controller } from "@hotwired/stimulus"
 import {
   calculateHourlyTotal,
   formatCLP,
+  hourlyEndTime,
+  hourlySelectionValid,
   periodIssueMessage,
   periodWindowIssue,
   selectableHourlyBlocks
@@ -88,10 +90,12 @@ export default class extends Controller {
 
   startTimeChanged() {
     this.refreshClientState()
+    this.submitDebounced()
   }
 
   slotCountChanged() {
     this.refreshClientState()
+    this.submitDebounced()
   }
 
   slotRateChanged() {
@@ -215,20 +219,20 @@ export default class extends Controller {
   refreshHourlySummary(dateIso) {
     const slotCount = parseInt(this.formField("slot_count")?.value || this.minimumSlotsValue, 10)
     const startTime = this.formField("start_time")?.value || ""
-    const valid =
-      startTime &&
-      slotCount >= this.minimumSlotsValue &&
-      selectableHourlyBlocks(
-        this.blocksByDayValue,
-        this.overridesValue,
-        this.reservedIntervalsValue,
-        dateIso,
-        this.todayValue,
-        this.nowTimeValue
-      ).some((b) => b.start === startTime)
+    const valid = hourlySelectionValid(
+      this.blocksByDayValue,
+      this.overridesValue,
+      this.reservedIntervalsValue,
+      dateIso,
+      slotCount,
+      startTime,
+      this.minimumSlotsValue,
+      this.todayValue,
+      this.nowTimeValue
+    )
 
     if (!valid) {
-      this.showQuoteError("Ajusta fecha y horario para ver el total.")
+      this.showQuoteError("No hay suficientes horas seguidas disponibles para esa selección.")
       return
     }
 
@@ -244,7 +248,7 @@ export default class extends Controller {
     )
 
     total += this.equipmentExtraCents(slotCount)
-    const endTime = this.hourlyEndTime(dateIso, startTime, slotCount)
+    const endTime = hourlyEndTime(this.blocksByDayValue, dateIso, startTime, slotCount)
     this.showQuoteSuccess(startTime, endTime, total, `${slotCount} hora(s)`)
   }
 
@@ -298,22 +302,6 @@ export default class extends Controller {
     }
 
     this.showQuoteSuccess(jornada.start, jornada.end, jornada.price, "Jornada completa")
-  }
-
-  hourlyEndTime(dateIso, startTime, slotCount) {
-    const blocks = selectableHourlyBlocks(
-      this.blocksByDayValue,
-      this.overridesValue,
-      this.reservedIntervalsValue,
-      dateIso,
-      this.todayValue,
-      this.nowTimeValue
-    )
-    const startIndex = blocks.findIndex((b) => b.start === startTime)
-    if (startIndex < 0) return startTime
-
-    const lastBlock = blocks[startIndex + slotCount - 1]
-    return lastBlock?.end || startTime
   }
 
   equipmentExtraCents(slotCount) {

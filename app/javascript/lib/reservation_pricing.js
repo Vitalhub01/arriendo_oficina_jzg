@@ -104,6 +104,43 @@ export function periodWindowIssue(blocksByDay, overrides, reservedIntervals, dat
   return null
 }
 
+export function hourlySelectionValid(
+  blocksByDay,
+  overrides,
+  reservedIntervals,
+  dateIso,
+  slotCount,
+  startTime,
+  minimumSlots,
+  today,
+  nowTime
+) {
+  if (!dateIso || !startTime) return false
+  if (slotCount < minimumSlots) return false
+
+  return (
+    calculateHourlyTotal(
+      blocksByDay,
+      overrides,
+      reservedIntervals,
+      dateIso,
+      slotCount,
+      startTime,
+      today,
+      nowTime
+    ) > 0
+  )
+}
+
+export function hourlyEndTime(blocksByDay, dateIso, startTime, slotCount) {
+  const blocks = blocksForDate(blocksByDay, dateIso)
+  const startIndex = blocks.findIndex((b) => b.start === startTime)
+  if (startIndex < 0) return startTime
+
+  const lastBlock = blocks[startIndex + slotCount - 1]
+  return lastBlock?.end || startTime
+}
+
 export function calculateHourlyTotal(blocksByDay, overrides, reservedIntervals, dateIso, slotCount, startTime, today, nowTime) {
   const blocks = blocksForDate(blocksByDay, dateIso)
   const startIndex = blocks.findIndex((b) => b.start === startTime)
