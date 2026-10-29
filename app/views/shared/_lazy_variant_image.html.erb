@@ -1,4 +1,4 @@
-<%# locals: (url:, alt:, img_class: "h-full w-full object-cover", wrapper_class: nil, aspect_class: "aspect-[4/3]", eager: false, animated: true) %>
+<%# locals: (url:, alt:, img_class: "h-full w-full object-cover", wrapper_class: nil, aspect_class: "aspect-[4/3]", eager: false, animated: false) %>
 <% if eager || !animated %>
   <div class="relative overflow-hidden bg-gray-100 <%= aspect_class %> <%= wrapper_class %>">
     <img src="<%= url %>"
@@ -15,7 +15,7 @@
        data-controller="lazy-image"
        data-lazy-image-src-value="<%= h(url) %>">
     <div data-lazy-image-target="skeleton"
-         class="image-skeleton absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 transition-opacity duration-300"
+         class="image-skeleton absolute inset-0 bg-gray-200 transition-opacity duration-300"
          aria-hidden="true"></div>
     <img data-lazy-image-target="image"
          alt="<%= alt %>"

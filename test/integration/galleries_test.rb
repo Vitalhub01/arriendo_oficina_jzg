@@ -3,7 +3,7 @@
 require 'test_helper'
 
 class GalleriesTest < ActionDispatch::IntegrationTest
-  test 'gallery frame serves lazy cover image' do
+  test 'gallery frame serves cover image' do
     item = GalleryItem.create!(position: 0, tag: 'Pasillo', visible: true)
     item.image.attach(
       io: File.open(Rails.root.join('test/fixtures/files/cover.jpg')),
@@ -13,8 +13,8 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     get gallery_frame_path(item)
     assert_response :success
-    assert_match 'lazy-image', response.body
     assert_match '/rails/active_storage/', response.body
+    assert_no_match 'animate-pulse', response.body
   end
 
   test 'home shows one cover photo per tag with count' do
