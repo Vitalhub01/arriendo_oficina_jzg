@@ -37,7 +37,7 @@
         <p class="text-center text-xs font-semibold text-gray-700"><%= day[:day_name][0..2] %></p>
         <p class="text-center text-[10px] text-gray-400"><%= l(day[:date], format: "%d/%m") %></p>
         <div class="mt-2">
-          <% entry = jornada ? space_availability_jornada_entry(space, day[:date]) : nil %>
+          <% entry = day[:jornada] %>
           <% if entry %>
             <% time_range = "#{entry[:jornada].start_time.strftime('%H:%M')}–#{entry[:jornada].end_time.strftime('%H:%M')}" %>
             <% if interactive && entry[:available] %>

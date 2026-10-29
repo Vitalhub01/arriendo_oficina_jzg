@@ -49,4 +49,19 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     assert_match 'data-controller="photo-lightbox"', response.body
     assert_match 'cursor-zoom-in', response.body
   end
+
+  test 'show calendar avoids per-cell booking existence queries' do
+    space = boxes(:published_box)
+    queries = []
+    callback = lambda { |*, payload| queries << payload[:sql] if payload[:sql] }
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      get space_path(space)
+    end
+
+    assert_response :success
+    per_cell_booking_checks = queries.count { |sql| sql.match?(/SELECT 1 AS one FROM "bookings"/i) }
+    assert_equal 0, per_cell_booking_checks,
+                 'bloque/jornada templates must use precomputed schedule data, not AvailabilityChecker per day'
+  end
 end

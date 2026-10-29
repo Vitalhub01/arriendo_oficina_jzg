@@ -33,7 +33,9 @@ class SpacesController < ApplicationController
 
   def show
     @space = Space.published_spaces
-                  .includes(:equipment_items, :amenity_tags, space_photos: { image_attachment: :blob })
+                  .includes(:equipment_items, :amenity_tags, :schedule_blocks,
+                            :slot_rates, :jornada_definitions,
+                            space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     authorize @space
     load_space_schedule(@space)
@@ -44,7 +46,9 @@ class SpacesController < ApplicationController
 
   def availability
     @space = Space.published_spaces
-                  .includes(:equipment_items, :amenity_tags, space_photos: { image_attachment: :blob })
+                  .includes(:equipment_items, :amenity_tags, :schedule_blocks,
+                            :slot_rates, :jornada_definitions,
+                            space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     load_space_schedule(@space)
     render 'spaces/availability', layout: false

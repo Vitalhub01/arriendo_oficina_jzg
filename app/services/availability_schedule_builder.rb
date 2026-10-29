@@ -38,8 +38,6 @@ class AvailabilityScheduleBuilder
     range_start = @week_start.beginning_of_day
     range_end = @range_end_date.end_of_day
 
-    @schedule_blocks_by_day = box.schedule_blocks.ordered.group_by(&:day_of_week)
-
     @overrides_by_block_and_date = ScheduleBlockOverride
                                      .where(space: box, date: @week_start..@range_end_date)
                                      .index_by { |override| [override.schedule_block_id, override.date] }
@@ -53,15 +51,100 @@ class AvailabilityScheduleBuilder
                               .where('start_at < ? AND end_at > ?', range_end, range_start)
                               .pluck(:start_at, :end_at)
 
+    @schedule_blocks_by_day = schedule_blocks_grouped_by_day
+    @bloque_slot_rates = bloque_slot_rates_for_box
+    @primary_jornada = primary_jornada_for_box
+
     @preloaded = true
+  end
+
+  def schedule_blocks_grouped_by_day
+    if box.association(:schedule_blocks).loaded?
+      box.schedule_blocks.sort_by { |block| [block.position, block.start_time] }.group_by(&:day_of_week)
+    else
+      box.schedule_blocks.ordered.group_by(&:day_of_week)
+    end
+  end
+
+  def bloque_slot_rates_for_box
+    bloque_names = SpaceBlockPeriods::PERIODS.map { |period| period[:name] }
+    rates = if box.association(:slot_rates).loaded?
+              box.slot_rates.select { |rate| bloque_names.include?(rate.name) }
+            else
+              box.bloque_slot_rates.to_a
+            end
+    rates.sort_by { |rate| [rate.position, rate.start_time] }
+  end
+
+  def primary_jornada_for_box
+    if box.association(:jornada_definitions).loaded?
+      box.jornada_definitions.select(&:active?).min_by { |j| [j.position, j.id] }
+    else
+      box.primary_jornada_definition
+    end
   end
 
   def build_day(date, day_offset)
     {
       date: date,
       day_name: AvailabilityRule::DAY_NAMES[day_offset],
-      slots: slots_for(date)
+      slots: slots_for(date),
+      bloque: bloque_entries_for(date),
+      jornada: jornada_entry_for(date)
     }
+  end
+
+  def bloque_entries_for(date)
+    return [] if date.to_date < Date.current
+    return [] if @bloque_slot_rates.empty?
+
+    @bloque_slot_rates.map do |rate|
+      {
+        rate: rate,
+        available: slot_rate_window_available?(date, rate)
+      }
+    end
+  end
+
+  def jornada_entry_for(date)
+    return nil unless @primary_jornada
+    return nil if date.to_date < Date.current
+
+    {
+      jornada: @primary_jornada,
+      available: jornada_window_available?(date, @primary_jornada)
+    }
+  end
+
+  def slot_rate_window_available?(date, slot_rate)
+    blocks = schedule_blocks_within_time_range(date, slot_rate.start_time, slot_rate.end_time)
+    period_window_available?(date, blocks)
+  end
+
+  def jornada_window_available?(date, jornada_definition)
+    blocks = schedule_blocks_within_time_range(date, jornada_definition.start_time, jornada_definition.end_time)
+    period_window_available?(date, blocks)
+  end
+
+  def schedule_blocks_within_time_range(date, range_start_time, range_end_time)
+    schedule_blocks_for_date(date).select do |block|
+      block.start_time >= range_start_time && block.end_time <= range_end_time
+    end
+  end
+
+  def period_window_available?(date, blocks)
+    return false if blocks.empty?
+    return false unless contiguous_blocks?(date, blocks)
+
+    blocks.all? do |block|
+      slot_available?(starts_at_on(block, date), ends_at_on(block, date))
+    end
+  end
+
+  def contiguous_blocks?(date, blocks)
+    blocks.each_cons(2).all? do |left, right|
+      ends_at_on(left, date) == starts_at_on(right, date)
+    end
   end
 
   def slots_for(date)

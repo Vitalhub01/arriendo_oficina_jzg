@@ -131,6 +131,7 @@ module SpacesHelper
     modes
   end
 
+  # Calendar views should use day[:bloque] / day[:jornada] from AvailabilityScheduleBuilder.
   def space_availability_bloque_entries(space, date)
     return [] if date.to_date < Date.current
 
@@ -156,8 +157,13 @@ module SpacesHelper
   end
 
   def space_booking_blocks_by_day(space)
-    space.schedule_blocks.ordered.group_by(&:day_of_week).transform_values do |blocks|
-      blocks.map do |b|
+    blocks = if space.association(:schedule_blocks).loaded?
+               space.schedule_blocks.sort_by { |b| [b.position, b.start_time] }
+             else
+               space.schedule_blocks.ordered.to_a
+             end
+    blocks.group_by(&:day_of_week).transform_values do |day_blocks|
+      day_blocks.map do |b|
         {
           id: b.id,
           start: b.start_time.strftime('%H:%M'),

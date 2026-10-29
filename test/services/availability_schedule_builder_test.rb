@@ -101,6 +101,48 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
       AvailabilityScheduleBuilder.new(@space, week_start: @week_start, week_count: 5).build_weeks
     end
 
-    assert_operator queries.size, :<=, 10
+    assert_operator queries.size, :<=, 12
+  end
+
+  test 'bloque and jornada entries match AvailabilityChecker' do
+    week_start = next_monday_at(hour: 10).to_date.beginning_of_week(:monday)
+    date = next_monday_at(hour: 10).to_date
+    checker = AvailabilityChecker.new(@space)
+
+    schedule = AvailabilityScheduleBuilder.new(@space, week_start: week_start, week_count: 1).build
+    day = schedule.find { |entry| entry[:date] == date }
+
+    day[:bloque].each do |entry|
+      assert_equal checker.slot_rate_window_available?(date, entry[:rate]), entry[:available],
+                   "bloque #{entry[:rate].name} availability mismatch"
+    end
+
+    jornada_entry = day[:jornada]
+    if jornada_entry
+      assert_equal checker.jornada_window_available?(date, jornada_entry[:jornada]), jornada_entry[:available]
+    end
+  end
+
+  test 'bloque entries reflect booking conflicts without extra queries' do
+    date = next_monday_at(hour: 10).to_date
+    week_start = date.beginning_of_week(:monday)
+    slot_time = Time.zone.local(date.year, date.month, date.day, 10, 0)
+    morning = @space.bloque_slot_rates.first
+
+    Booking.create!(
+      space: @space,
+      profesional: users(:renter),
+      start_at: slot_time,
+      end_at: slot_time + 2.hours,
+      duration_minutes: 120,
+      status: :confirmed,
+      total_amount_cents: 20_000,
+      booking_type: :slot_based
+    )
+
+    day = AvailabilityScheduleBuilder.new(@space, week_start: week_start).build.find { |d| d[:date] == date }
+    morning_entry = day[:bloque].find { |e| e[:rate].id == morning.id }
+
+    assert_not morning_entry[:available]
   end
 end

@@ -36,7 +36,7 @@
         <p class="text-center text-xs font-semibold text-gray-700"><%= day[:day_name][0..2] %></p>
         <p class="text-center text-[10px] text-gray-400"><%= l(day[:date], format: "%d/%m") %></p>
         <div class="mt-2 space-y-1">
-          <% entries = space_availability_bloque_entries(space, day[:date]) %>
+          <% entries = day[:bloque] || [] %>
           <% if entries.any? %>
             <% entries.each do |entry| %>
               <% rate = entry[:rate] %>
