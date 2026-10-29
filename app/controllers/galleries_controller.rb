@@ -3,6 +3,8 @@
 class GalleriesController < ApplicationController
   MAIN_PHOTO_FRAME = 'gallery_main_photo'
 
+  before_action :enable_minimal_chrome, only: :show
+
   def frame
     @item = GalleryItem.visible.find(params.expect(:id))
     @frame_context = params[:frame].presence_in(%w[photo cover]) || 'cover'
@@ -38,5 +40,9 @@ class GalleriesController < ApplicationController
 
   def turbo_frame_request?
     request.headers['Turbo-Frame'] == MAIN_PHOTO_FRAME
+  end
+
+  def enable_minimal_chrome
+    @minimal_chrome = true
   end
 end

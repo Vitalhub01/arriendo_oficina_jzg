@@ -1,28 +1,32 @@
-<div class="shop-announcement py-2.5">
-  <p><%= site_nav_text('nav_announcement') %></p>
-</div>
+<% compact = local_assigns.fetch(:compact, false) %>
+
+<% unless compact %>
+  <div class="shop-announcement py-2.5">
+    <p><%= site_nav_text('nav_announcement') %></p>
+  </div>
+<% end %>
 
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
-  <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 md:py-5">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 <%= compact ? 'py-2 md:py-2.5' : 'py-4 md:py-5' %>">
     <%= link_to root_path, class: "shrink-0" do %>
-      <div class="logo-badge logo-badge--navbar<%= ' logo-badge--navbar-home' if current_page?(root_path) %>">
+      <div class="logo-badge logo-badge--navbar<%= ' logo-badge--navbar-compact' if compact %><%= ' logo-badge--navbar-home' if !compact && current_page?(root_path) %>">
         <%= image_tag site_logo, alt: "VitalHub — Espacios de salud", **image_loading_attrs(eager: false) %>
       </div>
     <% end %>
 
-    <nav class="hidden items-center gap-8 md:flex">
-      <%= link_to site_nav_text('nav_link_spaces'), spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
-      <%= link_to site_nav_text('nav_link_gallery'), root_path(anchor: "galeria"), class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+    <nav class="hidden items-center gap-6 md:flex <%= 'gap-4 text-xs' if compact %>">
+      <%= link_to site_nav_text('nav_link_spaces'), spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
+      <%= link_to site_nav_text('nav_link_gallery'), root_path(anchor: "galeria"), class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
       <% if memberships_enabled? %>
-        <%= link_to site_nav_text('nav_link_membership'), membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <%= link_to site_nav_text('nav_link_membership'), membership_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
       <% end %>
       <% if user_signed_in? %>
-        <%= link_to site_nav_text('nav_link_bookings'), bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+        <%= link_to site_nav_text('nav_link_bookings'), bookings_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
         <% if current_user.eligible_for_free_testimonial? %>
-          <%= link_to site_nav_text('nav_link_comment'), new_user_testimonial_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+          <%= link_to site_nav_text('nav_link_comment'), new_user_testimonial_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
         <% end %>
         <%= link_to edit_profile_path,
-            class: "inline-flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand",
+            class: "inline-flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}",
             title: (current_user.profile_complete? ? nil : "Perfil incompleto: completa tu profesión y datos personales") do %>
           <%= site_nav_text('nav_link_profile') %>
           <% unless current_user.profile_complete? %>
@@ -33,13 +37,13 @@
           <% end %>
         <% end %>
         <% if current_user.admin? %>
-          <%= link_to site_nav_text('nav_link_admin'), admin_root_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand" %>
+          <%= link_to site_nav_text('nav_link_admin'), admin_root_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
         <% end %>
-        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
-        <%= button_to site_nav_text('nav_link_sign_out'), destroy_user_session_path, method: :delete, class: "text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-gray-900" %>
+        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "#{compact ? 'btn-primary !min-h-[36px] !px-4 !py-2 !text-xs' : 'btn-primary !min-h-[42px] !px-6 !py-2.5'}" %>
+        <%= button_to site_nav_text('nav_link_sign_out'), destroy_user_session_path, method: :delete, class: "text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-gray-900 #{compact ? '!text-xs' : ''}" %>
       <% else %>
-        <%= link_to site_nav_text('nav_link_sign_in'), new_user_session_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 hover:text-brand" %>
-        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "btn-primary !min-h-[42px] !px-6 !py-2.5" %>
+        <%= link_to site_nav_text('nav_link_sign_in'), new_user_session_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 hover:text-brand #{compact ? '!text-xs' : ''}" %>
+        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "#{compact ? 'btn-primary !min-h-[36px] !px-4 !py-2 !text-xs' : 'btn-primary !min-h-[42px] !px-6 !py-2.5'}" %>
       <% end %>
     </nav>
   </div>
