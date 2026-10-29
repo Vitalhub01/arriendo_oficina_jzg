@@ -2,9 +2,7 @@
       data: space_availability_schedule_frame_data(@space, @availability_schedule_payload) do %>
   <%= render "spaces/availability_schedule",
         space: @space,
-        schedule: @schedule,
         week_start: @week_start,
         interactive: user_signed_in? && current_user.can_book?,
-        login_prompt_on_slots: !user_signed_in?,
-        schedule_week_entries: @schedule_week_entries %>
+        login_prompt_on_slots: !user_signed_in? %>
 <% end %>

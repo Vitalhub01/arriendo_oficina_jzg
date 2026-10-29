@@ -65,11 +65,9 @@
               data: space_availability_schedule_frame_data(@space, @availability_schedule_payload) do %>
           <%= render "spaces/availability_schedule",
                 space: @space,
-                schedule: @schedule,
                 week_start: @week_start,
                 interactive: booking_interactive,
-                login_prompt_on_slots: login_prompt_on_slots,
-                schedule_week_entries: @schedule_week_entries %>
+                login_prompt_on_slots: login_prompt_on_slots %>
         <% end %>
       </section>
     </div>
