@@ -1,6 +1,0 @@
-<%# locals: (record:, title:) %>
-<% if record.photos_attached? && record.cover_photo %>
-  <%= lazy_variant_image record.cover_photo, alt: title %>
-<% else %>
-  <div class="flex aspect-[4/3] items-center justify-center bg-gray-100 text-gray-400">Sin fotos</div>
-<% end %>

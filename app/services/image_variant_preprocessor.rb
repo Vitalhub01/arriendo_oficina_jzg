@@ -15,10 +15,10 @@ class ImageVariantPreprocessor
   ].freeze
 
   GALLERY_ITEM_LIMITS = [
-    [1600, 1200], # galleries/show — main
-    [480, 640],   # galleries/show — thumbs
-    [320, 240],   # admin/gallery_items/_item
-    [800, 600]    # home/_gallery
+    [1200, 800],  # galleries/show — main photo
+    [480, 640],   # galleries/show — masonry grid
+    [320, 240],   # admin/gallery_items/_item, gallery thumbs
+    [800, 600]    # home/_gallery (cover)
   ].freeze
 
   def self.preprocess!(attachment, limits_list)

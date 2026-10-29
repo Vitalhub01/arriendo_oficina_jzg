@@ -141,16 +141,22 @@
       <ul class="mt-4 space-y-3">
         <% @volume_rules.each do |rule| %>
           <li class="rounded-lg bg-gray-50 p-3">
-            <%= form_with model: rule, url: admin_space_volume_pricing_rule_path(@space, rule), method: :patch, class: "grid gap-3 md:grid-cols-4" do |f| %>
-              <%= f.text_field :name, class: "input-field", placeholder: "Nombre" %>
-              <%= number_field_tag "pricing_rule[config][min_slots]", rule.config['min_slots'], class: "input-field", placeholder: "Mín. bloques" %>
-              <%= number_field_tag "pricing_rule[config][discount_percent]", rule.config['discount_percent'], class: "input-field", placeholder: "% descuento" %>
-              <div class="flex items-center gap-2">
-                <%= f.check_box :active %>
-                <%= f.submit "Guardar", class: "btn-primary text-sm" %>
-                <%= button_to "Eliminar", admin_space_volume_pricing_rule_path(@space, rule), method: :delete, class: "text-sm text-red-600", form: { data: { turbo_confirm: "¿Eliminar?" } } %>
-              </div>
-            <% end %>
+            <div class="grid gap-3 md:grid-cols-4 md:items-end">
+              <%= form_with model: rule, url: admin_space_volume_pricing_rule_path(@space, rule), method: :patch, class: "contents" do |f| %>
+                <%= f.text_field :name, class: "input-field", placeholder: "Nombre" %>
+                <%= number_field_tag "pricing_rule[config][min_slots]", rule.config['min_slots'], class: "input-field", placeholder: "Mín. bloques" %>
+                <%= number_field_tag "pricing_rule[config][discount_percent]", rule.config['discount_percent'], class: "input-field", placeholder: "% descuento" %>
+                <div class="flex items-center gap-2">
+                  <%= f.check_box :active %>
+                  <%= f.submit "Guardar", class: "btn-primary text-sm" %>
+                </div>
+              <% end %>
+              <%= button_to "Eliminar",
+                    admin_space_volume_pricing_rule_path(@space, rule),
+                    method: :delete,
+                    class: "text-sm text-red-600 justify-self-start",
+                    form: { data: { turbo_confirm: "¿Eliminar?" }, class: "inline" } %>
+            </div>
           </li>
         <% end %>
       </ul>

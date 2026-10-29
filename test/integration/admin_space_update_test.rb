@@ -9,6 +9,23 @@ class AdminSpaceUpdateTest < ActionDispatch::IntegrationTest
     attach_box_photo(@space) unless @space.photos_attached?
   end
 
+  test 'edit form keeps Guardar inside space form without nested forms' do
+    sign_in @admin
+
+    get edit_admin_space_path(@space)
+    assert_response :success
+
+    assert_select "form[action='#{admin_space_path(@space)}']" do
+      assert_select 'input[type=submit][value=?]', 'Guardar'
+    end
+
+    doc = Nokogiri::HTML(response.body)
+    space_form = doc.css('form').find { |node| node.at_css('input[type=submit][value="Guardar"]') }
+    assert space_form, 'Guardar debe estar en el formulario del espacio'
+    nested = space_form.css('form')
+    assert_empty nested, "formularios anidados: #{nested.map { |n| n['action'] }.join(', ')}"
+  end
+
   test 'admin updates pricing from edit form fields' do
     sign_in @admin
 

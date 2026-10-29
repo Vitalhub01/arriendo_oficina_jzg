@@ -179,6 +179,8 @@ module Admin
         raw = params.require(:schedule_block).permit(
           :day_of_week, :start_time, :end_time, :name, :position, :price_clp, :price_cents
         )
+        raw[:start_time] = parse_clock_time(raw[:start_time]) if raw[:start_time].present?
+        raw[:end_time] = parse_clock_time(raw[:end_time]) if raw[:end_time].present?
         if raw[:price_clp].present?
           raw[:price_cents] = raw.delete(:price_clp).to_f.round
         end
@@ -194,8 +196,8 @@ module Admin
           override.price_cents = params[:price_clp].to_f.round
         end
         if params[:start_time].present? && params[:end_time].present?
-          override.start_time = params[:start_time]
-          override.end_time = params[:end_time]
+          override.start_time = parse_clock_time(params[:start_time])
+          override.end_time = parse_clock_time(params[:end_time])
         end
         override.reason = nil
       end
@@ -248,8 +250,21 @@ module Admin
       end
 
       def time_on_date(date, time_value)
-        time = time_value.is_a?(String) ? Time.zone.parse(time_value) : time_value
+        time = if time_value.is_a?(String) && time_value.match?(/\A\d{1,2}:\d{2}\z/)
+                 parse_clock_time(time_value)
+               elsif time_value.is_a?(String)
+                 Time.zone.parse(time_value)
+               else
+                 time_value
+               end
         Time.zone.local(date.year, date.month, date.day, time.hour, time.min, time.sec)
+      end
+
+      def parse_clock_time(value)
+        return value unless value.is_a?(String) && value.match?(/\A\d{1,2}:\d{2}\z/)
+
+        hour, minute = value.split(':').map { |part| Integer(part, 10) }
+        Time.zone.parse(format('2000-01-01 %02d:%02d:00', hour, minute))
       end
 
       def format_interval_on_date(block, date)

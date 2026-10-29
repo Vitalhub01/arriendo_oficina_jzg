@@ -25,8 +25,8 @@
     Visible en el sitio
   <% end %>
 
-  <div class="flex flex-wrap items-center gap-4">
-    <%= f.submit "Guardar", class: "btn-primary" %>
-    <%= button_to "Eliminar", admin_home_highlight_path(@home_highlight), method: :delete, class: "text-sm text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar este destacado?" } } %>
-  </div>
+  <%= f.submit "Guardar", class: "btn-primary" %>
 <% end %>
+<div class="mt-4">
+  <%= button_to "Eliminar", admin_home_highlight_path(@home_highlight), method: :delete, class: "text-sm text-red-600 hover:underline", form: { data: { turbo_confirm: "¿Eliminar este destacado?" } } %>
+</div>

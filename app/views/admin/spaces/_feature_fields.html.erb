@@ -2,10 +2,11 @@
 <fieldset class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 space-y-4">
   <legend class="px-1 text-sm font-semibold text-gray-900">Implementos y etiquetas</legend>
   <p class="text-xs text-gray-600">
-    Marca lo que ofrece este espacio. Puedes agregar ítems al catálogo aquí mismo o
-    <%= link_to "gestionar implementos", admin_equipment_items_path, class: "text-brand hover:underline" %>
-    y
-    <%= link_to "gestionar etiquetas", admin_amenity_tags_path, class: "text-brand hover:underline" %>.
+    Marca lo que ofrece este espacio. Para crear ítems nuevos en el catálogo, usa
+    <%= link_to "Implementos", admin_equipment_items_path, class: "text-brand hover:underline" %>
+    o
+    <%= link_to "Etiquetas", admin_amenity_tags_path, class: "text-brand hover:underline" %>
+    en el menú lateral.
   </p>
 
   <div>
@@ -19,7 +20,6 @@
     <% if equipment_items.empty? %>
       <p class="mt-2 text-sm text-gray-500">Aún no hay implementos en el catálogo.</p>
     <% end %>
-    <%= render "admin/equipment_items/quick_add_form", equipment_item: EquipmentItem.new, space: space %>
   </div>
 
   <div>
@@ -33,6 +33,5 @@
     <% if amenity_tags.empty? %>
       <p class="mt-2 text-sm text-gray-500">Aún no hay etiquetas en el catálogo.</p>
     <% end %>
-    <%= render "admin/amenity_tags/quick_add_form", amenity_tag: AmenityTag.new, space: space %>
   </div>
 </fieldset>

@@ -88,6 +88,14 @@
     @apply mb-3 break-inside-avoid md:mb-4;
   }
 
+  .photo-lightbox[open] {
+    @apply flex items-center justify-center;
+  }
+
+  .photo-lightbox::backdrop {
+    @apply bg-black/70;
+  }
+
   .shop-subheading {
     @apply text-lg leading-relaxed text-gray-600 md:text-xl;
   }

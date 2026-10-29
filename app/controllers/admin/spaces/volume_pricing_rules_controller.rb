@@ -40,8 +40,16 @@ module Admin
       end
 
       def volume_rule_params
-        raw = params.expect(pricing_rule: [:name, :active, :priority, { config: {} }])
-        raw.to_h
+        permitted = params.expect(
+          pricing_rule: [:name, :active, :priority, { config: %i[min_slots discount_percent min_hours] }]
+        ).to_h
+
+        incoming_config = permitted['config']
+        if incoming_config.present? && @rule&.config.present?
+          permitted['config'] = @rule.config.stringify_keys.merge(incoming_config.stringify_keys.compact_blank)
+        end
+
+        permitted
       end
     end
   end

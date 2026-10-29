@@ -1,0 +1,63 @@
+<%# locals: (record:, title:) %>
+<% photos = record.space_photos.select { |photo| photo.image.attached? } %>
+<% if photos.any? %>
+  <div data-controller="photo-lightbox"
+       data-action="keydown@window->photo-lightbox#handleKey"
+       data-photo-lightbox-photos-value="<%= h(place_photo_lightbox_entries(photos, title).to_json) %>">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+      <% photos.each_with_index do |photo, index| %>
+        <div id="photo-<%= photo.id %>" class="overflow-hidden rounded-lg">
+          <button type="button"
+                  class="block w-full cursor-zoom-in text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                  data-action="photo-lightbox#open"
+                  data-photo-lightbox-index-param="<%= index %>"
+                  aria-label="<%= photo.caption.presence || title %> — ver en tamaño grande">
+            <%= lazy_variant_image photo.image,
+                  alt: photo.caption.presence || title,
+                  aspect_class: "aspect-[4/3]",
+                  resize_to_limit: LazyImageHelper::VARIANT_LIMITS_GRID,
+                  eager: index.zero?,
+                  animated: false %>
+          </button>
+        </div>
+      <% end %>
+    </div>
+
+    <dialog data-photo-lightbox-target="dialog"
+            class="photo-lightbox fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-4 backdrop:bg-black/70 open:flex open:items-center open:justify-center"
+            aria-label="Vista ampliada de la foto">
+      <div data-photo-lightbox-target="panel" class="photo-lightbox__panel relative mx-auto w-full max-w-xl rounded-xl bg-neutral-900 p-4 pt-12 shadow-2xl sm:max-w-2xl sm:p-5 sm:pt-12">
+        <button type="button"
+                class="photo-lightbox__close absolute right-3 top-3 z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl leading-none text-white hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                data-action="photo-lightbox#close"
+                aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <% if photos.size > 1 %>
+          <button type="button"
+                  data-photo-lightbox-target="prevButton"
+                  class="absolute -left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-xl text-white hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:-left-4"
+                  data-action="photo-lightbox#prev"
+                  aria-label="Foto anterior">
+            &#8249;
+          </button>
+          <button type="button"
+                  data-photo-lightbox-target="nextButton"
+                  class="absolute -right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-xl text-white hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:-right-4"
+                  data-action="photo-lightbox#next"
+                  aria-label="Foto siguiente">
+            &#8250;
+          </button>
+        <% end %>
+        <img data-photo-lightbox-target="image"
+             alt=""
+             decoding="async"
+             class="mx-auto block max-h-[min(50vh,22rem)] w-full object-contain sm:max-h-[min(55vh,26rem)]" />
+        <p data-photo-lightbox-target="caption"
+           class="mt-3 max-w-full text-center text-xs text-white/90 sm:text-sm hidden"></p>
+      </div>
+    </dialog>
+  </div>
+<% else %>
+  <div class="flex aspect-[4/3] items-center justify-center rounded-2xl bg-gray-100 text-gray-400">Sin fotos</div>
+<% end %>

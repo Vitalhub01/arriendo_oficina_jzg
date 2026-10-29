@@ -46,5 +46,7 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     get space_path(space)
     assert_response :success
     assert_match %r{/rails/active_storage/}, response.body
+    assert_match 'data-controller="photo-lightbox"', response.body
+    assert_match 'cursor-zoom-in', response.body
   end
 end

@@ -1,0 +1,53 @@
+<%= turbo_frame_tag GalleriesController::MAIN_PHOTO_FRAME do %>
+  <div class="flex flex-col gap-4"
+       data-controller="gallery-set"
+       data-action="keydown@window->gallery-set#handleKey"
+       data-gallery-set-prev-url-value="<%= @prev_item ? gallery_path(tag: @tag_slug, photo_id: @prev_item.id) : '' %>"
+       data-gallery-set-next-url-value="<%= @next_item ? gallery_path(tag: @tag_slug, photo_id: @next_item.id) : '' %>">
+
+    <%# Fila 1: foto seleccionada (grande) %>
+    <div class="w-full">
+      <% if @item.image.attached? %>
+        <%= lazy_variant_image @item.image,
+              alt: @item.display_alt,
+              aspect_class: "aspect-[4/3]",
+              resize_to_limit: LazyImageHelper::VARIANT_LIMITS_GALLERY_MAIN,
+              eager: true,
+              animated: false,
+              wrapper_class: "overflow-hidden rounded-xl ring-1 ring-black/5" %>
+      <% else %>
+        <div class="flex aspect-[4/3] items-center justify-center rounded-xl bg-gray-100 text-sm text-gray-400 ring-1 ring-black/5">
+          Sin imagen
+        </div>
+      <% end %>
+      <% if @item.alt_text.present? %>
+        <p class="mt-2 text-sm text-gray-600"><%= @item.alt_text %></p>
+      <% end %>
+    </div>
+
+    <%# Fila 2: listado de todas las fotos (miniaturas pequeñas, una fila sin scroll) %>
+    <nav class="w-full overflow-hidden" aria-label="Todas las fotos de la galería">
+      <ul class="m-0 flex w-full list-none gap-1 p-0 sm:gap-1.5">
+        <% @items.each do |item| %>
+          <% selected = item.id == @item.id %>
+          <li class="flex min-w-0 flex-1 basis-0 justify-center">
+            <%= link_to gallery_path(tag: @tag_slug, photo_id: item.id),
+                class: "block w-full max-w-12 overflow-hidden rounded sm:max-w-14 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 #{selected ? 'ring-2 ring-brand' : 'ring-1 ring-gray-200 hover:ring-gray-300'}",
+                data: { turbo_frame: GalleriesController::MAIN_PHOTO_FRAME, turbo_action: 'advance' },
+                aria: { label: item.display_alt, current: selected } do %>
+              <% if item.image.attached? %>
+                <%= lazy_variant_image item.image,
+                      alt: '',
+                      aspect_class: "aspect-[4/3] w-full",
+                      resize_to_limit: LazyImageHelper::VARIANT_LIMITS_GALLERY_THUMB,
+                      eager: selected,
+                      animated: false,
+                      wrapper_class: "rounded-sm" %>
+              <% end %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </nav>
+  </div>
+<% end %>

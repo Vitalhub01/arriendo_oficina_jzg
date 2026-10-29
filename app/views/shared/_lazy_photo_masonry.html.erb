@@ -1,0 +1,15 @@
+<%# locals: (entries:, first_eager: true, highlight_id: nil) %>
+<%# entry keys: attachment, alt, aspect_class, resize_to_limit, id (optional anchor) %>
+<div class="gallery-masonry">
+  <% entries.each_with_index do |entry, index| %>
+    <div class="gallery-masonry__item<%= ' ring-2 ring-brand ring-offset-2 rounded-lg' if highlight_id.present? && entry[:id].to_i == highlight_id.to_i %>"
+         <% if entry[:id].present? %>id="photo-<%= entry[:id] %>"<% end %>>
+      <%= lazy_variant_image entry[:attachment],
+            alt: entry[:alt],
+            aspect_class: entry[:aspect_class] || masonry_aspect_class_for(index),
+            resize_to_limit: entry[:resize_to_limit] || LazyImageHelper::VARIANT_LIMITS_GRID,
+            wrapper_class: "rounded-lg",
+            eager: first_eager && index.zero? %>
+    </div>
+  <% end %>
+</div>

@@ -1,10 +1,10 @@
 <% content_for :title, "#{@tag_label} — Galería | VitalHub" %>
 <% content_for :meta_description, @tag_description.presence || "Fotos de #{@tag_label} en VitalHub. Conoce nuestros espacios para profesionales de la salud." %>
-<% if @item.image.attached? %>
-  <% content_for :og_image, url_for(@item.image) %>
+<% if @highlight_item.image.attached? %>
+  <% content_for :og_image, url_for(@highlight_item.image) %>
 <% end %>
 
-<div class="mx-auto max-w-6xl px-4 py-8 md:py-12">
+<div class="mx-auto max-w-4xl px-4 py-8 md:py-12">
   <p class="text-sm">
     <%= link_to "← Volver al inicio", root_path(anchor: "galeria"), class: "text-brand hover:underline" %>
   </p>
@@ -17,17 +17,7 @@
     <% end %>
   </header>
 
-  <figure class="mt-8 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
-    <%= turbo_frame_tag dom_id(@item, :gallery_photo),
-        src: gallery_frame_path(@item, frame: 'photo'),
-        loading: :lazy,
-        class: "block w-full" do %>
-      <%= render "shared/image_skeleton", extra_class: "aspect-[4/3] w-full" %>
-    <% end %>
-    <% if @item.alt_text.present? %>
-      <figcaption class="border-t border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
-        <%= @item.alt_text %>
-      </figcaption>
-    <% end %>
-  </figure>
+  <div class="mt-8">
+    <%= render "galleries/main_photo_frame" %>
+  </div>
 </div>
