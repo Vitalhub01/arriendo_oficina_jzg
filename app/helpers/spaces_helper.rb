@@ -131,6 +131,18 @@ module SpacesHelper
     modes
   end
 
+  def space_availability_schedule_frame_data(space, payload)
+    {
+      controller: 'availability-schedule',
+      availability_schedule_loading_class: 'opacity-50 pointer-events-none',
+      availability_schedule_weeks_value: payload[:weeks].to_json,
+      availability_schedule_initial_week_start_value: payload[:initialWeekStart],
+      availability_schedule_interactive_value: payload[:interactive],
+      availability_schedule_login_prompt_value: payload[:loginPrompt],
+      availability_schedule_availability_url_value: availability_space_path(space)
+    }
+  end
+
   # Calendar views should use day[:bloque] / day[:jornada] from AvailabilityScheduleBuilder.
   def space_availability_bloque_entries(space, date)
     return [] if date.to_date < Date.current

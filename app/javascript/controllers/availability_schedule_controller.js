@@ -1,11 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
+import { renderAvailabilityWeek } from "lib/availability_schedule_renderer"
 
 export default class extends Controller {
   static targets = ["content", "loading", "viewToggle"]
 
+  static values = {
+    weeks: { type: Array, default: [] },
+    initialWeekStart: String,
+    interactive: { type: Boolean, default: false },
+    loginPrompt: { type: Boolean, default: false },
+    availabilityUrl: String
+  }
+
   connect() {
     this.view = this.hasContentTarget ? this.contentTarget.dataset.view || "hora" : "hora"
     this.syncViewToggleStyles()
+    this.renderCurrentWeek()
 
     this.onBeforeFetchRequest = (event) => this.showLoading(event)
     this.onHideLoading = () => this.hideLoading()
@@ -35,33 +45,34 @@ export default class extends Controller {
   navigate(event) {
     const link = event.currentTarget
     const weekStart = link.dataset.weekStart
-    if (!weekStart) return
+    if (!weekStart || !this.hasContentTarget) return
 
-    const cached = this.element.querySelector(
-      `template[data-week-start="${weekStart}"][data-view="${this.view}"]`
-    )
-    if (!cached || !this.hasContentTarget) return
+    if (!this.weekFor(weekStart)) return
 
     event.preventDefault()
-    this.contentTarget.innerHTML = cached.innerHTML
     this.contentTarget.dataset.weekStart = weekStart
-    this.contentTarget.dataset.view = this.view
+    this.renderCurrentWeek()
     this.hideLoading()
   }
 
   renderCurrentWeek() {
     if (!this.hasContentTarget) return
 
-    const weekStart = this.contentTarget.dataset.weekStart
-    if (!weekStart) return
+    const weekStart = this.contentTarget.dataset.weekStart || this.initialWeekStartValue
+    const week = this.weekFor(weekStart)
+    if (!week) return
 
-    const cached = this.element.querySelector(
-      `template[data-week-start="${weekStart}"][data-view="${this.view}"]`
-    )
-    if (!cached) return
-
-    this.contentTarget.innerHTML = cached.innerHTML
+    this.contentTarget.innerHTML = renderAvailabilityWeek(week, this.view, {
+      interactive: this.interactiveValue,
+      loginPrompt: this.loginPromptValue,
+      availabilityUrl: this.availabilityUrlValue
+    })
+    this.contentTarget.dataset.weekStart = weekStart
     this.contentTarget.dataset.view = this.view
+  }
+
+  weekFor(weekStart) {
+    return this.weeksValue.find((week) => week.weekStart === weekStart)
   }
 
   syncViewToggleStyles() {

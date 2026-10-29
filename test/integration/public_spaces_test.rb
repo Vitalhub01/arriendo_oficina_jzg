@@ -30,6 +30,8 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     get space_path(boxes(:published_box))
     assert_response :success
     assert_match boxes(:published_box).title, response.body
+    assert_match 'data-availability-schedule-weeks-value', response.body
+    assert_no_match '<template data-week-start', response.body
   end
 
   test 'availability returns schedule inside turbo frame' do

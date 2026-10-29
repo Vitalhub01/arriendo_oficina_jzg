@@ -1,6 +1,5 @@
 <% interactive = local_assigns.fetch(:interactive, false) %>
 <% login_prompt_on_slots = local_assigns.fetch(:login_prompt_on_slots, false) %>
-<% schedule_week_entries = local_assigns.fetch(:schedule_week_entries, []) %>
 <% view_modes = space_availability_view_modes(space) %>
 <% current_view = "hora" %>
 <div class="relative mt-4">
@@ -24,67 +23,10 @@
       <p class="text-sm font-medium text-gray-600">Cargando horarios…</p>
     </div>
   </div>
-  <div data-availability-schedule-target="content" data-week-start="<%= week_start.iso8601 %>" data-view="<%= current_view %>">
-    <%= render "spaces/availability_schedule_week",
-          space: space,
-          schedule: schedule,
-          week_start: week_start,
-          interactive: interactive,
-          login_prompt_on_slots: login_prompt_on_slots %>
-  </div>
-  <% schedule_week_entries.each do |entry| %>
-    <% next if entry[:week_start] == week_start %>
-    <template data-week-start="<%= entry[:week_start].iso8601 %>" data-view="hora">
-      <%= render "spaces/availability_schedule_week",
-            space: space,
-            schedule: entry[:schedule],
-            week_start: entry[:week_start],
-            interactive: interactive,
-            login_prompt_on_slots: login_prompt_on_slots %>
-    </template>
-    <% if space.offers_bloque_reservation? %>
-      <template data-week-start="<%= entry[:week_start].iso8601 %>" data-view="bloque">
-        <%= render "spaces/availability_schedule_week_bloque",
-              space: space,
-              schedule: entry[:schedule],
-              week_start: entry[:week_start],
-              interactive: interactive,
-              login_prompt_on_slots: login_prompt_on_slots %>
-      </template>
-    <% end %>
-    <% if space.primary_jornada_definition.present? %>
-      <template data-week-start="<%= entry[:week_start].iso8601 %>" data-view="jornada">
-        <%= render "spaces/availability_schedule_week_jornada",
-              space: space,
-              schedule: entry[:schedule],
-              week_start: entry[:week_start],
-              interactive: interactive,
-              login_prompt_on_slots: login_prompt_on_slots %>
-      </template>
-    <% end %>
-  <% end %>
-  <% if week_start.present? %>
-    <% if space.offers_bloque_reservation? %>
-      <template data-week-start="<%= week_start.iso8601 %>" data-view="bloque">
-        <%= render "spaces/availability_schedule_week_bloque",
-              space: space,
-              schedule: schedule,
-              week_start: week_start,
-              interactive: interactive,
-              login_prompt_on_slots: login_prompt_on_slots %>
-      </template>
-    <% end %>
-    <% if space.primary_jornada_definition.present? %>
-      <template data-week-start="<%= week_start.iso8601 %>" data-view="jornada">
-        <%= render "spaces/availability_schedule_week_jornada",
-              space: space,
-              schedule: schedule,
-              week_start: week_start,
-              interactive: interactive,
-              login_prompt_on_slots: login_prompt_on_slots %>
-      </template>
-    <% end %>
-  <% end %>
+  <div data-availability-schedule-target="content"
+       data-week-start="<%= week_start.iso8601 %>"
+       data-view="<%= current_view %>"
+       aria-live="polite"></div>
 </div>
 <% if interactive %>
   <p class="mt-3 text-xs text-gray-500">Haz clic en una franja disponible para elegir fecha y horario en el formulario de reserva.</p>
