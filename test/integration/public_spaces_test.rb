@@ -39,6 +39,18 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'turbo-frame', response.body
     assert_match 'availability_schedule', response.body
+    assert_match 'data-availability-schedule-weeks-value', response.body
+  end
+
+  test 'availability reloads schedule payload when week_start is beyond initial preload' do
+    space = boxes(:published_box)
+    week_start = 6.weeks.from_now.to_date.beginning_of_week(:monday)
+
+    get availability_space_path(space, week_start: week_start)
+    assert_response :success
+    assert_match week_start.iso8601, response.body
+    assert_match 'data-availability-schedule-initial-week-start-value', response.body
+    assert_match 'Cargando horarios', response.body
   end
 
   test 'show renders active storage image when space has photo' do

@@ -16,21 +16,28 @@ export default class extends Controller {
     this.view = this.hasContentTarget ? this.contentTarget.dataset.view || "hora" : "hora"
     this.syncViewToggleStyles()
     this.renderCurrentWeek()
+    this.hideLoading()
 
     this.onBeforeFetchRequest = (event) => this.showLoading(event)
+    this.onFrameLoad = (event) => this.handleFrameLoad(event)
     this.onHideLoading = () => this.hideLoading()
 
     this.element.addEventListener("turbo:before-fetch-request", this.onBeforeFetchRequest)
-    this.element.addEventListener("turbo:frame-load", this.onHideLoading)
+    this.element.addEventListener("turbo:frame-load", this.onFrameLoad)
     this.element.addEventListener("turbo:frame-missing", this.onHideLoading)
     this.element.addEventListener("turbo:fetch-request-error", this.onHideLoading)
   }
 
   disconnect() {
     this.element.removeEventListener("turbo:before-fetch-request", this.onBeforeFetchRequest)
-    this.element.removeEventListener("turbo:frame-load", this.onHideLoading)
+    this.element.removeEventListener("turbo:frame-load", this.onFrameLoad)
     this.element.removeEventListener("turbo:frame-missing", this.onHideLoading)
     this.element.removeEventListener("turbo:fetch-request-error", this.onHideLoading)
+  }
+
+  weeksValueChanged() {
+    this.renderCurrentWeek()
+    this.hideLoading()
   }
 
   setView(event) {
@@ -47,10 +54,24 @@ export default class extends Controller {
     const weekStart = link.dataset.weekStart
     if (!weekStart || !this.hasContentTarget) return
 
-    if (!this.weekFor(weekStart)) return
+    const cached = this.weekFor(weekStart)
+    if (cached) {
+      event.preventDefault()
+      this.contentTarget.dataset.weekStart = weekStart
+      this.renderCurrentWeek()
+      this.hideLoading()
+      return
+    }
 
-    event.preventDefault()
     this.contentTarget.dataset.weekStart = weekStart
+    this.showLoading()
+  }
+
+  handleFrameLoad(event) {
+    if (event.target !== this.element) return
+
+    this.view = this.hasContentTarget ? this.contentTarget.dataset.view || this.view : this.view
+    this.syncViewToggleStyles()
     this.renderCurrentWeek()
     this.hideLoading()
   }
@@ -91,9 +112,24 @@ export default class extends Controller {
 
   showLoading(event) {
     if (event && this.isPrefetchRequest(event)) return
+    if (event && !this.isAvailabilityScheduleFetch(event)) return
 
     this.element.classList.add(...this.loadingClassNames)
     if (this.hasLoadingTarget) this.loadingTarget.classList.remove("hidden")
+  }
+
+  isAvailabilityScheduleFetch(event) {
+    if (!this.hasAvailabilityUrlValue) return true
+
+    const url = event.detail?.url?.toString() || event.detail?.fetchOptions?.url?.toString()
+    if (!url) return true
+
+    try {
+      const path = new URL(url, window.location.origin).pathname
+      return path === this.availabilityUrlValue
+    } catch {
+      return url.includes(this.availabilityUrlValue)
+    }
   }
 
   isPrefetchRequest(event) {
