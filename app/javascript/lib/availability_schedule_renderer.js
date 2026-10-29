@@ -36,7 +36,7 @@ function bloqueButtonClasses(available, interactive) {
 
 function navLink(availabilityUrl, weekStart, label) {
   const href = `${availabilityUrl}?week_start=${encodeURIComponent(weekStart)}`
-  return `<a href="${escapeHtml(href)}" class="text-sm font-medium text-rose-600 hover:underline" data-turbo-frame="availability_schedule" data-turbo-prefetch="false" data-week-start="${escapeHtml(weekStart)}" data-action="click-&gt;availability-schedule#navigate">${escapeHtml(label)}</a>`
+  return `<a href="${escapeHtml(href)}" class="text-sm font-medium text-rose-600 hover:underline" data-week-start="${escapeHtml(weekStart)}" data-action="click-&gt;availability-schedule#navigate">${escapeHtml(label)}</a>`
 }
 
 function renderNavigation(week, availabilityUrl) {
@@ -131,7 +131,7 @@ function renderEmptyWeekNotice(week, availabilityUrl) {
   if (!week.emptyWeek) return ""
 
   const href = `${availabilityUrl}?week_start=${encodeURIComponent(week.nextWeekStart)}`
-  return `<p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">No hay horarios visibles en esta semana (días pasados, fin de plantilla o sin agenda). <a href="${escapeHtml(href)}" class="font-medium text-rose-700 hover:underline" data-turbo-frame="availability_schedule" data-turbo-prefetch="false" data-week-start="${escapeHtml(week.nextWeekStart)}" data-action="click-&gt;availability-schedule#navigate">Ver semana siguiente →</a></p>`
+  return `<p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">No hay horarios visibles en esta semana (días pasados, fin de plantilla o sin agenda). <a href="${escapeHtml(href)}" class="font-medium text-rose-700 hover:underline" data-week-start="${escapeHtml(week.nextWeekStart)}" data-action="click-&gt;availability-schedule#navigate">Ver semana siguiente →</a></p>`
 }
 
 export function renderAvailabilityWeek(week, view, { interactive, loginPrompt, availabilityUrl }) {

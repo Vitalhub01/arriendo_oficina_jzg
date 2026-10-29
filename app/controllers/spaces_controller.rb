@@ -51,7 +51,11 @@ class SpacesController < ApplicationController
                             space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     load_space_schedule(@space)
-    render 'spaces/availability', layout: false
+
+    respond_to do |format|
+      format.html { render 'spaces/availability', layout: false }
+      format.json { render json: @availability_schedule_payload }
+    end
   end
 
   private

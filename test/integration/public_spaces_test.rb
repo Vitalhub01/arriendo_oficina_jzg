@@ -46,11 +46,13 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     space = boxes(:published_box)
     week_start = 6.weeks.from_now.to_date.beginning_of_week(:monday)
 
-    get availability_space_path(space, week_start: week_start)
+    get availability_space_path(space, week_start: week_start), headers: { 'Accept' => 'application/json' }
     assert_response :success
-    assert_match week_start.iso8601, response.body
-    assert_match 'data-availability-schedule-initial-week-start-value', response.body
-    assert_match 'Cargando horarios', response.body
+
+    payload = JSON.parse(response.body)
+    assert_equal 5, payload['weeks'].size
+    assert_equal week_start.iso8601, payload['initialWeekStart']
+    assert_equal week_start.iso8601, payload['weeks'].first['weekStart']
   end
 
   test 'show renders active storage image when space has photo' do

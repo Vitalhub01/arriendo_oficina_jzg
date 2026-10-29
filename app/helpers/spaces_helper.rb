@@ -135,6 +135,7 @@ module SpacesHelper
     {
       controller: 'availability-schedule',
       availability_schedule_loading_class: 'opacity-50 pointer-events-none',
+      availability_schedule_space_id_value: space.id,
       availability_schedule_weeks_value: payload[:weeks].to_json,
       availability_schedule_initial_week_start_value: payload[:initialWeekStart],
       availability_schedule_interactive_value: payload[:interactive],
