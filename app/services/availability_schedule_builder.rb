@@ -44,7 +44,12 @@ class AvailabilityScheduleBuilder
 
     blocking_scope = box.bookings.blocking_availability
                         .where('start_at < ? AND end_at > ?', range_end, range_start)
-    blocking_scope = blocking_scope.where.not(renter_id: @exclude_renter_id) if @exclude_renter_id
+    if @exclude_renter_id
+      # Keep the renter's confirmed bookings visible as taken; only hide their own pending checkout slot.
+      own_pending = box.bookings.blocking_availability
+                       .where(renter_id: @exclude_renter_id, status: :pending_payment)
+      blocking_scope = blocking_scope.where.not(id: own_pending.select(:id))
+    end
     @blocking_bookings = blocking_scope.pluck(:start_at, :end_at)
 
     @availability_blocks = box.availability_blocks

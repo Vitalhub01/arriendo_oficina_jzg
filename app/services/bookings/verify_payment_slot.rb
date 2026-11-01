@@ -5,6 +5,8 @@ module Bookings
   class VerifyPaymentSlot
     CONFLICT_MESSAGE =
       'Ese horario ya no está disponible: otra persona está completando el pago.'.freeze
+    OWN_BOOKING_MESSAGE =
+      'Ya tienes una reserva en ese horario.'.freeze
     EXPIRED_MESSAGE =
       'Tu plazo para pagar esta reserva expiró. Vuelve a elegir fecha y horario.'.freeze
 

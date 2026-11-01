@@ -116,6 +116,30 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
     assert ten_am_open.available
   end
 
+  test 'exclude_renter_id still marks that users confirmed booking as unavailable' do
+    renter = users(:renter)
+    slot_time = @week_start.to_time.change(hour: 8)
+    Booking.create!(
+      space: @space,
+      profesional: renter,
+      start_at: slot_time,
+      end_at: slot_time + 2.hours,
+      duration_minutes: 120,
+      status: :confirmed,
+      total_amount_cents: 10_000,
+      booking_type: :slot_based
+    )
+
+    with_exclude = AvailabilityScheduleBuilder.new(
+      @space,
+      week_start: @week_start,
+      exclude_renter_id: renter.id
+    ).build
+    monday = with_exclude.find { |day| day[:date] == @week_start }
+    eight_am = monday[:slots].find { |s| s.starts_at.hour == 8 }
+    assert_not eight_am.available
+  end
+
   test 'build_weeks uses a bounded number of queries' do
     queries = []
     callback = lambda { |*, payload| queries << payload[:sql] if payload[:sql] }

@@ -228,7 +228,11 @@ module SpacesHelper
 
   def space_booking_reserved_intervals(space, for_user: nil)
     scope = space.bookings.blocking_availability.where('end_at >= ?', Time.current)
-    scope = scope.where.not(renter_id: for_user.id) if for_user
+    if for_user
+      own_pending = space.bookings.blocking_availability
+                         .where(renter_id: for_user.id, status: :pending_payment)
+      scope = scope.where.not(id: own_pending.select(:id))
+    end
 
     scope.map do |booking|
       {

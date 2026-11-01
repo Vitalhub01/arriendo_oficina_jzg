@@ -25,7 +25,7 @@ module Bookings
         checker = AvailabilityChecker.new(@space)
         unless checker.consecutive_slots_available?(start_at, slot_count)
           message = checker.error_message || 'Horario no disponible'
-          message = slot_unavailable_message(message)
+          message = slot_unavailable_message(message, start_at: start_at, end_at: end_at)
           return Result.new(success: false, errors: [message])
         end
 
@@ -48,7 +48,9 @@ module Bookings
           auto_confirm_if_free!(booking)
           Result.new(success: true, booking: booking)
         else
-          errors = booking.errors.full_messages.map { |message| slot_unavailable_message(message) }
+          errors = booking.errors.full_messages.map do |message|
+            slot_unavailable_message(message, start_at: start_at, end_at: end_at)
+          end
           Result.new(success: false, booking: booking, errors: errors)
         end
       end
@@ -60,13 +62,23 @@ module Bookings
 
     private
 
-    def slot_unavailable_message(message)
+    def slot_unavailable_message(message, start_at:, end_at:)
       case message
       when 'Ya reservado', 'El horario seleccionado ya no está disponible'
-        VerifyPaymentSlot::CONFLICT_MESSAGE
+        if own_confirmed_booking_at?(start_at, end_at)
+          VerifyPaymentSlot::OWN_BOOKING_MESSAGE
+        else
+          VerifyPaymentSlot::CONFLICT_MESSAGE
+        end
       else
         message
       end
+    end
+
+    def own_confirmed_booking_at?(start_at, end_at)
+      @space.bookings.confirmed
+            .where(renter_id: @profesional.id)
+            .exists?(['start_at < ? AND end_at > ?', end_at, start_at])
     end
 
     def validate_terms_acceptance
