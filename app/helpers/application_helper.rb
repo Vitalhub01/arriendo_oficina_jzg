@@ -150,6 +150,13 @@ module ApplicationHelper
     @footer_social_contacts ||= SocialContact.visible.ordered.with_attached_icon.to_a
   end
 
+  def whatsapp_url_for_phone(phone)
+    digits = phone.to_s.gsub(/\D/, '')
+    return '#' if digits.blank?
+
+    "https://wa.me/#{digits}"
+  end
+
   SITE_LOGO_ASSET = 'logo_vital_hub.png'
   # Misma foto que la galería «Recepción» en seeds (vitalhub_office_4.jpg)
   SITE_HERO_FALLBACK_ASSET = 'vitalhub_office_4.jpg'

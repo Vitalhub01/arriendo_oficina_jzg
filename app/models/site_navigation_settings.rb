@@ -21,7 +21,14 @@ class SiteNavigationSettings
     'footer_link_privacy' => 'Privacidad',
     'footer_link_cancellation' => 'Cancelaciones',
     'footer_contact_heading' => 'Contacto',
-    'footer_contact_line' => 'Espacios de salud · VitalHub',
+    'footer_contact_email' => 'vitalhubchile@gmail.com',
+    'footer_contact_phone' => '+56 9 2600 3562',
+    'footer_address_heading' => 'Dirección',
+    'footer_address' => 'Avenida Nueva Providencia 1881, Oficina 1703, Providencia, Santiago',
+    'footer_hours_heading' => 'Horario',
+    'footer_hours_weekdays' => 'De Lunes a Viernes de 08:00 – 20:00',
+    'footer_hours_saturday' => 'Sábados 08:00 – 16:00',
+    'footer_social_heading' => 'Síguenos',
     'footer_copyright' => 'VitalHub. Chile.'
   }.freeze
 
@@ -45,7 +52,14 @@ class SiteNavigationSettings
     'footer_link_privacy' => 'Pie: enlace Privacidad',
     'footer_link_cancellation' => 'Pie: enlace Cancelaciones',
     'footer_contact_heading' => 'Pie: título contacto',
-    'footer_contact_line' => 'Pie: línea de contacto',
+    'footer_contact_email' => 'Pie: correo de contacto',
+    'footer_contact_phone' => 'Pie: teléfono (visible y enlace WhatsApp)',
+    'footer_address_heading' => 'Pie: título dirección',
+    'footer_address' => 'Pie: dirección',
+    'footer_hours_heading' => 'Pie: título horario',
+    'footer_hours_weekdays' => 'Pie: horario lunes a viernes',
+    'footer_hours_saturday' => 'Pie: horario sábados',
+    'footer_social_heading' => 'Pie: título redes sociales',
     'footer_copyright' => 'Pie: texto copyright (después del año)'
   }.freeze
 
