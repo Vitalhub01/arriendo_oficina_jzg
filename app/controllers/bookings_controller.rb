@@ -40,6 +40,7 @@ class BookingsController < ApplicationController
     end
 
     if @booking.confirmed? && params[:collection_status] == 'approved'
+      flash.now[:booking_guidelines] = true
       flash.now[:ga_event] = { name: 'payment_completed', params: { booking_id: @booking.id } }
       track_ga_flash_event
     end
@@ -64,10 +65,12 @@ class BookingsController < ApplicationController
     if result.success?
       flash[:ga_event] = { name: 'booking_started', params: { space_id: @space.id, slot_count: booking_params[:slot_count] } }
       if result.booking.confirmed?
+        mark_booking_guidelines_flash
         redirect_to result.booking, notice: booking_created_notice('Reserva confirmada con tu crédito')
       elsif params[:from_checkout].present? && result.booking.pending_payment? && result.booking.total_amount_cents.positive?
         redirect_to checkout_booking_path(result.booking), notice: booking_created_notice, status: :see_other
       else
+        mark_booking_guidelines_flash
         redirect_to result.booking, notice: booking_created_notice, status: :see_other
       end
     else
@@ -92,6 +95,7 @@ class BookingsController < ApplicationController
     ).call
 
     if result.success?
+      mark_booking_guidelines_flash
       notice = if result.booking.confirmed?
                  'Código aplicado. Tu reserva quedó confirmada sin pago.'
                else
@@ -199,6 +203,10 @@ class BookingsController < ApplicationController
     parts << base if base.present?
     parts << 'Recuerda completar tu perfil.' unless current_user.profile_complete?
     parts.join(' ').presence
+  end
+
+  def mark_booking_guidelines_flash
+    flash[:booking_guidelines] = true
   end
 
   def set_booking

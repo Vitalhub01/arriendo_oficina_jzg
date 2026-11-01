@@ -193,4 +193,22 @@ module ApplicationHelper
       absolute_url(asset_path(SITE_HERO_FALLBACK_ASSET))
     end
   end
+
+  def home_highlight_icon_svg(icon_key, css_class: 'h-6 w-6')
+    definition = HomeHighlightIcons.fetch(icon_key)
+    tag.svg(
+      class: css_class,
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '1.5',
+      viewBox: '0 0 24 24',
+      aria: { hidden: true }
+    ) do
+      safe_join(
+        definition[:paths].map do |path_data|
+          tag.path('stroke-linecap': 'round', 'stroke-linejoin': 'round', d: path_data)
+        end
+      )
+    end
+  end
 end

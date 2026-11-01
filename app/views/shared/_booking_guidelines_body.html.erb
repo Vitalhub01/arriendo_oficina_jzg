@@ -1,0 +1,27 @@
+<% bookings_nav_label = SiteNavigationSettings.value("nav_link_bookings") %>
+<% contact_email = SiteNavigationSettings.value("footer_contact_email") %>
+
+<div class="space-y-3 text-sm leading-relaxed text-gray-800">
+  <p>
+    Puedes revisar el estado de tu reserva en la sección
+    <%= link_to bookings_nav_label, bookings_path, class: "font-medium text-brand hover:underline" %>.
+  </p>
+  <p>
+    Recuerda que cada reserva puede modificarse hasta 2 veces, siempre que la solicitud se realice con al menos 12 horas de anticipación respecto a la hora de inicio.
+  </p>
+  <p>
+    El acceso a nuestras instalaciones se realiza mediante una cerradura inteligente. Por ello, 12 horas antes de tu reserva recibirás por correo electrónico tu código de acceso personal. Si has realizado una reserva con menos de 12 horas de anticipación, por favor
+    <% if contact_email.present? %>
+      <%= mail_to contact_email, "contáctanos directamente", class: "font-medium text-brand hover:underline" %>
+    <% else %>
+      contáctanos directamente
+    <% end %>
+    y te enviaremos el código de acceso a la brevedad.
+  </p>
+  <p>
+    Para mantener un entorno profesional, cómodo y acogedor para todos nuestros usuarios, te solicitamos respetar los horarios reservados y colaborar con el orden, cuidado y limpieza de los espacios comunes y privados.
+  </p>
+  <p>
+    Gracias por confiar en Vital Hub. Nos alegra ser parte de tu actividad profesional y esperamos que disfrutes de una experiencia cómoda, flexible y de alto estándar.
+  </p>
+</div>

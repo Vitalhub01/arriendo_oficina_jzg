@@ -75,7 +75,7 @@
         <% @home_highlights.each do |highlight| %>
           <div class="shop-icon-block">
             <div class="shop-icon-block__icon">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              <%= render "shared/home_highlight_icon", icon_key: highlight.icon_key %>
             </div>
             <p class="mt-4 text-sm font-medium uppercase tracking-wide text-gray-900"><%= highlight.title %></p>
             <p class="mt-1 text-sm text-gray-600"><%= highlight.rendered_description(office_city: office_city) %></p>

@@ -4,6 +4,11 @@
       <%= render "shared/profile_incomplete_reminder", variant: :after_booking %>
     </div>
   <% end %>
+  <% if flash[:booking_guidelines] %>
+    <div class="mb-6">
+      <%= render "shared/booking_guidelines", variant: :welcome %>
+    </div>
+  <% end %>
   <h1 class="text-2xl font-bold">Detalle de reserva</h1>
   <% if @booking.confirmed? && (replacement = @booking.pending_reschedule_replacement) %>
     <div class="mt-6">

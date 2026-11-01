@@ -9,10 +9,12 @@ module Admin
     end
 
     def new
-      @home_highlight = HomeHighlight.new
+      @home_highlight = HomeHighlight.new(icon_key: HomeHighlightIcons::DEFAULT_KEY)
     end
 
-    def edit; end
+    def edit
+      @home_highlight.icon_key = HomeHighlightIcons::DEFAULT_KEY unless HomeHighlightIcons.valid_key?(@home_highlight.icon_key)
+    end
 
     def create
       @home_highlight = HomeHighlight.new(home_highlight_params)
@@ -44,7 +46,7 @@ module Admin
     end
 
     def home_highlight_params
-      params.expect(home_highlight: %i[title description position visible])
+      params.expect(home_highlight: %i[title description position visible icon_key])
     end
   end
 end

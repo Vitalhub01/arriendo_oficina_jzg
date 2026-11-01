@@ -14,4 +14,11 @@ class HomeHighlightTest < ActiveSupport::TestCase
 
     assert_equal 'Chile', highlight.rendered_description(office_city: nil)
   end
+
+  test 'normalizes invalid icon key to default' do
+    highlight = HomeHighlight.new(title: 'Test', description: 'Desc', icon_key: 'not_an_icon')
+
+    assert highlight.valid?
+    assert_equal HomeHighlightIcons::DEFAULT_KEY, highlight.icon_key
+  end
 end

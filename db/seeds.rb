@@ -241,15 +241,16 @@ end
 end
 
 [
-  ['Flexibilidad', 'Bloques a tu medida', 0],
-  ['Equipado', 'Listo para atender', 1],
-  ['Ubicación', '{ciudad}', 2],
-  ['Reserva online', 'Simple y rápida', 3]
-].each do |title, description, position|
+  ['Flexibilidad', 'Bloques a tu medida', 0, 'clock'],
+  ['Equipado', 'Listo para atender', 1, 'clipboard_document_check'],
+  ['Ubicación', '{ciudad}', 2, 'map_pin'],
+  ['Reserva online', 'Simple y rápida', 3, 'rocket_launch']
+].each do |title, description, position, icon_key|
   HomeHighlight.find_or_create_by!(title: title) do |highlight|
     highlight.description = description
     highlight.position = position
     highlight.visible = true
+    highlight.icon_key = icon_key
   end
 end
 

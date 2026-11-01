@@ -56,6 +56,10 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_equal 2, booking.slot_count
     assert_equal 120, booking.duration_minutes
     assert_redirected_to booking_path(booking)
+
+    follow_redirect!
+    assert_match 'cerradura inteligente', response.body
+    assert_match 'Tu reserva está registrada', response.body
   end
 
   test 'checkout mercado pago preference uses total including equipment rental' do
