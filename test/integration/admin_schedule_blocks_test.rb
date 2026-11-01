@@ -33,6 +33,56 @@ class AdminScheduleBlocksTest < ActionDispatch::IntegrationTest
     assert_equal 4, @space.schedule_blocks.count
   end
 
+  test 'bulk fill without price uses space morning and afternoon rates' do
+    sign_in @admin
+    @space.schedule_blocks.destroy_all
+
+    post bulk_fill_admin_space_schedule_blocks_path(@space), params: {
+      days: [0],
+      start_time: '10:00',
+      end_time: '16:00',
+      replace_overlapping: '1'
+    }
+
+    assert_response :redirect
+    morning = @space.schedule_blocks.for_day(0).find_by(start_time: Time.zone.parse('2000-01-01 10:00:00'))
+    afternoon = @space.schedule_blocks.for_day(0).find_by(start_time: Time.zone.parse('2000-01-01 14:00:00'))
+    assert_equal @space.morning_hourly_price_cents, morning.price_cents
+    assert_equal @space.afternoon_hourly_price_cents, afternoon.price_cents
+  end
+
+  test 'bulk fill replace keeps blocks with active bookings' do
+    sign_in @admin
+    start_at = next_monday_at(hour: 9)
+    booking = create_confirmed_booking!(@space, start_at)
+    block = overlapping_template_block(booking)
+
+    post bulk_fill_admin_space_schedule_blocks_path(@space), params: {
+      days: [block.day_of_week],
+      start_time: '08:00',
+      end_time: '12:00',
+      replace_overlapping: '1'
+    }
+
+    assert_response :redirect
+    assert @space.schedule_blocks.exists?(block.id), 'expected booked template block to remain'
+  end
+
+  test 'destroy schedule block blocked when booking exists' do
+    sign_in @admin
+    start_at = next_monday_at(hour: 9)
+    booking = create_confirmed_booking!(@space, start_at)
+    block = overlapping_template_block(booking)
+
+    assert_no_difference -> { @space.schedule_blocks.count } do
+      delete admin_space_schedule_block_path(@space, block), as: :json
+    end
+
+    assert_response :unprocessable_content
+    json = JSON.parse(response.body)
+    assert_match(/reservas activas/i, json['errors'].join(' '))
+  end
+
   test 'admin updates schedule block template via json' do
     sign_in @admin
     block = schedule_blocks(:published_d0_h9)
@@ -66,12 +116,32 @@ class AdminScheduleBlocksTest < ActionDispatch::IntegrationTest
                day_of_week: 6,
                start_time: '10:00',
                end_time: '11:00',
-               price_clp: 9000,
                name: 'Domingo'
              }
            },
            as: :json
     end
+
+    assert_response :created
+    block = @space.schedule_blocks.for_day(6).order(:created_at).last
+    assert_equal @space.price_per_slot_at(Time.zone.parse('2000-01-01 10:00:00')), block.price_cents
+  end
+
+  test 'admin creates schedule block with explicit special price' do
+    sign_in @admin
+    @space.schedule_blocks.for_day(6).destroy_all
+
+    post admin_space_schedule_blocks_path(@space),
+         params: {
+           schedule_block: {
+             day_of_week: 6,
+             start_time: '10:00',
+             end_time: '11:00',
+             price_clp: 9000,
+             name: 'Domingo promo'
+           }
+         },
+         as: :json
 
     assert_response :created
     block = @space.schedule_blocks.for_day(6).order(:created_at).last
@@ -100,5 +170,31 @@ class AdminScheduleBlocksTest < ActionDispatch::IntegrationTest
     rule.reload
     assert_equal 6, rule.config['min_slots'].to_i
     assert_equal 15, rule.config['discount_percent'].to_i
+  end
+
+  private
+
+  def create_confirmed_booking!(space, start_at)
+    result = Bookings::Create.new(
+      space: space,
+      profesional: users(:renter),
+      params: {
+        date: start_at.to_date.to_s,
+        start_time: start_at.strftime('%H:%M'),
+        slot_count: 2
+      }
+    ).call
+    raise result.errors.inspect unless result.success?
+
+    booking = result.booking
+    booking.update!(status: :confirmed, payment_expires_at: nil)
+    booking
+  end
+
+  def overlapping_template_block(booking)
+    day = (booking.start_at.wday + 6) % 7
+    booking.space.schedule_blocks.for_day(day).find do |block|
+      ScheduleBlocks::BookingGuard.overlaps?(booking, block)
+    end
   end
 end

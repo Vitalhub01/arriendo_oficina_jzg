@@ -29,6 +29,8 @@ class SpaceAvailabilitySchedulePresenterTest < ActiveSupport::TestCase
 
     bloque_day = payload[:weeks].first[:days].find { |d| d[:bloque].any? }
     assert bloque_day[:bloque].first.key?(:rateId)
+    assert bloque_day[:bloque].first.key?(:start)
+    assert bloque_day[:bloque].first.key?(:end)
 
     jornada_day = payload[:weeks].first[:days].find { |d| d[:jornada].present? }
     assert jornada_day[:jornada].key?(:checkoutUrl)

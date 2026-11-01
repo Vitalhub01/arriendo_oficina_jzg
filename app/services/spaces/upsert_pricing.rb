@@ -80,9 +80,13 @@ module Spaces
 
     def sync_schedule_block_prices!
       space.slot_rates.ordered.each do |rate|
-        space.schedule_blocks
-             .where('start_time >= ? AND start_time < ?', rate.start_time, rate.end_time)
-             .update_all(price_cents: rate.price_per_slot_cents)
+        scope = space.schedule_blocks
+                     .where('start_time >= ? AND start_time < ?', rate.start_time, rate.end_time)
+        scope.find_each do |block|
+          next if ScheduleBlocks::BookingGuard.protected?(space, block)
+
+          block.update_column(:price_cents, rate.price_per_slot_cents)
+        end
       end
     end
 

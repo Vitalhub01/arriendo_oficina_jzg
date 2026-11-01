@@ -49,6 +49,11 @@
           data: { action: "change->checkout-form#dateChanged" } %>
   </div>
 
+  <%= render "shared/equipment_rental_fields",
+        space: space,
+        selected_ids: checkout_params["rented_equipment_item_ids"],
+        checkbox_data: { action: "change->checkout-form#equipmentChanged" } %>
+
   <div data-checkout-form-target="horaFields" class="<%= "hidden" unless current_mode == "hora" %> space-y-5">
     <div>
       <%= label_tag :start_time, "Inicio", class: "mb-1 block text-sm font-medium text-gray-900" %>
@@ -68,22 +73,6 @@
             class: "input-field max-w-[8rem]",
             data: { action: "input->checkout-form#slotCountChanged change->checkout-form#slotCountChanged" } %>
     </div>
-    <% selected_equipment_ids = Array(checkout_params["rented_equipment_item_ids"]).map(&:to_s) %>
-    <% space.checkout_rentable_equipment_items.each do |item| %>
-      <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 px-4 py-3.5 hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-        <%= check_box_tag "rented_equipment_item_ids[]",
-              item.id,
-              selected_equipment_ids.include?(item.id.to_s),
-              class: "mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand",
-              data: { action: "checkout-form#equipmentChanged" } %>
-        <span class="min-w-0 flex-1">
-          <span class="block text-sm font-medium text-gray-900">Agregar <%= item.name %></span>
-          <span class="text-xs text-gray-500 tabular-nums">
-            +<%= Money.new(item.price_per_hour_cents, "CLP").format(no_cents_if_whole: true) %> por hora
-          </span>
-        </span>
-      </label>
-    <% end %>
   </div>
 
   <div data-checkout-form-target="bloqueFields" class="<%= "hidden" unless current_mode == "bloque" %>">
@@ -101,7 +90,7 @@
           <span class="min-w-0 flex-1">
             <span class="block text-sm font-medium text-gray-900"><%= rate.name %></span>
             <span class="text-xs text-gray-500 tabular-nums">
-              <%= rate.start_time.strftime("%H:%M") %>–<%= rate.end_time.strftime("%H:%M") %>
+              <%= space_bloque_rate_time_range(space, rate, booking_date) %>
             </span>
           </span>
           <span class="shrink-0 text-lg font-semibold tracking-tight text-gray-900 tabular-nums">

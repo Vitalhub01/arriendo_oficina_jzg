@@ -43,6 +43,48 @@ class PricingEngineTest < ActiveSupport::TestCase
     assert_equal 30_000, result[:subtotal_cents]
   end
 
+  test 'adds equipment rental for bloque booking by block duration hours' do
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 1000)
+    morning = @space.bloque_slot_rates.find_by!(name: 'Mañana')
+    start_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 8, 0)
+    end_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 14, 0)
+
+    result = PricingEngine.calculate(
+      @space,
+      @user,
+      start_at,
+      @space.schedule_block_count_for_interval(start_at, end_at),
+      end_at: end_at,
+      booking_type: :hourly,
+      slot_rate: morning,
+      rented_equipment_items: [item]
+    )
+
+    assert_equal morning.block_price_cents_effective + 6000, result[:subtotal_cents]
+  end
+
+  test 'adds equipment rental for jornada as twelve hourly units' do
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 1000)
+    jornada = @space.primary_jornada_definition
+    start_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 8, 0)
+    end_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 20, 0)
+
+    result = PricingEngine.calculate(
+      @space,
+      @user,
+      start_at,
+      @space.schedule_block_count_for_interval(start_at, end_at),
+      end_at: end_at,
+      booking_type: :jornada,
+      jornada_definition: jornada,
+      rented_equipment_items: [item]
+    )
+
+    assert_equal jornada.price_cents + 12_000, result[:subtotal_cents]
+  end
+
   test 'jornada booking uses flat jornada price not sum of hourly blocks' do
     jornada = @space.primary_jornada_definition
     start_at = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 8, 0)

@@ -156,6 +156,49 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert space.reload.photos_attached?
   end
 
+  test 'admin uploads home gallery photo' do
+    sign_in @admin
+    file = fixture_file_upload('cover.jpg', 'image/jpeg')
+
+    assert_difference 'GalleryItem.count', 1 do
+      post admin_gallery_items_path, params: { image: file }, headers: { Accept: 'application/json' }
+    end
+
+    assert_response :created
+    assert GalleryItem.order(:id).last.image.attached?
+    assert_match 'data-photo-id', response.parsed_body['html']
+  end
+
+  test 'admin gallery rejects svg upload' do
+    sign_in @admin
+    file = fixture_file_upload('logo.svg', 'image/svg+xml')
+
+    assert_no_difference 'GalleryItem.count' do
+      post admin_gallery_items_path, params: { image: file }, headers: { Accept: 'application/json' }
+    end
+
+    assert_response :unprocessable_content
+    assert_includes response.parsed_body['errors'].join(' '), 'JPG'
+  end
+
+  test 'admin gallery index tolerates legacy non transformable image' do
+    sign_in @admin
+    item = GalleryItem.new(position: 99, visible: true)
+    item.save(validate: false)
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: File.open(Rails.root.join('test/fixtures/files/logo.svg')),
+      filename: 'logo.svg',
+      content_type: 'image/svg+xml'
+    )
+    ActiveStorage::Attachment.create!(name: 'image', record: item, blob: blob)
+
+    get admin_gallery_items_path
+
+    assert_response :success
+    assert_match "data-photo-id=\"#{item.id}\"", response.body
+    assert_match '/rails/active_storage/', response.body
+  end
+
   test 'non-admin cannot access admin panel' do
     sign_in @renter
     get admin_root_path

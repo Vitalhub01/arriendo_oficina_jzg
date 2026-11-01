@@ -84,6 +84,11 @@ module SpacesHelper
     )
   end
 
+  def space_bloque_rate_time_range(space, rate, date)
+    labels = space.bloque_window_labels_for_date(date, rate)
+    "#{labels[:start]}–#{labels[:end]}"
+  end
+
   def space_checkout_start_time_options(space, date)
     space.bookable_schedule_blocks_on(date).map do |block|
       d = date.to_date
@@ -203,7 +208,13 @@ module SpacesHelper
   end
 
   def space_booking_block_overrides(space)
-    space.schedule_block_overrides.where('date >= ?', Date.current).map do |o|
+    records = if space.association(:schedule_block_overrides).loaded?
+                space.schedule_block_overrides.select { |o| o.date >= Date.current }
+              else
+                space.schedule_block_overrides.where('date >= ?', Date.current)
+              end
+
+    records.map do |o|
       {
         schedule_block_id: o.schedule_block_id,
         date: o.date.iso8601,
@@ -234,10 +245,10 @@ module SpacesHelper
       scope = scope.where.not(id: own_pending.select(:id))
     end
 
-    scope.map do |booking|
+    scope.pluck(:start_at, :end_at).map do |start_at, end_at|
       {
-        start: booking.start_at.iso8601,
-        end: booking.end_at.iso8601
+        start: start_at.iso8601,
+        end: end_at.iso8601
       }
     end
   end

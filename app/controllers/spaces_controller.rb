@@ -33,12 +33,12 @@ class SpacesController < ApplicationController
 
   def show
     @space = Space.published_spaces
-                  .includes(:equipment_items, :amenity_tags, :schedule_blocks,
-                            :slot_rates, :jornada_definitions,
+                  .includes(:equipment_items, :amenity_tags, :schedule_block_overrides,
+                            :schedule_blocks, :slot_rates, :jornada_definitions,
                             space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     authorize @space
-    load_space_schedule(@space)
+    load_space_schedule(@space, week_count: SpaceScheduleWeeks::SHOW_PRELOAD_WEEKS)
     @prefill_date = params[:date]
     @prefill_slot_count = params[:slot_count] || params[:hours]
     @prefill_start_time = params[:start_time]
@@ -46,11 +46,12 @@ class SpacesController < ApplicationController
 
   def availability
     @space = Space.published_spaces
-                  .includes(:equipment_items, :amenity_tags, :schedule_blocks,
-                            :slot_rates, :jornada_definitions,
+                  .includes(:equipment_items, :amenity_tags, :schedule_block_overrides,
+                            :schedule_blocks, :slot_rates, :jornada_definitions,
                             space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
-    load_space_schedule(@space)
+    week_count = request.format.json? ? SpaceScheduleWeeks::PRELOAD_WEEKS : SpaceScheduleWeeks::SHOW_PRELOAD_WEEKS
+    load_space_schedule(@space, week_count: week_count)
 
     respond_to do |format|
       format.html { render 'spaces/availability', layout: false }

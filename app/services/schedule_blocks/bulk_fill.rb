@@ -66,6 +66,11 @@ module ScheduleBlocks
 
       while current + slot_duration <= range_end
         block_end = current + slot_duration
+        if slot_protected_on_day?(day, current, block_end)
+          current = block_end
+          next
+        end
+
         price = @price_cents || @space.price_per_slot_at(
           Time.zone.local(2000, 1, 1, current.hour, current.min)
         )
@@ -97,8 +102,9 @@ module ScheduleBlocks
         range_end,
         range_start
       )
-      count = scope.count
-      scope.destroy_all
+      removable = scope.reject { |block| BookingGuard.protected?(@space, block) }
+      count = removable.size
+      ScheduleBlock.where(id: removable.map(&:id)).destroy_all
       count
     end
 
@@ -113,6 +119,14 @@ module ScheduleBlocks
 
     def failure(errors)
       Result.new(created_count: 0, removed_count: 0, errors: errors)
+    end
+
+    def slot_protected_on_day?(day, range_start, range_end)
+      @space.schedule_blocks.for_day(day).any? do |block|
+        next false unless BookingGuard.protected?(@space, block)
+
+        block.start_time < range_end && block.end_time > range_start
+      end
     end
   end
 end

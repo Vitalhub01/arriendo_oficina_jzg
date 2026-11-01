@@ -34,9 +34,9 @@
        data-photo-manager-target="dropZone"
        data-action="click->photo-manager#browseFiles dragenter->photo-manager#preventDefaults dragover->photo-manager#highlightDropZone dragleave->photo-manager#unhighlightDropZone drop->photo-manager#handleDrop">
     <p class="text-sm font-medium text-gray-800">Arrastra imágenes aquí o haz clic para elegir archivos</p>
-    <p class="mt-1 text-xs text-gray-500">JPG o PNG. Puedes subir varias a la vez.</p>
+    <p class="mt-1 text-xs text-gray-500">JPG, PNG o WebP. Puedes subir varias a la vez.</p>
     <input type="file"
-           accept="image/*"
+           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
            multiple
            class="hidden"
            data-photo-manager-target="fileInput"

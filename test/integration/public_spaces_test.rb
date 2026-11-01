@@ -66,6 +66,20 @@ class PublicSpacesTest < ActionDispatch::IntegrationTest
     assert_match 'cursor-zoom-in', response.body
   end
 
+  test 'show loads schedule with bounded database queries' do
+    space = boxes(:published_box)
+    queries = []
+    callback = lambda { |*, payload| queries << payload[:sql] if payload[:sql] }
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      get space_path(space)
+    end
+
+    assert_response :success
+    assert_operator queries.size, :<=, 35,
+                    "expected a bounded number of SQL queries on show, got #{queries.size}"
+  end
+
   test 'show calendar avoids per-cell booking existence queries' do
     space = boxes(:published_box)
     queries = []

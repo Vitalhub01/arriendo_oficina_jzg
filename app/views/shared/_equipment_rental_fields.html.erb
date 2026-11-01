@@ -1,0 +1,24 @@
+<%# locals: space:, selected_ids: [], checkbox_data: {} %>
+<% checkbox_data = local_assigns.fetch(:checkbox_data, {}).to_h %>
+<% rentable = space.checkout_rentable_equipment_items %>
+<% if rentable.any? %>
+  <div class="space-y-2">
+    <p class="text-sm font-medium text-gray-900">Implementos adicionales (opcional)</p>
+    <% selected_ids = Array(selected_ids).map(&:to_s) %>
+    <% rentable.each do |item| %>
+      <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 px-4 py-3.5 hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
+        <%= check_box_tag "rented_equipment_item_ids[]",
+              item.id,
+              selected_ids.include?(item.id.to_s),
+              class: "mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand",
+              data: checkbox_data.merge(equipment_price_cents: item.price_per_hour_cents) %>
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm font-medium text-gray-900">Agregar <%= item.name %></span>
+          <span class="text-xs text-gray-500 tabular-nums">
+            +<%= Money.new(item.price_per_hour_cents, "CLP").format(no_cents_if_whole: true) %> por hora de uso
+          </span>
+        </span>
+      </label>
+    <% end %>
+  </div>
+<% end %>

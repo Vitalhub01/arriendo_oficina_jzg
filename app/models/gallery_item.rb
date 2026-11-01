@@ -16,12 +16,13 @@ class GalleryItem < ApplicationRecord
 
   validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate :image_must_be_attached, unless: :new_record?
+  validate :acceptable_image_type, if: -> { image.attached? }
 
   scope :visible, -> { where(visible: true) }
   scope :ordered, -> { order(:position, :id) }
 
   before_validation :assign_next_position, on: :create
-  before_validation :normalize_uploaded_image, on: :create
+  after_create_commit :normalize_uploaded_image
   after_commit :enqueue_variant_preprocessing, on: :create
 
   def normalize_uploaded_image
@@ -110,5 +111,11 @@ class GalleryItem < ApplicationRecord
     return if image.attached?
 
     errors.add(:image, 'es obligatoria')
+  end
+
+  def acceptable_image_type
+    return if ImageUploadNormalizer::ALLOWED_TYPES.include?(image.blob.content_type)
+
+    errors.add(:image, 'debe ser JPG, PNG o WebP')
   end
 end

@@ -27,7 +27,18 @@ class ScheduleBlock < ApplicationRecord
   end
 
   def override_for(date)
-    overrides.find_by(date: date.to_date)
+    d = date.to_date
+    overrides_assoc = association(:overrides)
+    if overrides_assoc.loaded?
+      return overrides_assoc.target.find { |o| o.date == d }
+    end
+
+    space_record = association(:space).target if association(:space).loaded?
+    if space_record&.association(:schedule_block_overrides)&.loaded?
+      return space_record.schedule_block_overrides.find { |o| o.schedule_block_id == id && o.date == d }
+    end
+
+    overrides.find_by(date: d)
   end
 
   def blocked_on?(date)

@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import {
   calculateHourlyTotal,
+  equipmentRentalExtraCents,
   formatCLP,
   hourlyEndTime,
   hourlySelectionValid,
@@ -38,8 +39,7 @@ export default class extends Controller {
     today: String,
     nowTime: String,
     slotRates: Array,
-    jornada: Object,
-    equipmentPerHourCents: Number
+    jornada: Object
   }
 
   connect() {
@@ -103,6 +103,7 @@ export default class extends Controller {
   }
 
   equipmentChanged() {
+    this.refreshClientState()
     this.submitDebounced()
   }
 
@@ -247,7 +248,7 @@ export default class extends Controller {
       this.nowTimeValue
     )
 
-    total += this.equipmentExtraCents(slotCount)
+    total += this.equipmentExtraCents("hora", { slotCount })
     const endTime = hourlyEndTime(this.blocksByDayValue, dateIso, startTime, slotCount)
     this.showQuoteSuccess(startTime, endTime, total, `${slotCount} hora(s)`)
   }
@@ -275,7 +276,7 @@ export default class extends Controller {
       return
     }
 
-    this.showQuoteSuccess(rate.start, rate.end, rate.block_price, "Bloque (mañana / tarde)")
+    this.showQuoteSuccess(rate.start, rate.end, rate.block_price + this.equipmentExtraCents("bloque", { rate }), "Bloque (mañana / tarde)")
   }
 
   refreshJornadaSummary(dateIso) {
@@ -301,14 +302,11 @@ export default class extends Controller {
       return
     }
 
-    this.showQuoteSuccess(jornada.start, jornada.end, jornada.price, "Jornada completa")
+    this.showQuoteSuccess(jornada.start, jornada.end, jornada.price + this.equipmentExtraCents("jornada"), "Jornada completa")
   }
 
-  equipmentExtraCents(slotCount) {
-    if (!this.equipmentPerHourCentsValue) return 0
-    const checkboxes = this.formTarget?.querySelectorAll('input[name="rented_equipment_item_ids[]"]:checked')
-    if (!checkboxes?.length) return 0
-    return this.equipmentPerHourCentsValue * slotCount
+  equipmentExtraCents(mode, options = {}) {
+    return equipmentRentalExtraCents(this.formTarget, mode, options)
   }
 
   selectedSlotRate() {
@@ -379,7 +377,8 @@ export default class extends Controller {
             this.todayValue,
             this.nowTimeValue
           )
-          return issue ? null : rate.block_price
+          if (issue) return null
+          return rate.block_price + this.equipmentExtraCents("bloque", { rate })
         })
         .filter((value) => value != null)
 
@@ -409,7 +408,7 @@ export default class extends Controller {
         this.todayValue,
         this.nowTimeValue
       )
-      return issue ? formatCLP(jornada.price) : formatCLP(jornada.price)
+      return issue ? formatCLP(jornada.price) : formatCLP(jornada.price + this.equipmentExtraCents("jornada"))
     }
 
     const slotCount = parseInt(this.formField("slot_count")?.value || this.minimumSlotsValue, 10)
@@ -424,7 +423,7 @@ export default class extends Controller {
       this.todayValue,
       this.nowTimeValue
     )
-    return total > 0 ? formatCLP(total + this.equipmentExtraCents(slotCount)) : null
+    return total > 0 ? formatCLP(total + this.equipmentExtraCents("hora", { slotCount })) : null
   }
 
   showLoading(event) {

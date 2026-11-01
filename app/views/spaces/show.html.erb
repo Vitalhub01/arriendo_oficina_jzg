@@ -53,7 +53,7 @@
         <% if @space.amenity_tags.any? %>
           <h2 class="mt-6 text-lg font-semibold">Comodidades y servicios</h2>
           <div class="mt-2 flex flex-wrap gap-2">
-            <% @space.amenity_tags.ordered.each do |tag| %>
+            <% @space.amenity_tags.sort_by { |tag| [tag.position, tag.id] }.each do |tag| %>
               <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"><%= tag.name %></span>
             <% end %>
           </div>

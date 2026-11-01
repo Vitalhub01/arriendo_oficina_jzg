@@ -192,4 +192,23 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
 
     assert_not morning_entry[:available]
   end
+
+  test 'bloque entry end time follows schedule blocks on saturday not slot rate template' do
+    space = boxes(:draft_box)
+    space.schedule_blocks.destroy_all
+    Spaces::UpsertPricing.new(space: space, params: admin_pricing_params).call
+    ScheduleBlocks::SeedDefaults.call(space)
+
+    saturday = Date.current.next_occurring(:saturday)
+    week_start = saturday.beginning_of_week(:monday)
+    schedule = AvailabilityScheduleBuilder.new(space, week_start: week_start, week_count: 1).build
+    day = schedule.find { |entry| entry[:date] == saturday }
+
+    afternoon = space.bloque_slot_rates.find_by!(name: 'Tarde')
+    entry = day[:bloque].find { |e| e[:rate].id == afternoon.id }
+
+    assert_equal '14:00', entry[:start]
+    assert_equal '16:00', entry[:end]
+    assert_equal '20:00', afternoon.end_time.strftime('%H:%M')
+  end
 end

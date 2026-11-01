@@ -4,15 +4,16 @@ module SpaceScheduleWeeks
   extend ActiveSupport::Concern
 
   PRELOAD_WEEKS = 5
+  SHOW_PRELOAD_WEEKS = 1
 
   private
 
-  def load_space_schedule(space, exclude_renter_id: current_user&.id)
+  def load_space_schedule(space, exclude_renter_id: current_user&.id, week_count: PRELOAD_WEEKS)
     @week_start = schedule_week_start(space)
     @schedule_week_entries = AvailabilityScheduleBuilder.new(
       space,
       week_start: @week_start,
-      week_count: PRELOAD_WEEKS,
+      week_count: week_count,
       exclude_renter_id: exclude_renter_id
     ).build_weeks
     @schedule = @schedule_week_entries.first[:schedule]

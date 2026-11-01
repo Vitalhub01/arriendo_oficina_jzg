@@ -85,8 +85,8 @@ class SpaceAvailabilitySchedulePresenter
       payload = {
         rateId: rate.id,
         name: rate.name,
-        start: rate.start_time.strftime('%H:%M'),
-        end: rate.end_time.strftime('%H:%M'),
+        start: entry[:start],
+        end: entry[:end],
         available: entry[:available]
       }
       if login_prompt_on_slots && entry[:available]

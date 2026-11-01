@@ -129,11 +129,11 @@ class Space < ApplicationRecord
   end
 
   def morning_block_price_cents
-    slot_rates.find_by(name: 'Mañana')&.block_price_cents_effective
+    slot_rate_for_period('Mañana')&.block_price_cents_effective
   end
 
   def afternoon_block_price_cents
-    slot_rates.find_by(name: 'Tarde')&.block_price_cents_effective
+    slot_rate_for_period('Tarde')&.block_price_cents_effective
   end
 
   def self.home_min_morning_block_price_cents
@@ -159,7 +159,7 @@ class Space < ApplicationRecord
 
   def schedule_blocks_for_date(date)
     day = (date.wday + 6) % 7
-    blocks = schedule_blocks.for_day(day).ordered.reject { |block| !block.active_on?(date) || block.blocked_on?(date) }
+    blocks = schedule_blocks_on_day(day).reject { |block| !block.active_on?(date) || block.blocked_on?(date) }
     ScheduleBlock.sort_for_display_on(blocks, date)
   end
 
@@ -227,6 +227,16 @@ class Space < ApplicationRecord
     interval_from_contiguous_blocks(date, blocks)
   end
 
+  def bloque_window_labels_for_date(date, slot_rate)
+    blocks = schedule_blocks_within_time_range(date, slot_rate.start_time, slot_rate.end_time)
+    BloqueScheduleWindow.labels_for(
+      date,
+      blocks,
+      fallback_start: slot_rate.start_time,
+      fallback_end: slot_rate.end_time
+    )
+  end
+
   def schedule_interval_for_jornada(date, jornada_definition)
     blocks = schedule_blocks_within_time_range(date, jornada_definition.start_time, jornada_definition.end_time)
     interval_from_contiguous_blocks(date, blocks)
@@ -238,7 +248,11 @@ class Space < ApplicationRecord
   end
 
   def primary_jornada_definition
-    jornada_definitions.active.order(:position, :id).first
+    if association(:jornada_definitions).loaded?
+      jornada_definitions.select(&:active?).min_by { |j| [j.position, j.id] }
+    else
+      jornada_definitions.active.order(:position, :id).first
+    end
   end
 
   def bloque_slot_rates
@@ -246,11 +260,20 @@ class Space < ApplicationRecord
   end
 
   def offers_bloque_reservation?
-    bloque_slot_rates.exists?
+    if association(:slot_rates).loaded?
+      bloque_names = SpaceBlockPeriods::PERIODS.map { |period| period[:name] }
+      slot_rates.any? { |rate| bloque_names.include?(rate.name) }
+    else
+      slot_rates.for_bloque_reservation.exists?
+    end
   end
 
   def slot_rate_for_period(name)
-    slot_rates.find_by(name: name)
+    if association(:slot_rates).loaded?
+      slot_rates.find { |rate| rate.name == name }
+    else
+      slot_rates.find_by(name: name)
+    end
   end
 
   def admin_pricing_values
@@ -322,6 +345,15 @@ class Space < ApplicationRecord
   end
 
   private
+
+  def schedule_blocks_on_day(day)
+    if association(:schedule_blocks).loaded?
+      schedule_blocks.select { |block| block.day_of_week == day }
+                     .sort_by { |block| [block.position, block.start_time] }
+    else
+      schedule_blocks.for_day(day).ordered.to_a
+    end
+  end
 
   def inherit_location_from_office
     return unless office

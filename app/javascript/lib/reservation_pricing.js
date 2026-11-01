@@ -1,3 +1,5 @@
+export const JORNADA_EQUIPMENT_BILLABLE_HOURS = 12
+
 export const PERIOD_BLOCKED_MESSAGE =
   "Hay al menos una hora reservada o bloqueada en esa fecha; no se puede reservar el bloque o la jornada completa."
 
@@ -158,6 +160,33 @@ export function calculateHourlyTotal(blocksByDay, overrides, reservedIntervals, 
     total += priceForBlock(block, dateIso, overrides)
   }
   return total
+}
+
+export function equipmentBillableHoursForMode(mode, { slotCount = 0, rate = null } = {}) {
+  if (mode === "jornada") return JORNADA_EQUIPMENT_BILLABLE_HOURS
+  if (mode === "bloque") {
+    if (!rate?.start || !rate?.end) return 0
+    return minutesBetween(rate.start, rate.end) / 60
+  }
+  return slotCount
+}
+
+export function selectedEquipmentPerHourCents(form) {
+  if (!form) return 0
+  const checkboxes = form.querySelectorAll('input[name="rented_equipment_item_ids[]"]:checked')
+  let total = 0
+  checkboxes.forEach((input) => {
+    total += Number(input.dataset.equipmentPriceCents || 0)
+  })
+  return total
+}
+
+export function equipmentRentalExtraCents(form, mode, options = {}) {
+  const perHour = selectedEquipmentPerHourCents(form)
+  if (!perHour) return 0
+  const hours = equipmentBillableHoursForMode(mode, options)
+  if (hours <= 0) return 0
+  return Math.round(perHour * hours)
 }
 
 export function selectableHourlyBlocks(blocksByDay, overrides, reservedIntervals, dateIso, today, nowTime) {

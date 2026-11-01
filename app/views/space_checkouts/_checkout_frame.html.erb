@@ -1,4 +1,3 @@
-<% equipment_per_hour_cents = space.checkout_rentable_equipment_items.sum(:price_per_hour_cents) %>
 <%= turbo_frame_tag "space_checkout",
       class: "contents",
       data: {
@@ -10,8 +9,7 @@
         checkout_form_now_time_value: Time.zone.now.strftime("%H:%M"),
         checkout_form_slot_rates_value: space_booking_slot_rates_payload(space).to_json,
         checkout_form_jornada_value: space_booking_jornada_payload(space).to_json,
-        checkout_form_reserved_intervals_value: space_booking_reserved_intervals(space, for_user: current_user).to_json,
-        checkout_form_equipment_per_hour_cents_value: equipment_per_hour_cents
+        checkout_form_reserved_intervals_value: space_booking_reserved_intervals(space, for_user: current_user).to_json
       } do %>
   <section class="relative space-y-6 lg:col-span-3">
     <div data-checkout-form-target="loading" class="pointer-events-none absolute inset-0 z-20 hidden flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-[2px]">

@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { periodIssueMessage } from "lib/reservation_pricing"
+import { equipmentRentalExtraCents, periodIssueMessage } from "lib/reservation_pricing"
 
 export default class extends Controller {
   static targets = [
@@ -180,6 +180,10 @@ export default class extends Controller {
     this.updateTotal()
   }
 
+  equipmentChanged() {
+    this.updateTotal()
+  }
+
   modeFromEvent(event) {
     if (event?.target?.dataset?.bookingFormTarget === "reservationMode") {
       return event.target.value
@@ -295,7 +299,7 @@ export default class extends Controller {
 
     const slotCount = parseInt(this.slotCountTargets[0]?.value || this.minimumSlotsValue, 10)
     const startTime = this.hasStartTimeTarget ? this.startTimeTargets[0]?.value : ""
-    const total = this.calculateTotal(slotCount, startTime)
+    const total = this.calculateTotal(slotCount, startTime) + this.equipmentExtraCents("hora", { slotCount })
     const durationMinutes = this.totalDurationMinutes(slotCount, startTime)
 
     this.totalTargets.forEach((el) => {
@@ -325,7 +329,7 @@ export default class extends Controller {
 
     this.hidePeriodWarning(this.bloqueWarningTargets)
     const durationMinutes = rate ? this.minutesBetween(rate.start, rate.end) : 0
-    const total = rate?.block_price || 0
+    const total = (rate?.block_price || 0) + this.equipmentExtraCents("bloque", { rate })
 
     this.bloqueTotalTargets.forEach((el) => {
       el.textContent = this.formatCLP(total)
@@ -358,7 +362,7 @@ export default class extends Controller {
     const durationMinutes = jornada?.start && jornada?.end
       ? this.minutesBetween(jornada.start, jornada.end)
       : 0
-    const total = jornada?.price || 0
+    const total = (jornada?.price || 0) + this.equipmentExtraCents("jornada")
 
     this.jornadaTotalTargets.forEach((el) => {
       el.textContent = this.formatCLP(total)
@@ -371,6 +375,11 @@ export default class extends Controller {
     if (!this.hasSlotRateTarget) return null
     const id = parseInt(this.slotRateTargets[0]?.value, 10)
     return this.slotRatesValue.find((r) => r.id === id) || this.slotRatesValue[0]
+  }
+
+  equipmentExtraCents(mode, options = {}) {
+    const form = this.element.querySelector("form")
+    return equipmentRentalExtraCents(form, mode, options)
   }
 
   updateDurationLabel(targets, durationMinutes, prefix) {

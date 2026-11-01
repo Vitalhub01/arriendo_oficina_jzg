@@ -132,7 +132,11 @@ module ApplicationHelper
   end
 
   def equipment_list(space)
-    space.equipment_items.ordered.pluck(:name)
+    if space.association(:equipment_items).loaded?
+      space.equipment_items.sort_by { |item| [item.position, item.id] }.map(&:name)
+    else
+      space.equipment_items.ordered.pluck(:name)
+    end
   end
 
   def ga_event_script(event_name, params = {})

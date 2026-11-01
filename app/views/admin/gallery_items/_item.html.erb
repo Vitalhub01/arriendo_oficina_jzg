@@ -14,7 +14,9 @@
 
   <div class="h-24 w-32 shrink-0 overflow-hidden rounded-lg bg-gray-200">
     <% if item.image.attached? %>
-      <%= image_tag item.image.variant(resize_to_limit: [320, 240]), class: "h-full w-full object-cover", alt: item.display_alt %>
+      <%= admin_photo_thumbnail item.image,
+          alt: item.display_alt,
+          class: "h-full w-full object-cover" %>
     <% end %>
   </div>
 

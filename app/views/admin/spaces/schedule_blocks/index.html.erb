@@ -14,6 +14,14 @@
     duration_minutes: b.duration_minutes
   }
 }.to_json %>
+<% slot_rates_json = @space.slot_rates.ordered.map { |r|
+  {
+    name: r.name,
+    start_time: r.start_time.strftime('%H:%M'),
+    end_time: r.end_time.strftime('%H:%M'),
+    price_per_slot_cents: r.price_per_slot_cents
+  }
+}.to_json %>
 <% overrides_json = @overrides.values.map { |o|
   {
     schedule_block_id: o.schedule_block_id,
@@ -33,6 +41,9 @@
      data-admin-schedule-space-id-value="<%= @space.id %>"
      data-admin-schedule-week-start-value="<%= @week_start.iso8601 %>"
      data-admin-schedule-default-price-value="<%= @space.default_price_per_slot_cents %>"
+     data-admin-schedule-slot-rates-value="<%= slot_rates_json %>"
+     data-admin-schedule-morning-hourly-value="<%= @space.morning_hourly_price_cents || @space.price_per_hour_cents %>"
+     data-admin-schedule-afternoon-hourly-value="<%= @space.afternoon_hourly_price_cents || @space.price_per_hour_cents %>"
      data-admin-schedule-slot-duration-value="<%= @space.slot_duration_minutes %>"
      data-admin-schedule-csrf-value="<%= form_authenticity_token %>"
      data-admin-schedule-calendar-start-value="<%= calendar_start_hour %>"
@@ -132,7 +143,7 @@
     </div>
   </div>
 
-  <p class="mt-2 text-xs text-gray-500">Borde ámbar = precio especial ese día · Tachado rojo = bloqueado solo esa fecha</p>
+  <p class="mt-2 text-xs text-gray-500">Borde ámbar = precio especial ese día · Tachado rojo = bloqueado solo esa fecha · Las franjas con reservas activas no se quitan al reemplazar la plantilla</p>
 
   <div class="mt-8 card p-4">
     <h2 class="font-semibold">Descuento por volumen (esta sala)</h2>
@@ -251,10 +262,18 @@
               <input type="time" data-admin-schedule-target="endTime" class="input-field w-full" required>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium">Precio del bloque (mañana / tarde, CLP)</label>
-            <input type="number" data-admin-schedule-target="priceClp" class="input-field w-full" min="1" step="1" required>
-            <p class="mt-1 text-xs text-gray-500">Independiente del precio por hora y de la jornada completa del espacio.</p>
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <p class="text-sm font-medium text-gray-900">Precio de esta franja</p>
+            <p class="mt-1 text-sm text-gray-700" data-admin-schedule-target="templateDefaultPrice"></p>
+            <p class="mt-1 text-xs text-gray-500">Según el precio por hora del espacio (mañana o tarde) y la duración del bloque.</p>
+            <label class="mt-3 flex items-start gap-2 text-sm">
+              <input type="checkbox" data-admin-schedule-target="templateSpecialPrice" data-action="change->admin-schedule#toggleTemplateSpecialPrice" class="mt-0.5 rounded border-gray-300">
+              <span>Usar precio especial en la plantilla (distinto al del espacio)</span>
+            </label>
+            <div class="mt-2 hidden" data-admin-schedule-target="templateSpecialPriceField">
+              <label class="block text-sm font-medium">Precio especial (CLP)</label>
+              <input type="number" data-admin-schedule-target="priceClp" class="input-field mt-1 w-full" min="1" step="1">
+            </div>
           </div>
           <p class="text-xs text-gray-500" data-admin-schedule-target="durationHint"></p>
           <div class="flex flex-wrap gap-2 pt-1">
@@ -300,11 +319,15 @@
           <input type="time" data-admin-schedule-target="bulkEndTime" class="input-field mt-1 w-full" value="22:00" required>
         </div>
       </div>
-      <div class="mt-4">
-        <label class="block text-sm font-medium">Precio por bloque (CLP)</label>
+      <label class="mt-4 flex items-start gap-2 text-sm">
+        <input type="checkbox" data-admin-schedule-target="bulkUseSpacePricing" data-action="change->admin-schedule#toggleBulkPricing" class="mt-0.5 rounded border-gray-300" checked>
+        <span>Usar precios del espacio (mañana / tarde según la hora de cada franja)</span>
+      </label>
+      <div class="mt-4 hidden" data-admin-schedule-target="bulkCustomPriceField">
+        <label class="block text-sm font-medium">Precio fijo para todas las franjas (CLP)</label>
         <input type="number" data-admin-schedule-target="bulkPriceClp" class="input-field mt-1 w-full" min="1" step="1"
-               value="<%= @space.default_price_per_slot_cents %>" required>
-        <p class="mt-1 text-xs text-gray-500">Mismo precio para todos los bloques generados en este rango.</p>
+               value="<%= @space.default_price_per_slot_cents %>">
+        <p class="mt-1 text-xs text-gray-500">Mismo precio en todo el rango, sin distinguir mañana y tarde.</p>
       </div>
       <label class="mt-4 flex items-start gap-2 text-sm">
         <input type="checkbox" data-admin-schedule-target="bulkReplace" class="mt-1 rounded border-gray-300" checked>

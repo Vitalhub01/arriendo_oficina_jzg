@@ -47,7 +47,8 @@ module Admin
     private
 
     def gallery_item_update_params
-      params.fetch(:gallery_item, {}).permit(:tag, :alt_text, :visible)
+      source = params[:gallery_item].present? ? params[:gallery_item] : params
+      source.permit(:tag, :alt_text, :visible)
     end
 
     def render_item(item)

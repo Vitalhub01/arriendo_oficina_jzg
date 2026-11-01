@@ -30,6 +30,10 @@
           <%= label_tag :date, "Fecha", class: "mb-1 block text-sm font-medium" %>
           <%= date_field_tag :date, booking_date, min: Date.current, class: "input-field", required: true, data: { booking_form_target: "date", action: "change->booking-form#dateChanged" } %>
         </div>
+        <%= render "shared/equipment_rental_fields",
+              space: space,
+              selected_ids: Array(params[:rented_equipment_item_ids]),
+              checkbox_data: { action: "change->booking-form#equipmentChanged" } %>
         <div data-booking-form-target="horaFields" class="space-y-4">
           <div>
             <%= label_tag :start_time, "Hora de inicio", class: "mb-1 block text-sm font-medium" %>

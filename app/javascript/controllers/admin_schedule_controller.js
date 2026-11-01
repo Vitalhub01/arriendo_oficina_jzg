@@ -9,7 +9,8 @@ export default class extends Controller {
     "tabBar", "tabDate", "tabTemplate", "panelDate", "panelTemplate",
     "deleteDialog", "deleteDialogMessage",
     "bulkFillDialog", "bulkDay", "bulkStartTime", "bulkEndTime", "bulkPriceClp",
-    "bulkReplace", "bulkPreview", "bulkError"
+    "bulkUseSpacePricing", "bulkCustomPriceField", "bulkReplace", "bulkPreview", "bulkError",
+    "templateDefaultPrice", "templateSpecialPrice", "templateSpecialPriceField"
   ]
   static values = {
     blocks: Array,
@@ -18,6 +19,9 @@ export default class extends Controller {
     spaceId: Number,
     weekStart: String,
     defaultPrice: Number,
+    slotRates: Array,
+    morningHourly: Number,
+    afternoonHourly: Number,
     slotDuration: Number,
     csrf: String,
     calendarStart: Number,
@@ -30,7 +34,10 @@ export default class extends Controller {
   }
 
   connect() {
-    this.startTimeTarget?.addEventListener("change", () => this.updateDurationHint())
+    this.startTimeTarget?.addEventListener("change", () => {
+      this.updateDurationHint()
+      this.updateTemplateDefaultPrice()
+    })
     this.endTimeTarget?.addEventListener("change", () => this.updateDurationHint())
     this.activeTab = "template"
     this.bulkStartTimeTarget?.addEventListener("change", () => this.updateBulkPreview())
@@ -38,8 +45,68 @@ export default class extends Controller {
     this.bulkDayTargets.forEach((el) => el.addEventListener("change", () => this.updateBulkPreview()))
   }
 
+  defaultPriceForStartTime(startTimeStr) {
+    if (!startTimeStr) return Math.round(this.defaultPriceValue)
+
+    const minutes = this.parseTime(startTimeStr)
+    for (const rate of this.slotRatesValue || []) {
+      const start = this.parseTime(rate.start_time)
+      const end = this.parseTime(rate.end_time)
+      if (minutes >= start && minutes < end) {
+        return Math.round(rate.price_per_slot_cents)
+      }
+    }
+
+    return Math.round(this.defaultPriceValue)
+  }
+
+  updateTemplateDefaultPrice() {
+    if (!this.hasTemplateDefaultPriceTarget) return
+
+    const cents = this.defaultPriceForStartTime(this.startTimeTarget.value)
+    const period = this.periodLabelForStartTime(this.startTimeTarget.value)
+    this.templateDefaultPriceTarget.textContent =
+      `${this.formatCLP(cents)} por franja de ${this.slotDurationValue} min (${period})`
+  }
+
+  periodLabelForStartTime(startTimeStr) {
+    const minutes = this.parseTime(startTimeStr || "12:00")
+    for (const rate of this.slotRatesValue || []) {
+      const start = this.parseTime(rate.start_time)
+      const end = this.parseTime(rate.end_time)
+      if (minutes >= start && minutes < end) {
+        return rate.name.toLowerCase()
+      }
+    }
+    if (this.hasMorningHourlyValue && minutes < this.parseTime("14:00")) return "mañana"
+    return "tarde"
+  }
+
+  setTemplateSpecialPriceEnabled(enabled) {
+    if (!this.hasTemplateSpecialPriceTarget) return
+
+    this.templateSpecialPriceTarget.checked = enabled
+    this.templateSpecialPriceFieldTarget.classList.toggle("hidden", !enabled)
+    if (enabled && !this.priceClpTarget.value) {
+      this.priceClpTarget.value = this.defaultPriceForStartTime(this.startTimeTarget.value)
+    }
+  }
+
+  toggleTemplateSpecialPrice() {
+    this.setTemplateSpecialPriceEnabled(this.templateSpecialPriceTarget.checked)
+  }
+
+  toggleBulkPricing() {
+    const useSpace = this.bulkUseSpacePricingTarget.checked
+    this.bulkCustomPriceFieldTarget.classList.toggle("hidden", useSpace)
+  }
+
   openBulkFill() {
     this.hideBulkError()
+    if (this.hasBulkUseSpacePricingTarget) {
+      this.bulkUseSpacePricingTarget.checked = true
+      this.toggleBulkPricing()
+    }
     this.updateBulkPreview()
     this.bulkFillDialogTarget.showModal()
   }
@@ -94,17 +161,26 @@ export default class extends Controller {
     if (!confirm(confirmMsg)) return
 
     this.hideBulkError()
+    const body = {
+      days,
+      start_time: startTime,
+      end_time: endTime,
+      replace_overlapping: replace ? "1" : "0",
+      week_start: this.weekStartValue
+    }
+    if (!this.bulkUseSpacePricingTarget.checked) {
+      const price = this.bulkPriceClpTarget.value.trim()
+      if (!price || parseInt(price, 10) <= 0) {
+        this.showBulkError(["Indica un precio fijo o usa los precios del espacio"])
+        return
+      }
+      body.price_clp = price
+    }
+
     const response = await this.jsonRequest(
       `/admin/spaces/${this.spaceIdValue}/schedule_blocks/bulk_fill`,
       "POST",
-      {
-        days,
-        start_time: startTime,
-        end_time: endTime,
-        price_clp: this.bulkPriceClpTarget.value,
-        replace_overlapping: replace ? "1" : "0",
-        week_start: this.weekStartValue
-      }
+      body
     )
 
     if (response.ok) {
@@ -135,7 +211,8 @@ export default class extends Controller {
     this.nameTarget.value = ""
     this.startTimeTarget.value = "09:00"
     this.endTimeTarget.value = this.minutesToTime(9 * 60 + this.slotDurationValue)
-    this.priceClpTarget.value = Math.round(this.defaultPriceValue)
+    this.setTemplateSpecialPriceEnabled(false)
+    this.updateTemplateDefaultPrice()
     this.dialogTitleTarget.textContent = "Nuevo horario"
     this.dialogSubtitleTarget.textContent = "Elige el día y la ventana horaria en la plantilla semanal"
     this.setDateTabAvailable(false)
@@ -174,7 +251,14 @@ export default class extends Controller {
     this.nameTarget.value = block.name || ""
     this.startTimeTarget.value = block.start_time
     this.endTimeTarget.value = block.end_time
-    this.priceClpTarget.value = block.price_clp ?? block.price_cents
+    const defaultCents = this.defaultPriceForStartTime(block.start_time)
+    const storedCents = Math.round(block.price_clp ?? block.price_cents)
+    const hasSpecial = storedCents !== defaultCents
+    this.setTemplateSpecialPriceEnabled(hasSpecial)
+    if (hasSpecial) {
+      this.priceClpTarget.value = storedCents
+    }
+    this.updateTemplateDefaultPrice()
     if (this.hasNewDayFieldTarget) {
       this.newDayFieldTarget.classList.add("hidden")
     }
@@ -321,11 +405,18 @@ export default class extends Controller {
         day_of_week: dayOfWeek,
         name: this.nameTarget.value,
         start_time: startTime,
-        end_time: endTime,
-        price_clp: this.priceClpTarget.value
+        end_time: endTime
       },
       week_start: this.weekStartValue,
       remove_overlapping_ids: removeIds
+    }
+    if (this.hasTemplateSpecialPriceTarget && this.templateSpecialPriceTarget.checked) {
+      const price = this.priceClpTarget.value.trim()
+      if (!price || parseInt(price, 10) <= 0) {
+        this.showError(["Indica un precio especial válido o desmarca la opción"])
+        return
+      }
+      body.schedule_block.price_clp = price
     }
 
     const url = id

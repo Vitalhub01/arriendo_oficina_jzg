@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PricingEngine
+  JORNADA_EQUIPMENT_BILLABLE_HOURS = 12
+
   def self.calculate(space, user, start_at, slot_count, end_at: nil, booking_type: nil, jornada_definition: nil,
                      slot_rate: nil, rented_equipment_items: [])
     new(
@@ -63,14 +65,24 @@ class PricingEngine
   end
 
   def equipment_rental_applicable?
-    !block_period_booking? && !jornada_booking? && rented_equipment_items.any?
+    rented_equipment_items.any?
   end
 
   def equipment_billable_hours
+    return JORNADA_EQUIPMENT_BILLABLE_HOURS if jornada_booking?
+    return slot_rate_billable_hours if block_period_booking?
+
     hours = duration_hours
     return hours if hours.positive?
 
     slot_count
+  end
+
+  def slot_rate_billable_hours
+    return 0 unless slot_rate
+
+    minutes = (slot_rate.end_time.seconds_since_midnight - slot_rate.start_time.seconds_since_midnight) / 60.0
+    minutes / 60.0
   end
 
   def equipment_rental_lines
@@ -80,7 +92,7 @@ class PricingEngine
     hour_label = hours == hours.to_i ? "#{hours.to_i} hora(s)" : nil
 
     rented_equipment_items.map do |item|
-      amount_cents = item.price_per_hour_cents * equipment_billable_hours
+      amount_cents = (item.price_per_hour_cents * equipment_billable_hours).round
       label = hour_label ? "#{item.name} (#{hour_label})" : item.name
       {
         type: 'equipment_rental',

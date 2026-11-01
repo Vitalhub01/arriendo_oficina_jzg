@@ -39,7 +39,10 @@ module Admin
       end
 
       def create
-        remove_overlapping_blocks!
+        if (errors = remove_overlapping_blocks!).present?
+          return respond_with_errors(errors)
+        end
+
         @schedule_block = @space.schedule_blocks.build(schedule_block_params)
 
         if @schedule_block.save
@@ -50,7 +53,14 @@ module Admin
       end
 
       def update
-        remove_overlapping_blocks!
+        if (errors = remove_overlapping_blocks!).present?
+          return respond_with_errors(errors)
+        end
+
+        if template_time_changing? && ScheduleBlocks::BookingGuard.protected?(@space, @schedule_block)
+          return respond_with_errors([ScheduleBlocks::BookingGuard.template_time_change_blocked_message])
+        end
+
         if @schedule_block.update(schedule_block_params)
           respond_with_block('Bloque actualizado')
         else
@@ -59,6 +69,10 @@ module Admin
       end
 
       def destroy
+        if ScheduleBlocks::BookingGuard.protected?(@space, @schedule_block)
+          return respond_with_errors([ScheduleBlocks::BookingGuard.destruction_blocked_message(@schedule_block)])
+        end
+
         @schedule_block.destroy
         respond_to do |format|
           format.html { redirect_to schedule_index_path, notice: 'Bloque eliminado de la plantilla semanal' }
@@ -68,6 +82,10 @@ module Admin
 
       def end_series_from_date
         from_date = Date.parse(params.require(:from_date))
+        if end_series_blocked_from?(from_date)
+          return respond_with_errors([ScheduleBlocks::BookingGuard.end_series_blocked_message])
+        end
+
         new_until = from_date - 1.day
         current_until = @schedule_block.effective_until
         effective_until = if current_until.present?
@@ -160,9 +178,37 @@ module Admin
 
       def remove_overlapping_blocks!
         ids = Array(params[:remove_overlapping_ids]).map(&:to_i).reject(&:zero?)
-        return if ids.empty?
+        return [] if ids.empty?
 
-        @space.schedule_blocks.where(id: ids).destroy_all
+        blocks = @space.schedule_blocks.where(id: ids).to_a
+        protected = blocks.select { |block| ScheduleBlocks::BookingGuard.protected?(@space, block) }
+        return [ScheduleBlocks::BookingGuard.destruction_blocked_message(protected)] if protected.any?
+
+        ScheduleBlock.where(id: blocks.map(&:id)).destroy_all
+        []
+      end
+
+      def template_time_changing?
+        raw = params[:schedule_block]
+        return false unless raw
+
+        %i[day_of_week start_time end_time].any? do |key|
+          next false unless raw.key?(key)
+
+          incoming = raw[key]
+          next false if incoming.blank?
+
+          current = @schedule_block.public_send(key)
+          normalized_incoming = key == :day_of_week ? incoming.to_i : parse_clock_time(incoming.to_s)
+          normalized_incoming != current
+        end
+      end
+
+      def end_series_blocked_from?(from_date)
+        from_time = from_date.in_time_zone.beginning_of_day
+        ScheduleBlocks::BookingGuard.upcoming_overlapping(@space, @schedule_block).any? do |booking|
+          booking.start_at >= from_time
+        end
       end
 
       def bulk_fill_days
@@ -183,8 +229,18 @@ module Admin
         raw[:end_time] = parse_clock_time(raw[:end_time]) if raw[:end_time].present?
         if raw[:price_clp].present?
           raw[:price_cents] = raw.delete(:price_clp).to_f.round
+        else
+          raw.delete(:price_clp)
+          apply_default_schedule_price!(raw)
         end
         raw
+      end
+
+      def apply_default_schedule_price!(raw)
+        return if raw[:price_cents].present?
+        return if raw[:start_time].blank?
+
+        raw[:price_cents] = @space.price_per_slot_at(raw[:start_time])
       end
 
       def date_override_payload?

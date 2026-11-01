@@ -73,7 +73,8 @@ spaces_data = [
     capacity: 10,
     dimensions: '15m²',
     equipment: %w[Pizarra Proyector Mesa WiFi Té],
-    amenity_tags: %w[WiFi Baño Aire acondicionado Sala de espera]
+    amenity_tags: %w[WiFi Baño Aire acondicionado Sala de espera],
+    optional_rentable_equipment: { name: 'Kit videoconferencia', price_per_hour_cents: 2_000 }
   }
 ]
 
@@ -108,6 +109,17 @@ spaces_data.each_with_index do |data, photo_index|
     equipment_item_ids: equipment_ids,
     amenity_tag_ids: amenity_ids
   ).call
+
+  if (rentable = data[:optional_rentable_equipment])
+    item = EquipmentItem.find_or_initialize_by(name: rentable[:name])
+    item.assign_attributes(
+      active: true,
+      position: item.position || EquipmentItem.count,
+      price_per_hour_cents: rentable[:price_per_hour_cents]
+    )
+    item.save!
+    space.equipment_items << item unless space.equipment_item_ids.include?(item.id)
+  end
 
   photo_path = VITALHUB_OFFICE_PHOTOS[photo_index % VITALHUB_OFFICE_PHOTOS.size]
   space.space_photos.destroy_all

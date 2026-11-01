@@ -80,14 +80,25 @@ export default class extends Controller {
         body
       })
 
-      if (!response.ok) throw new Error("upload failed")
+      if (!response.ok) {
+        let message = "No se pudo subir la foto. Intenta de nuevo."
+        try {
+          const data = await response.json()
+          if (Array.isArray(data.errors) && data.errors.length > 0) {
+            message = data.errors.join(" ")
+          }
+        } catch (_parseError) {
+          // ignore
+        }
+        throw new Error(message)
+      }
 
       const data = await response.json()
       this.insertItem(data)
       this.syncOrder()
       this.setStatus("Foto agregada")
-    } catch (_error) {
-      this.setStatus("No se pudo subir la foto. Intenta de nuevo.")
+    } catch (error) {
+      this.setStatus(error.message || "No se pudo subir la foto. Intenta de nuevo.")
     }
   }
 

@@ -104,9 +104,18 @@ class AvailabilityScheduleBuilder
     return [] if @bloque_slot_rates.empty?
 
     @bloque_slot_rates.map do |rate|
+      blocks = schedule_blocks_within_time_range(date, rate.start_time, rate.end_time)
+      window = BloqueScheduleWindow.labels_for(
+        date,
+        blocks,
+        fallback_start: rate.start_time,
+        fallback_end: rate.end_time
+      )
       {
         rate: rate,
-        available: slot_rate_window_available?(date, rate)
+        available: period_window_available?(date, blocks),
+        start: window[:start],
+        end: window[:end]
       }
     end
   end

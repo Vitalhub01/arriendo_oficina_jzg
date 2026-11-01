@@ -43,5 +43,44 @@ module Bookings
       assert result.success?
       assert_equal 31_000, result.total_cents
     end
+
+    test 'adds equipment rental to bloque quote' do
+      item = equipment_items(:wifi_equipment)
+      item.update_columns(price_per_hour_cents: 1000)
+      morning = @space.bloque_slot_rates.find_by!(name: 'Mañana')
+
+      result = Quote.new(
+        space: @space,
+        user: users(:renter),
+        params: {
+          'date' => @slot_time.to_date.iso8601,
+          'reservation_mode' => 'bloque',
+          'slot_rate_id' => morning.id,
+          'rented_equipment_item_ids' => [item.id]
+        }
+      ).call
+
+      assert result.success?
+      assert_equal morning.block_price_cents_effective + 6000, result.total_cents
+    end
+
+    test 'adds equipment rental to jornada quote as twelve hours' do
+      item = equipment_items(:wifi_equipment)
+      item.update_columns(price_per_hour_cents: 1000)
+      jornada = @space.primary_jornada_definition
+
+      result = Quote.new(
+        space: @space,
+        user: users(:renter),
+        params: {
+          'date' => @slot_time.to_date.iso8601,
+          'reservation_mode' => 'jornada',
+          'rented_equipment_item_ids' => [item.id]
+        }
+      ).call
+
+      assert result.success?
+      assert_equal jornada.price_cents + 12_000, result.total_cents
+    end
   end
 end

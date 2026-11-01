@@ -14,7 +14,9 @@
 
   <div class="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg bg-gray-200">
     <% if photo.image.attached? %>
-      <%= image_tag photo.image.variant(resize_to_limit: [320, 240]), class: "h-full w-full object-cover", alt: photo.caption.presence || space.title %>
+      <%= admin_photo_thumbnail photo.image,
+          alt: photo.caption.presence || space.title,
+          class: "h-full w-full object-cover" %>
     <% end %>
     <span data-cover-badge class="absolute left-1 top-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white <%= photo == space.space_photos.ordered.first ? '' : 'hidden' %>">Portada</span>
   </div>

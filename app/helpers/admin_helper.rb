@@ -149,4 +149,17 @@ module AdminHelper
       confirmed: 'border-blue-300 bg-blue-100 text-blue-950'
     }.fetch(status.to_sym, 'border-gray-200 bg-white text-gray-800')
   end
+
+  def admin_photo_thumbnail(attachment, alt:, resize_to_limit: [320, 240], **options)
+    return unless attachment&.attached?
+
+    source =
+      if attachment.variable?
+        attachment.variant(resize_to_limit: resize_to_limit)
+      else
+        attachment
+      end
+
+    image_tag source, alt: alt, **options
+  end
 end
