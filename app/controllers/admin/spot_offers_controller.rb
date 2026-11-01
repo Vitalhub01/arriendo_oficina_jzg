@@ -12,6 +12,7 @@ module Admin
       @spot_offer = SpotOffer.new(
         starts_on: Date.current,
         ends_on: Date.current.end_of_month,
+        weekdays: SpotOfferRecurrence::WEEKDAY_WORKDAYS,
         daily_start_time: SpaceBlockPeriods.time_on(SpaceBlockPeriods::MORNING[:start]),
         daily_end_time: SpaceBlockPeriods.time_on(SpaceBlockPeriods::MORNING[:end])
       )
@@ -28,7 +29,7 @@ module Admin
       if occurrences.empty?
         @spaces = Space.order(:title)
         @preview_count = 0
-        @spot_offer.errors.add(:base, 'No hay fechas disponibles con ese rango y horario')
+        @spot_offer.errors.add(:base, 'No hay fechas disponibles con ese rango, días y horario')
         render :new, status: :unprocessable_content
       elsif @spot_offer.save
         redirect_to admin_spot_offer_path(@spot_offer), notice: 'Tarifa spot creada'
@@ -37,6 +38,29 @@ module Admin
         @preview_count = occurrences.size
         render :new, status: :unprocessable_content
       end
+    end
+
+    def preview
+      offer = SpotOffer.new(spot_offer_params)
+      offer.space = Space.find_by(id: offer.space_id)
+      occurrences = preview_occurrences(offer)
+      total_cents = offer.total_price_cents.to_i
+      per_session = occurrences.empty? ? nil : (total_cents / occurrences.size)
+
+      render json: {
+        count: occurrences.size,
+        summary: offer.starts_on.present? && offer.ends_on.present? ? offer.recurrence_description : nil,
+        weekdays_summary: offer.weekdays_summary,
+        samples: occurrences.first(8).map do |occ|
+          {
+            date: I18n.l(occ[:date], format: :long),
+            time: "#{I18n.l(occ[:start_at], format: '%H:%M')} – #{I18n.l(occ[:end_at], format: '%H:%M')}"
+          }
+        end,
+        per_session_cents: per_session,
+        per_session_label: per_session ? view_context.format_clp(per_session) : nil,
+        total_label: total_cents.positive? ? view_context.format_clp(total_cents) : nil
+      }
     end
 
     def show; end
@@ -49,8 +73,15 @@ module Admin
 
     def spot_offer_params
       params.expect(
-        spot_offer: %i[
-          space_id title total_price_cents starts_on ends_on daily_start_time daily_end_time
+        spot_offer: [
+          :space_id,
+          :title,
+          :total_price_cents,
+          :starts_on,
+          :ends_on,
+          :daily_start_time,
+          :daily_end_time,
+          { weekdays: [] }
         ]
       )
     end
@@ -58,13 +89,7 @@ module Admin
     def preview_occurrences(offer)
       return [] unless offer.space && offer.starts_on && offer.ends_on
 
-      SpotOffers::BuildOccurrences.new(
-        space: offer.space,
-        starts_on: offer.starts_on,
-        ends_on: offer.ends_on,
-        daily_start_time: offer.daily_start_time,
-        daily_end_time: offer.daily_end_time
-      ).call
+      offer.build_occurrences
     end
   end
 end

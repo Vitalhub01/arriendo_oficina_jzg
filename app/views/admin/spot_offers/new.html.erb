@@ -1,52 +1,179 @@
-<h1 class="text-2xl font-bold">Nueva tarifa spot</h1>
-<p class="mt-2 max-w-2xl text-sm text-gray-600">
-  Define un paquete de fechas y franja horaria (por ejemplo mañanas 08:00–14:00 de todo un mes).
-  Se generará un enlace para que un profesional pague todas las sesiones de una vez.
-</p>
+<div class="max-w-3xl">
+  <%= link_to "← Tarifas spot", admin_spot_offers_path, class: "text-sm text-brand hover:underline" %>
+  <h1 class="mt-2 text-2xl font-bold">Nueva tarifa spot</h1>
+  <p class="mt-2 text-sm leading-relaxed text-gray-600">
+    Arma un paquete recurrente (como en Google Calendar): elige días de la semana, franja horaria y cuánto dura la oferta.
+    Generarás un enlace para que el profesional pague todas las sesiones disponibles de una vez.
+  </p>
 
-<%= form_with model: @spot_offer, url: admin_spot_offers_path, class: "mt-6 max-w-xl space-y-4" do |f| %>
-  <% if @spot_offer.errors.any? %>
-    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-      <ul class="list-disc pl-5">
-        <% @spot_offer.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+  <%= form_with model: @spot_offer,
+                url: admin_spot_offers_path,
+                class: "mt-8 space-y-8",
+                data: {
+                  controller: "spot-offer-form prevent-number-scroll",
+                  spot_offer_form_preview_url_value: preview_admin_spot_offers_path,
+                  spot_offer_form_morning_start_value: SpaceBlockPeriods::MORNING[:start],
+                  spot_offer_form_morning_end_value: SpaceBlockPeriods::MORNING[:end],
+                  spot_offer_form_afternoon_start_value: SpaceBlockPeriods::AFTERNOON[:start],
+                  spot_offer_form_afternoon_end_value: SpaceBlockPeriods::AFTERNOON[:end]
+                } do |f| %>
+    <% if @spot_offer.errors.any? %>
+      <div class="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+        <ul class="list-disc space-y-1 pl-5">
+          <% @spot_offer.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <section class="admin-form-section">
+      <header class="admin-form-section__header">
+        <h2 class="admin-form-section__title">1. Espacio y precio</h2>
+      </header>
+      <div class="admin-form-section__body">
+        <div class="admin-form-field">
+          <%= f.label :space_id, "Espacio" %>
+          <%= f.collection_select :space_id, @spaces, :id, :title, { prompt: "Elige un espacio" },
+                                  class: "input-field",
+                                  required: true,
+                                  data: { spot_offer_form_target: "field", action: "change->spot-offer-form#scheduleChanged" } %>
+        </div>
+
+        <div class="admin-form-field">
+          <%= f.label :title, "Nombre interno (opcional)" %>
+          <%= f.text_field :title, class: "input-field", placeholder: "Ej. Martes y jueves mañana — Dr. Pérez" %>
+        </div>
+
+        <div class="admin-form-field">
+          <%= f.label :total_price_cents, "Precio total del paquete (CLP)" %>
+          <%= f.number_field :total_price_cents, class: "input-field", min: 1, step: 1, required: true,
+                             data: { spot_offer_form_target: "field", action: "input->spot-offer-form#scheduleChanged" } %>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-form-section">
+      <header class="admin-form-section__header">
+        <h2 class="admin-form-section__title">2. Repetición semanal</h2>
+        <p class="admin-form-section__hint">Marca los días en que se reserva la misma franja horaria dentro del periodo.</p>
+      </header>
+      <div class="admin-form-section__body">
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="admin-form-chip"
+                  data-action="click->spot-offer-form#selectWeekdays" data-spot-offer-form-days-param="weekdays">
+            Lun–Vie
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->spot-offer-form#selectWeekdays" data-spot-offer-form-days-param="all">
+            Todos los días
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->spot-offer-form#selectWeekdays" data-spot-offer-form-days-param="none">
+            Limpiar
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          <% AvailabilityRule::DAY_NAMES.each_with_index do |name, day| %>
+            <label class="admin-form-day">
+              <%= check_box_tag "spot_offer[weekdays][]", day, @spot_offer.normalized_weekdays.include?(day),
+                                class: "rounded border-gray-300 text-brand focus:ring-brand",
+                                data: { spot_offer_form_target: "weekday", action: "change->spot-offer-form#scheduleChanged" } %>
+              <span><%= name %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-form-section">
+      <header class="admin-form-section__header">
+        <h2 class="admin-form-section__title">3. Franja horaria</h2>
+      </header>
+      <div class="admin-form-section__body">
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="admin-form-chip"
+                  data-action="click->spot-offer-form#applyTimePreset" data-spot-offer-form-preset-param="morning">
+            Mañana (08:00–14:00)
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->spot-offer-form#applyTimePreset" data-spot-offer-form-preset-param="afternoon">
+            Tarde (14:00–20:00)
+          </button>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="admin-form-field">
+            <%= f.label :daily_start_time, "Desde" %>
+            <%= f.time_field :daily_start_time, class: "input-field", required: true,
+                             data: { spot_offer_form_target: "startTime field", action: "change->spot-offer-form#scheduleChanged" } %>
+          </div>
+          <div class="admin-form-field">
+            <%= f.label :daily_end_time, "Hasta" %>
+            <%= f.time_field :daily_end_time, class: "input-field", required: true,
+                             data: { spot_offer_form_target: "endTime field", action: "change->spot-offer-form#scheduleChanged" } %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-form-section">
+      <header class="admin-form-section__header">
+        <h2 class="admin-form-section__title">4. Periodo</h2>
+      </header>
+      <div class="admin-form-section__body">
+        <div class="flex flex-wrap gap-2">
+          <label class="admin-form-day inline-flex min-h-0 px-4 py-2.5 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+            <input type="radio" name="spot_offer_period_mode" value="until_date" checked
+                   data-spot-offer-form-target="periodMode" data-action="change->spot-offer-form#periodModeChanged">
+            <span>Hasta una fecha</span>
+          </label>
+          <label class="admin-form-day inline-flex min-h-0 px-4 py-2.5 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+            <input type="radio" name="spot_offer_period_mode" value="weeks"
+                   data-spot-offer-form-target="periodMode" data-action="change->spot-offer-form#periodModeChanged">
+            <span>Durante N semanas</span>
+          </label>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="admin-form-field">
+            <%= f.label :starts_on, "Primera fecha del periodo" %>
+            <%= f.date_field :starts_on, class: "input-field", required: true,
+                             data: { spot_offer_form_target: "startsOn field", action: "change->spot-offer-form#scheduleChanged" } %>
+          </div>
+          <div class="admin-form-field" data-spot-offer-form-target="endsOnPanel">
+            <%= f.label :ends_on, "Última fecha" %>
+            <%= f.date_field :ends_on, class: "input-field", required: true,
+                             data: { spot_offer_form_target: "endsOn field", action: "change->spot-offer-form#scheduleChanged" } %>
+          </div>
+          <div class="admin-form-field hidden sm:col-span-2" data-spot-offer-form-target="weeksPanel">
+            <label for="spot_offer_week_count">Número de semanas</label>
+            <input type="number" id="spot_offer_week_count" value="4" min="1" max="52" class="input-field max-w-xs"
+                   data-spot-offer-form-target="weekCount" data-action="input->spot-offer-form#weekCountChanged">
+            <p class="text-xs leading-relaxed text-gray-500">Cuenta desde la primera fecha (7 días por semana).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="admin-form-preview" data-spot-offer-form-target="preview">
+      <header class="admin-form-preview__header">
+        <p class="text-sm font-semibold text-gray-900">Vista previa del paquete</p>
+      </header>
+      <div class="admin-form-preview__body">
+        <p class="text-sm leading-relaxed text-gray-700" data-spot-offer-form-target="previewSummary">
+          Completa espacio, días y fechas para calcular cuántas sesiones incluye el enlace.
+        </p>
+        <ul class="hidden max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-brand/10 bg-white/60 p-4 text-xs text-gray-700"
+            data-spot-offer-form-target="previewList"></ul>
+        <p class="hidden text-sm font-medium text-gray-900" data-spot-offer-form-target="previewPricing"></p>
+      </div>
+    </aside>
+
+    <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-2">
+      <%= f.submit "Crear y generar enlace de pago", class: "btn-primary" %>
+      <%= link_to "Cancelar", admin_spot_offers_path, class: "btn-secondary" %>
     </div>
   <% end %>
-
-  <%= f.label :space_id, "Espacio", class: "block text-sm font-medium" %>
-  <%= f.collection_select :space_id, @spaces, :id, :title, { prompt: "Elige un espacio" }, class: "input-field", required: true %>
-
-  <%= f.label :title, "Nombre interno (opcional)", class: "block text-sm font-medium" %>
-  <%= f.text_field :title, class: "input-field", placeholder: "Ej. Mañanas octubre" %>
-
-  <%= f.label :total_price_cents, "Precio total (CLP)", class: "block text-sm font-medium" %>
-  <%= f.number_field :total_price_cents, class: "input-field", min: 1, step: 1, required: true %>
-
-  <div class="grid grid-cols-2 gap-4">
-    <div>
-      <%= f.label :starts_on, "Desde", class: "block text-sm font-medium" %>
-      <%= f.date_field :starts_on, class: "input-field", required: true %>
-    </div>
-    <div>
-      <%= f.label :ends_on, "Hasta", class: "block text-sm font-medium" %>
-      <%= f.date_field :ends_on, class: "input-field", required: true %>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-2 gap-4">
-    <div>
-      <%= f.label :daily_start_time, "Hora inicio diaria", class: "block text-sm font-medium" %>
-      <%= f.time_field :daily_start_time, class: "input-field", required: true %>
-      <p class="mt-1 text-xs text-gray-500">Bloque mañana: 08:00</p>
-    </div>
-    <div>
-      <%= f.label :daily_end_time, "Hora fin diaria", class: "block text-sm font-medium" %>
-      <%= f.time_field :daily_end_time, class: "input-field", required: true %>
-      <p class="mt-1 text-xs text-gray-500">Bloque mañana: 14:00 · tarde: 20:00</p>
-    </div>
-  </div>
-
-  <%= f.submit "Crear y generar enlace", class: "btn-primary" %>
-<% end %>
+</div>

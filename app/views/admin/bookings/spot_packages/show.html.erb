@@ -10,7 +10,8 @@
   <% end %>
   <p><strong>Profesional:</strong> <%= @spot_offer.profesional&.name || '—' %> <%= @spot_offer.profesional&.email %></p>
   <p><strong>Rango:</strong> <%= l(@spot_offer.starts_on) %> — <%= l(@spot_offer.ends_on) %></p>
-  <p><strong>Horario diario:</strong> <%= @spot_offer.daily_start_time.strftime('%H:%M') %> – <%= @spot_offer.daily_end_time.strftime('%H:%M') %></p>
+  <p><strong>Repetición:</strong> <%= @spot_offer.weekdays_summary %></p>
+  <p><strong>Horario:</strong> <%= @spot_offer.daily_start_time.strftime('%H:%M') %> – <%= @spot_offer.daily_end_time.strftime('%H:%M') %></p>
   <p><strong>Total paquete:</strong> <%= format_clp(@spot_offer.total_price_cents) %></p>
   <p><strong>Estado:</strong> <%= spot_offer_status_label(@spot_offer) %></p>
   <% if @spot_offer.payment.present? %>

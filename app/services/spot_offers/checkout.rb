@@ -16,7 +16,8 @@ module SpotOffers
         starts_on: @spot_offer.starts_on,
         ends_on: @spot_offer.ends_on,
         daily_start_time: @spot_offer.daily_start_time,
-        daily_end_time: @spot_offer.daily_end_time
+        daily_end_time: @spot_offer.daily_end_time,
+        weekdays: @spot_offer.normalized_weekdays
       ).call
 
       return failure('No hay horarios disponibles para esta oferta') if occurrences.empty?

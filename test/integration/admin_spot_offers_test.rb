@@ -30,4 +30,28 @@ class AdminSpotOffersTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match offer.token, response.body
   end
+
+  test 'preview returns session count for admin' do
+    sign_in @admin
+    space = boxes(:published_box)
+    starts_on = 1.week.from_now.to_date.beginning_of_week(:monday)
+    ends_on = starts_on + 2.weeks
+
+    post preview_admin_spot_offers_path, params: {
+      spot_offer: {
+        space_id: space.id,
+        total_price_cents: 80_000,
+        starts_on: starts_on,
+        ends_on: ends_on,
+        daily_start_time: '08:00',
+        daily_end_time: '12:00',
+        weekdays: [1, 3]
+      }
+    }, as: :json
+
+    assert_response :success
+    body = response.parsed_body
+    assert body['count'].is_a?(Integer)
+    assert_includes body['weekdays_summary'], 'Jueves'
+  end
 end

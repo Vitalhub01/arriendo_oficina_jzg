@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SpotOffer < ApplicationRecord
+  include SpotOfferRecurrence
+
   belongs_to :space, class_name: 'Space', inverse_of: :spot_offers
   belongs_to :created_by, class_name: 'User'
   belongs_to :profesional, class_name: 'User', optional: true
@@ -15,7 +17,9 @@ class SpotOffer < ApplicationRecord
   validates :starts_on, :ends_on, :daily_start_time, :daily_end_time, presence: true
   validate :ends_on_after_starts_on
   validate :daily_end_after_start
+  validate :weekdays_selection
 
+  before_validation :normalize_weekdays_list
   before_validation :generate_token, on: :create
 
   scope :recent, -> { order(created_at: :desc) }
@@ -45,5 +49,18 @@ class SpotOffer < ApplicationRecord
     return if daily_start_time.blank? || daily_end_time.blank?
 
     errors.add(:daily_end_time, 'debe ser posterior al inicio') if daily_end_time <= daily_start_time
+  end
+
+  def normalize_weekdays_list
+    return if weekdays.blank?
+
+    self.weekdays = Array(weekdays).map(&:to_i).uniq.sort.intersection(SpotOfferRecurrence::ALL_WEEKDAYS)
+  end
+
+  def weekdays_selection
+    list = Array(weekdays).map(&:to_i).uniq.intersection(SpotOfferRecurrence::ALL_WEEKDAYS)
+    return if list.any?
+
+    errors.add(:weekdays, 'elige al menos un día de la semana')
   end
 end

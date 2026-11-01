@@ -80,7 +80,11 @@ Rails.application.routes.draw do
     resources :discount_codes
     resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
-    resources :spot_offers, only: %i[index new create show]
+    resources :spot_offers, only: %i[index new create show] do
+      collection do
+        post :preview
+      end
+    end
     resources :spot_packages, only: %i[index show update], path: 'bookings/spot', controller: 'bookings/spot_packages'
     resources :bookings, only: %i[index show new create update] do
       collection do

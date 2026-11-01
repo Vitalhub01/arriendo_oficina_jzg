@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_01_031136) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -476,6 +476,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_01_031136) do
     t.integer "occurrence_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "weekdays", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
     t.index ["created_by_id"], name: "index_spot_offers_on_created_by_id"
     t.index ["profesional_id"], name: "index_spot_offers_on_profesional_id"
     t.index ["space_id"], name: "index_spot_offers_on_space_id"

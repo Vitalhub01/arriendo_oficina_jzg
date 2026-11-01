@@ -8,7 +8,8 @@
     <thead>
       <tr>
         <th>Espacio</th>
-        <th>Rango</th>
+        <th>Repetición</th>
+        <th>Periodo</th>
         <th>Horario</th>
         <th>Total</th>
         <th>Estado</th>
@@ -19,6 +20,7 @@
       <% @spot_offers.each do |offer| %>
         <tr>
           <td><%= offer.space.title %></td>
+          <td><%= offer.weekdays_summary %></td>
           <td><%= l(offer.starts_on) %> — <%= l(offer.ends_on) %></td>
           <td><%= offer.daily_start_time.strftime('%H:%M') %> – <%= offer.daily_end_time.strftime('%H:%M') %></td>
           <td><%= format_clp(offer.total_price_cents) %></td>

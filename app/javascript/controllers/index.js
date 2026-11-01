@@ -19,6 +19,8 @@ import CheckoutFormController from "controllers/checkout_form_controller"
 import PhotoLightboxController from "controllers/photo_lightbox_controller"
 import RescheduleFormController from "controllers/reschedule_form_controller"
 import AdminBookingFormController from "controllers/admin_booking_form_controller"
+import SpotOfferFormController from "controllers/spot_offer_form_controller"
+import PreventNumberScrollController from "controllers/prevent_number_scroll_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -41,6 +43,8 @@ application.register("checkout-form", CheckoutFormController)
 application.register("photo-lightbox", PhotoLightboxController)
 application.register("reschedule-form", RescheduleFormController)
 application.register("admin-booking-form", AdminBookingFormController)
+application.register("spot-offer-form", SpotOfferFormController)
+application.register("prevent-number-scroll", PreventNumberScrollController)
 window.Stimulus = application
 
 export { application }

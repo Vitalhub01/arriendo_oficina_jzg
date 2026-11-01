@@ -6,8 +6,9 @@
   <p class="mt-2 text-lg font-medium"><%= @spot_offer.space.title %></p>
 
   <dl class="mt-6 space-y-2 text-sm">
-    <div class="flex justify-between"><dt class="text-gray-500">Fechas</dt><dd><%= l(@spot_offer.starts_on) %> — <%= l(@spot_offer.ends_on) %></dd></div>
-    <div class="flex justify-between"><dt class="text-gray-500">Horario cada día</dt><dd><%= @spot_offer.daily_start_time.strftime('%H:%M') %> – <%= @spot_offer.daily_end_time.strftime('%H:%M') %></dd></div>
+    <div class="flex justify-between"><dt class="text-gray-500">Repetición</dt><dd><%= @spot_offer.weekdays_summary %></dd></div>
+    <div class="flex justify-between"><dt class="text-gray-500">Periodo</dt><dd><%= l(@spot_offer.starts_on) %> — <%= l(@spot_offer.ends_on) %></dd></div>
+    <div class="flex justify-between"><dt class="text-gray-500">Horario</dt><dd><%= @spot_offer.daily_start_time.strftime('%H:%M') %> – <%= @spot_offer.daily_end_time.strftime('%H:%M') %></dd></div>
     <div class="flex justify-between"><dt class="text-gray-500">Sesiones incluidas</dt><dd><%= @occurrences.size %></dd></div>
     <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="text-lg font-bold"><%= format_clp(@spot_offer.total_price_cents) %></dd></div>
   </dl>

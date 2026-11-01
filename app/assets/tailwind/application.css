@@ -64,6 +64,54 @@
     @apply w-28 whitespace-nowrap text-right;
   }
 
+  .admin-form-section {
+    @apply overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  .admin-form-section__header {
+    @apply border-b border-gray-100 bg-gray-50/80 px-6 py-4;
+  }
+
+  .admin-form-section__title {
+    @apply text-sm font-semibold text-gray-900;
+  }
+
+  .admin-form-section__hint {
+    @apply mt-1 text-xs leading-relaxed text-gray-600;
+  }
+
+  .admin-form-section__body {
+    @apply space-y-5 p-6;
+  }
+
+  .admin-form-field {
+    @apply space-y-2;
+  }
+
+  .admin-form-field label {
+    @apply block text-sm font-medium text-gray-800;
+  }
+
+  .admin-form-chip {
+    @apply inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50;
+  }
+
+  .admin-form-day {
+    @apply flex min-h-[3rem] cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition has-[:checked]:border-brand has-[:checked]:bg-brand/5;
+  }
+
+  .admin-form-preview {
+    @apply overflow-hidden rounded-xl border border-brand/25 bg-brand-pale/40 shadow-sm;
+  }
+
+  .admin-form-preview__header {
+    @apply border-b border-brand/15 bg-brand/5 px-6 py-4;
+  }
+
+  .admin-form-preview__body {
+    @apply space-y-3 p-6;
+  }
+
   .shop-announcement {
     @apply bg-brand text-center text-xs font-medium uppercase tracking-widest text-white;
   }

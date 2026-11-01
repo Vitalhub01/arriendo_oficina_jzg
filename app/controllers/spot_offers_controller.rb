@@ -4,13 +4,7 @@ class SpotOffersController < ApplicationController
   before_action :set_spot_offer
 
   def show
-    @occurrences = SpotOffers::BuildOccurrences.new(
-      space: @spot_offer.space,
-      starts_on: @spot_offer.starts_on,
-      ends_on: @spot_offer.ends_on,
-      daily_start_time: @spot_offer.daily_start_time,
-      daily_end_time: @spot_offer.daily_end_time
-    ).call
+    @occurrences = @spot_offer.build_occurrences
   end
 
   def checkout

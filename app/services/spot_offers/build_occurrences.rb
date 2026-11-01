@@ -2,17 +2,19 @@
 
 module SpotOffers
   class BuildOccurrences
-    def initialize(space:, starts_on:, ends_on:, daily_start_time:, daily_end_time:)
+    def initialize(space:, starts_on:, ends_on:, daily_start_time:, daily_end_time:, weekdays: SpotOfferRecurrence::ALL_WEEKDAYS)
       @space = space
       @starts_on = starts_on.to_date
       @ends_on = ends_on.to_date
       @daily_start_time = daily_start_time
       @daily_end_time = daily_end_time
+      @weekdays = Array(weekdays).map(&:to_i).uniq
     end
 
     def call
       (@starts_on..@ends_on).filter_map do |date|
         next if date < Date.current
+        next unless @weekdays.include?(SpotOffer.app_wday_from_date(date))
 
         interval = @space.schedule_interval_for_daily_window(date, @daily_start_time, @daily_end_time)
         next unless interval
