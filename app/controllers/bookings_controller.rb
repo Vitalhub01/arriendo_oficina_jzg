@@ -70,7 +70,6 @@ class BookingsController < ApplicationController
       elsif params[:from_checkout].present? && result.booking.pending_payment? && result.booking.total_amount_cents.positive?
         redirect_to checkout_booking_path(result.booking), notice: booking_created_notice, status: :see_other
       else
-        mark_booking_guidelines_flash
         redirect_to result.booking, notice: booking_created_notice, status: :see_other
       end
     else
@@ -95,7 +94,7 @@ class BookingsController < ApplicationController
     ).call
 
     if result.success?
-      mark_booking_guidelines_flash
+      mark_booking_guidelines_flash if result.booking.confirmed?
       notice = if result.booking.confirmed?
                  'Código aplicado. Tu reserva quedó confirmada sin pago.'
                else

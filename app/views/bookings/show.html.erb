@@ -4,7 +4,7 @@
       <%= render "shared/profile_incomplete_reminder", variant: :after_booking %>
     </div>
   <% end %>
-  <% if flash[:booking_guidelines] %>
+  <% if flash[:booking_guidelines] && @booking.confirmed? %>
     <div class="mb-6">
       <%= render "shared/booking_guidelines", variant: :welcome %>
     </div>

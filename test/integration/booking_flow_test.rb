@@ -58,8 +58,8 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to booking_path(booking)
 
     follow_redirect!
-    assert_match 'cerradura inteligente', response.body
-    assert_match 'Tu reserva está registrada', response.body
+    assert_no_match 'Tu reserva está registrada', response.body
+    assert_match 'Ir a pagar', response.body
   end
 
   test 'checkout mercado pago preference uses total including equipment rental' do
