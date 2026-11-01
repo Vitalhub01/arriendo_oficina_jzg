@@ -147,7 +147,8 @@ module ApplicationHelper
   end
 
   SITE_LOGO_ASSET = 'logo_vital_hub.png'
-  SITE_HERO_ASSET = 'vitalhub_office_1.jpg'
+  # Misma foto que la galería «Recepción» en seeds (vitalhub_office_4.jpg)
+  SITE_HERO_FALLBACK_ASSET = 'vitalhub_office_4.jpg'
 
   def site_navigation_settings
     @site_navigation_settings ||= SiteNavigationSettings.load_all
@@ -157,8 +158,12 @@ module ApplicationHelper
     SITE_LOGO_ASSET
   end
 
+  def site_hero_gallery_item
+    @site_hero_gallery_item ||= GalleryItem.items_for_tag_slug('recepcion').first
+  end
+
   def site_hero_image
-    SITE_HERO_ASSET
+    SITE_HERO_FALLBACK_ASSET
   end
 
   def site_nav_text(key)
@@ -170,6 +175,11 @@ module ApplicationHelper
   end
 
   def site_hero_image_url
-    absolute_url(asset_path(SITE_HERO_ASSET))
+    item = site_hero_gallery_item
+    if item&.image&.attached?
+      absolute_url(url_for(item.image.variant(resize_to_limit: VARIANT_LIMITS_DEFAULT)))
+    else
+      absolute_url(asset_path(SITE_HERO_FALLBACK_ASSET))
+    end
   end
 end
