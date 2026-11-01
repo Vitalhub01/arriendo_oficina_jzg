@@ -40,4 +40,21 @@ class AvailabilityCheckerTest < ActiveSupport::TestCase
 
     assert @checker.available?(@slot, @slot + 2.hours)
   end
+
+  test 'exclude_booking ignores own hold when checking interval' do
+    booking = Booking.create!(
+      space: @box,
+      profesional: users(:renter),
+      start_at: @slot,
+      end_at: @slot + 2.hours,
+      hours: 2,
+      duration_minutes: 120,
+      total_amount_cents: @box.default_price_per_slot_cents * 2,
+      status: :pending_payment,
+      payment_expires_at: 30.minutes.from_now,
+      booking_type: :slot_based
+    )
+
+    assert @checker.available?(@slot, @slot + 2.hours, exclude_booking: booking)
+  end
 end

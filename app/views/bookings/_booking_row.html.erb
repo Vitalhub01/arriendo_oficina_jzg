@@ -3,7 +3,20 @@
     <div>
       <h3 class="font-semibold"><%= booking.space.title %></h3>
       <p class="text-sm text-gray-600"><%= l(booking.start_at, format: :long) %> — <%= booking.formatted_duration %></p>
-      <p class="mt-1 text-sm"><%= booking.formatted_total %></p>
+      <% if booking.reschedule_replacement? && booking.pending_payment? %>
+        <p class="mt-1 text-xs text-amber-800">Reagendamiento: paga <%= booking.formatted_total %> para confirmar el nuevo horario.</p>
+      <% end %>
+      <p class="mt-1 text-sm">
+        <% if booking.total_amount_cents.zero? && booking.reservation_value_cents.positive? %>
+          <%= booking.formatted_reservation_value %>
+          <% if booking.reschedule_credit.present? %>
+            <span class="text-xs text-gray-500">(con crédito de reagendamiento)</span>
+          <% end %>
+        <% else %>
+          <%= booking.formatted_total %>
+        <% end %>
+      </p>
+      <%= render "shared/booking_spot_offer_price_badge", booking: booking if booking.spot_offer_booking? %>
       <% if booking.pending_payment? && booking.payment_expires_at.present? %>
         <p class="mt-1 text-xs text-amber-700"><%= booking_payment_expires_label(booking) %></p>
       <% end %>

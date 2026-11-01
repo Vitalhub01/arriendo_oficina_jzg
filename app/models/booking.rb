@@ -39,6 +39,7 @@ class Booking < ApplicationRecord
     where(start_at: range_start..range_start.end_of_day)
   }
   scope :excluding_cancelled, -> { where.not(status: :cancelled) }
+  scope :without_spot_offer, -> { where(spot_offer_id: nil) }
   scope :active_statuses, -> { where(status: %i[pending_payment confirmed]) }
   scope :blocking_availability, lambda {
     where(status: :confirmed).or(
@@ -59,6 +60,61 @@ class Booking < ApplicationRecord
 
   def formatted_total
     Money.new(total_amount_cents, 'CLP').format(no_cents_if_whole: true)
+  end
+
+  def spot_offer_booking?
+    spot_offer_id.present?
+  end
+
+  def spot_package_paid?
+    spot_offer_booking? && spot_offer.paid?
+  end
+
+  def spot_package_session_index
+    return unless spot_offer_booking?
+
+    ids = spot_offer.bookings.order(:start_at, :id).pluck(:id)
+    position = ids.index(id)
+    position ? position + 1 : nil
+  end
+
+  def spot_package_sessions_count
+    return unless spot_offer_booking?
+
+    spot_offer.bookings.size
+  end
+
+  def spot_package_total_cents
+    spot_offer&.total_price_cents.to_i
+  end
+
+  def formatted_spot_package_total
+    Money.new(spot_package_total_cents, 'CLP').format(no_cents_if_whole: true)
+  end
+
+  def pricing_subtotal_cents
+    pricing_breakdown&.dig('subtotal_cents').to_i
+  end
+
+  def applied_reschedule_credit_cents
+    reschedule_credit&.amount_cents.to_i
+  end
+
+  def reservation_value_cents
+    subtotal = pricing_subtotal_cents
+    return subtotal if subtotal.positive?
+
+    total_amount_cents + promo_discount_cents.to_i + applied_reschedule_credit_cents
+  end
+
+  def formatted_reservation_value
+    Money.new(reservation_value_cents, 'CLP').format(no_cents_if_whole: true)
+  end
+
+  def formatted_applied_reschedule_credit
+    return unless applied_reschedule_credit_cents.positive?
+
+    Money.new(applied_reschedule_credit_cents, 'CLP').format(no_cents_if_whole: true)
   end
 
   def slot_count
@@ -101,6 +157,53 @@ class Booking < ApplicationRecord
     [Bookings::Reschedule::MAX_MODIFICATIONS - reschedule_modifications_count, 0].max
   end
 
+  def reschedule_replacement?
+    reschedule_credit_id.present? && reschedule_credit&.source_booking_id.present?
+  end
+
+  def reschedule_source_booking
+    reschedule_credit&.source_booking
+  end
+
+  def pending_reschedule_replacement
+    credit = RescheduleCredit.applied.find_by(source_booking_id: id)
+    replacement = credit&.applied_booking
+    replacement if replacement&.pending_payment?
+  end
+
+  def stored_reservation_mode
+    pricing_breakdown&.dig('reservation_mode').presence
+  end
+
+  def reschedule_reservation_mode
+    stored_reservation_mode || case booking_type
+                             when 'jornada' then 'jornada'
+                             when 'hourly' then 'bloque'
+                             else 'hora'
+                             end
+  end
+
+  def stored_slot_rate_id
+    pricing_breakdown&.dig('slot_rate_id')
+  end
+
+  def reschedule_slot_rate
+    if stored_slot_rate_id.present?
+      space.slot_rates.find_by(id: stored_slot_rate_id)
+    else
+      infer_bloque_slot_rate
+    end
+  end
+
+  def infer_bloque_slot_rate
+    return unless space && start_at
+
+    space.bloque_slot_rates.find do |rate|
+      interval = space.schedule_interval_for_slot_rate(start_at.to_date, rate)
+      interval && interval[:start_at] == start_at
+    end
+  end
+
   private
 
   def set_payment_expires_at
@@ -138,9 +241,19 @@ class Booking < ApplicationRecord
     self.pricing_breakdown = {
       breakdown: result[:breakdown],
       subtotal_cents: result[:subtotal_cents],
-      reservation_mode: reservation_mode,
+      reservation_mode: reservation_mode.presence || inferred_reservation_mode_for_breakdown,
+      slot_rate_id: reservation_slot_rate&.id,
+      jornada_definition_id: jornada_definition&.id,
       rented_equipment_item_ids: rented_equipment_items_for_pricing.map(&:id)
     }
+  end
+
+  def inferred_reservation_mode_for_breakdown
+    case booking_type
+    when 'jornada' then 'jornada'
+    when 'hourly' then 'bloque'
+    else 'hora'
+    end
   end
 
   def rented_equipment_items_for_pricing

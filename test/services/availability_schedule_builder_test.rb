@@ -17,6 +17,29 @@ class AvailabilityScheduleBuilderTest < ActiveSupport::TestCase
     assert_equal 60, ((first_slot.ends_at - first_slot.starts_at) / 60).to_i
   end
 
+  test 'orders slots by start time when position values are out of order' do
+    @space.schedule_blocks.for_day(0).destroy_all
+    [
+      ['14:00', '15:00', 0],
+      ['06:00', '07:00', 1],
+      ['17:00', '18:00', 2]
+    ].each do |start_label, end_label, position|
+      @space.schedule_blocks.create!(
+        day_of_week: 0,
+        start_time: Time.zone.parse("2000-01-01 #{start_label}"),
+        end_time: Time.zone.parse("2000-01-01 #{end_label}"),
+        price_cents: 5000,
+        position: position
+      )
+    end
+
+    schedule = AvailabilityScheduleBuilder.new(@space, week_start: @week_start).build
+    monday = schedule.find { |day| day[:day_name] == 'Lunes' }
+    hours = monday[:slots].map { |slot| slot.starts_at.hour }
+
+    assert_equal [6, 14, 17], hours
+  end
+
   test 'reflects variable block durations' do
     @space.schedule_blocks.for_day(0).destroy_all
     @space.schedule_blocks.create!(

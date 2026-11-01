@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
   resources :bookings, only: %i[index show] do
     member do
+      get :availability
       get :checkout
       patch :cancel
       patch :reschedule
@@ -80,10 +81,13 @@ Rails.application.routes.draw do
     resources :users, only: %i[index edit update]
     resources :professionals, only: %i[index show update]
     resources :spot_offers, only: %i[index new create show]
+    resources :spot_packages, only: %i[index show update], path: 'bookings/spot', controller: 'bookings/spot_packages'
     resources :bookings, only: %i[index show new create update] do
       collection do
         get :calendar
         get :day_contacts
+        get :schedule
+        get :availability
       end
     end
     resources :testimonials, except: %i[show]

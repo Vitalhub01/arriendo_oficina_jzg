@@ -38,6 +38,30 @@ module Bookings
       assert_equal :pending, slot.status
     end
 
+    test 'orders slots by start time when position values are out of order' do
+      monday = @week_start
+      @space.schedule_blocks.for_day(0).destroy_all
+      [
+        ['14:00', '15:00', 0],
+        ['06:00', '07:00', 1],
+        ['17:00', '18:00', 2]
+      ].each do |start_label, end_label, position|
+        @space.schedule_blocks.create!(
+          day_of_week: 0,
+          start_time: Time.zone.parse("2000-01-01 #{start_label}"),
+          end_time: Time.zone.parse("2000-01-01 #{end_label}"),
+          price_cents: 5000,
+          position: position
+        )
+      end
+
+      days = AdminCalendarBuilder.new(space: @space, week_start: @week_start).build
+      day = days.find { |entry| entry[:date] == monday }
+      hours = day[:slots].map { |slot| slot.starts_at.hour }
+
+      assert_equal [6, 14, 17], hours
+    end
+
     test 'marks slot blocked when schedule override blocks block' do
       block = schedule_blocks(:published_d0_h10)
       block.overrides.create!(space: @space, date: @slot_time.to_date, blocked: true)

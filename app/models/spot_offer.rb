@@ -19,6 +19,7 @@ class SpotOffer < ApplicationRecord
   before_validation :generate_token, on: :create
 
   scope :recent, -> { order(created_at: :desc) }
+  scope :with_reservations, -> { joins(:bookings).distinct }
 
   def to_param
     token

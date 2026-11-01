@@ -42,6 +42,7 @@ export default class extends Controller {
     this.applyModeUI(this.currentMode())
     this.refreshStarts()
     this.updateTotal()
+    this.syncAvailabilityScheduleView(this.currentMode())
   }
 
   openPanel() {
@@ -122,14 +123,30 @@ export default class extends Controller {
       field.value = mode
     })
     this.applyModeUI(mode)
+    this.syncAvailabilityScheduleView(mode)
+  }
+
+  setReservationModeFromSchedule(mode) {
+    if (this.currentMode() === mode) return
+
+    this.applyReservationMode(mode)
+    this.updateTotal()
+  }
+
+  syncAvailabilityScheduleView(mode) {
+    const scheduleEl = this.element.querySelector('[data-controller~="availability-schedule"]')
+    if (!scheduleEl) return
+
+    const schedule = this.application.getControllerForElementAndIdentifier(
+      scheduleEl,
+      "availability-schedule"
+    )
+    schedule?.setViewFromBookingForm(mode)
   }
 
   modeChanged(event) {
     const mode = this.modeFromEvent(event)
-    this.reservationModeTargets.forEach((el) => {
-      el.value = mode
-    })
-    this.applyModeUI(mode)
+    this.applyReservationMode(mode)
     this.updateTotal()
   }
 

@@ -17,6 +17,8 @@ import AvailabilityScheduleController from "controllers/availability_schedule_co
 import CheckoutAuthController from "controllers/checkout_auth_controller"
 import CheckoutFormController from "controllers/checkout_form_controller"
 import PhotoLightboxController from "controllers/photo_lightbox_controller"
+import RescheduleFormController from "controllers/reschedule_form_controller"
+import AdminBookingFormController from "controllers/admin_booking_form_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -37,6 +39,8 @@ application.register("availability-schedule", AvailabilityScheduleController)
 application.register("checkout-auth", CheckoutAuthController)
 application.register("checkout-form", CheckoutFormController)
 application.register("photo-lightbox", PhotoLightboxController)
+application.register("reschedule-form", RescheduleFormController)
+application.register("admin-booking-form", AdminBookingFormController)
 window.Stimulus = application
 
 export { application }

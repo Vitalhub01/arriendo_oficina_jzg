@@ -12,7 +12,9 @@ export default class extends Controller {
     interactive: { type: Boolean, default: false },
     loginPrompt: { type: Boolean, default: false },
     availabilityUrl: String,
-    spaceId: Number
+    spaceId: Number,
+    formController: { type: String, default: "booking-form" },
+    syncBookingForm: { type: Boolean, default: true }
   }
 
   connect() {
@@ -41,11 +43,32 @@ export default class extends Controller {
 
   setView(event) {
     const view = event.currentTarget.dataset.view
-    if (!view || view === this.view) return
+    this.applyView(view, { syncBookingForm: true })
+  }
 
-    this.view = view
-    this.syncViewToggleStyles()
-    this.renderCurrentWeek()
+  setViewFromBookingForm(view) {
+    this.applyView(view, { syncBookingForm: false })
+  }
+
+  applyView(view, { syncBookingForm = false } = {}) {
+    if (!view) return
+
+    if (view !== this.view) {
+      this.view = view
+      this.syncViewToggleStyles()
+      this.renderCurrentWeek()
+    }
+
+    if (syncBookingForm && this.syncBookingFormValue) this.syncBookingForm(view)
+  }
+
+  syncBookingForm(view) {
+    const controllerName = this.formControllerValue || "booking-form"
+    const root = this.element.closest(`[data-controller~="${controllerName}"]`)
+    if (!root) return
+
+    const form = this.application.getControllerForElementAndIdentifier(root, controllerName)
+    form?.setReservationModeFromSchedule(view)
   }
 
   navigate(event) {
@@ -122,7 +145,8 @@ export default class extends Controller {
     this.contentTarget.innerHTML = renderAvailabilityWeek(week, this.view, {
       interactive: this.interactiveValue,
       loginPrompt: this.loginPromptValue,
-      availabilityUrl: this.availabilityUrlValue
+      availabilityUrl: this.availabilityUrlValue,
+      formController: this.formControllerValue
     })
     this.contentTarget.dataset.weekStart = weekStart
     this.contentTarget.dataset.view = this.view

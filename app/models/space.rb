@@ -159,7 +159,8 @@ class Space < ApplicationRecord
 
   def schedule_blocks_for_date(date)
     day = (date.wday + 6) % 7
-    schedule_blocks.for_day(day).ordered.reject { |block| !block.active_on?(date) || block.blocked_on?(date) }
+    blocks = schedule_blocks.for_day(day).ordered.reject { |block| !block.active_on?(date) || block.blocked_on?(date) }
+    ScheduleBlock.sort_for_display_on(blocks, date)
   end
 
   def bookable_schedule_blocks_on(date)

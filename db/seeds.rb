@@ -218,7 +218,7 @@ end
 
 [
   ['¿Hay estacionamiento?', 'Hay alternativas de estacionamiento cercanas sin costo en las calles aledañas.'],
-  ['¿Puedo reagendar si mi paciente cancela?', 'Sí, con al menos 24 horas de anticipación puedes reagendar usando un crédito para una reserva futura. No hay reembolso en efectivo.'],
+  ['¿Puedo reagendar si mi paciente cancela?', 'Sí, con al menos 12 horas de anticipación puedes reagendar usando un crédito para una reserva futura. No hay reembolso en efectivo.'],
   ['¿Hay WiFi?', 'Contamos con conexión WiFi estable para sesiones online.']
 ].each_with_index do |(q, a), i|
   Faq.find_or_create_by!(question: q) do |f|

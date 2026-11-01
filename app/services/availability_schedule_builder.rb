@@ -171,7 +171,8 @@ class AvailabilityScheduleBuilder
   def schedule_blocks_for_date(date)
     day = (date.wday + 6) % 7
     blocks = @schedule_blocks_by_day[day] || []
-    blocks.reject { |block| !active_on?(block, date) || blocked_on?(block, date) }
+    active = blocks.reject { |block| !active_on?(block, date) || blocked_on?(block, date) }
+    ScheduleBlock.sort_for_display_on(active, date)
   end
 
   def active_on?(block, date)

@@ -51,4 +51,65 @@ class BookingRescheduleTest < ActionDispatch::IntegrationTest
     assert_match 'reprogramada', flash[:notice]
     assert @booking.reload.rescheduled?
   end
+
+  test 'reschedule with price difference redirects to checkout' do
+    @box.update_column(:reschedule_notice_hours, 1)
+    new_start = @start_at + 7.days
+
+    patch reschedule_booking_path(@booking), params: {
+      date: new_start.to_date.to_s,
+      start_time: new_start.strftime('%H:%M'),
+      slot_count: 3
+    }
+
+    replacement = Booking.order(:id).last
+    assert_redirected_to checkout_booking_path(replacement)
+    assert_match 'diferencia', flash[:notice]
+    assert @booking.reload.confirmed?
+    assert replacement.pending_payment?
+  end
+
+  test 'confirmed booking shows pending reschedule alert on show page' do
+    @box.update_column(:reschedule_notice_hours, 1)
+    new_start = @start_at + 7.days
+    Bookings::Reschedule.new(
+      booking: @booking,
+      actor: @renter,
+      params: {
+        date: new_start.to_date.to_s,
+        start_time: new_start.strftime('%H:%M'),
+        slot_count: 3
+      }
+    ).call
+
+    get booking_path(@booking)
+
+    assert_response :success
+    assert_select 'p', text: /reagendamiento sin confirmar/
+    assert_select 'a', text: 'Pagar diferencia y confirmar'
+  end
+
+  test 'show page includes interactive availability calendar for reschedule' do
+    @box.update_column(:reschedule_notice_hours, 1)
+
+    get booking_path(@booking)
+
+    assert_response :success
+    assert_select '[data-controller~="reschedule-form"]'
+    assert_select '[data-controller~="availability-schedule"]'
+    assert_match 'data-availability-schedule-form-controller-value="reschedule-form"', response.body
+    assert_match 'Referencia: horarios por hora', response.body
+    assert_select '[data-availability-schedule-target="content"][data-view="hora"]'
+  end
+
+  test 'availability json for reschedule booking' do
+    @box.update_column(:reschedule_notice_hours, 1)
+
+    get availability_booking_path(@booking), headers: { 'Accept' => 'application/json' }
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert payload['weeks'].present?
+    assert payload['interactive']
+  end
 end

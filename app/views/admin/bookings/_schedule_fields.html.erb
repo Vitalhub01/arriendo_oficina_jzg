@@ -1,0 +1,119 @@
+<%# locals: (space:, week_start:, schedule_payload:, booking_params: {}) %>
+<% booking_params = booking_params.to_h.with_indifferent_access %>
+<% current_mode = booking_params[:reservation_mode].presence || "hora" %>
+<% current_mode = "hora" unless %w[hora bloque jornada].include?(current_mode) %>
+<% booking_date = (booking_params[:date].presence || space.first_bookable_date).to_date %>
+<div data-controller="booking-form"
+     data-booking-form-minimum-slots-value="<%= space.minimum_slots %>"
+     data-booking-form-blocks-by-day-value="<%= space_booking_blocks_by_day(space).to_json %>"
+     data-booking-form-overrides-value="<%= space_booking_block_overrides(space).to_json %>"
+     data-booking-form-today-value="<%= Date.current.iso8601 %>"
+     data-booking-form-now-time-value="<%= Time.zone.now.strftime('%H:%M') %>"
+     data-booking-form-slot-rates-value="<%= space_booking_slot_rates_payload(space).to_json %>"
+     data-booking-form-jornada-value="<%= space_booking_jornada_payload(space).to_json %>"
+     data-booking-form-reserved-intervals-value="<%= space_booking_reserved_intervals(space).to_json %>">
+  <section class="rounded-xl border border-gray-200 bg-white p-4">
+    <h2 class="text-lg font-semibold">Horarios disponibles</h2>
+    <p class="mt-1 text-sm text-gray-600"><%= space.title %></p>
+    <%= turbo_frame_tag "admin_booking_availability",
+          data: space_availability_schedule_frame_data(
+            space,
+            schedule_payload,
+            availability_url: availability_admin_bookings_path(space_id: space.id),
+            form_controller: "booking-form"
+          ) do %>
+      <%= render "spaces/availability_schedule",
+            space: space,
+            week_start: week_start,
+            interactive: true,
+            login_prompt_on_slots: false,
+            initial_view: current_mode,
+            hint: "Haz clic en una franja disponible (verde) para rellenar fecha y horario abajo." %>
+    <% end %>
+  </section>
+
+  <div class="mt-6 space-y-4">
+    <p class="text-sm font-medium text-brand" data-booking-form-target="modeSummary"></p>
+
+    <div>
+      <%= label_tag "booking[reservation_mode]", "Tipo de reserva", class: "block text-sm font-medium" %>
+      <%= select_tag "booking[reservation_mode]",
+            options_for_select(
+              [
+                ["Por hora (inicio y cantidad de horas)", "hora"],
+                ["Bloque mañana o tarde", "bloque"],
+                ["Jornada completa (día)", "jornada"]
+              ],
+              current_mode
+            ),
+            class: "input-field mt-1 w-full",
+            data: { booking_form_target: "reservationMode", action: "change->booking-form#modeChanged" } %>
+    </div>
+
+    <div>
+      <%= label_tag "booking[date]", "Fecha", class: "block text-sm font-medium" %>
+      <%= date_field_tag "booking[date]",
+            booking_date,
+            min: Date.current,
+            class: "input-field mt-1 w-full",
+            required: true,
+            data: { booking_form_target: "date", action: "change->booking-form#dateChanged" } %>
+    </div>
+
+    <div data-booking-form-target="horaFields" class="<%= "hidden" unless current_mode == "hora" %> space-y-4">
+      <div>
+        <%= label_tag "booking[start_time]", "Hora de inicio", class: "block text-sm font-medium" %>
+        <%= select_tag "booking[start_time]",
+              options_for_select(
+                space_booking_start_time_options(space, booking_date),
+                booking_params[:start_time]
+              ),
+              class: "input-field mt-1 w-full",
+              required: current_mode == "hora",
+              data: { booking_form_target: "startTime", action: "change->booking-form#startTimeChanged" } %>
+      </div>
+      <div>
+        <%= label_tag "booking[slot_count]", "Cantidad de horas", class: "block text-sm font-medium" %>
+        <%= number_field_tag "booking[slot_count]",
+              booking_params[:slot_count].presence || space.minimum_slots,
+              min: space.minimum_slots,
+              class: "input-field mt-1 w-full",
+              required: current_mode == "hora",
+              data: { booking_form_target: "slotCount", action: "input->booking-form#slotCountChanged change->booking-form#slotCountChanged" } %>
+        <p class="mt-1 text-xs text-gray-500">Cada unidad equivale a la duración configurada del espacio (ej. 60 min = 1 hora).</p>
+      </div>
+    </div>
+
+    <div data-booking-form-target="bloqueFields" class="<%= "hidden" unless current_mode == "bloque" %> space-y-4">
+      <div>
+        <%= label_tag "booking[slot_rate_id]", "Bloque del día", class: "block text-sm font-medium" %>
+        <%= select_tag "booking[slot_rate_id]",
+              options_from_collection_for_select(
+                space.bloque_slot_rates,
+                :id,
+                ->(r) {
+                  "#{r.name} (#{r.start_time.strftime('%H:%M')} – #{r.end_time.strftime('%H:%M')})"
+                },
+                booking_params[:slot_rate_id]
+              ),
+              class: "input-field mt-1 w-full",
+              required: current_mode == "bloque",
+              data: { booking_form_target: "slotRate", action: "change->booking-form#slotRateChanged" } %>
+      </div>
+      <p class="hidden text-sm text-red-700" data-booking-form-target="bloqueWarning"></p>
+    </div>
+
+    <div data-booking-form-target="jornadaFields" class="<%= "hidden" unless current_mode == "jornada" %>">
+      <% jornada = space.primary_jornada_definition %>
+      <% if jornada %>
+        <p class="text-sm text-gray-700">
+          Jornada completa:
+          <span class="font-medium"><%= jornada.start_time.strftime('%H:%M') %> – <%= jornada.end_time.strftime('%H:%M') %></span>
+        </p>
+      <% else %>
+        <p class="text-sm text-amber-700">Este espacio aún no tiene jornada completa configurada.</p>
+      <% end %>
+      <p class="mt-2 hidden text-sm text-red-700" data-booking-form-target="jornadaWarning"></p>
+    </div>
+  </div>
+</div>

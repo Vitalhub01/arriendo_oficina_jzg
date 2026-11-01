@@ -49,18 +49,18 @@ function renderNavigation(week, availabilityUrl) {
   return `<div class="flex items-center justify-between">${prev}<span class="text-sm text-gray-600">${escapeHtml(week.rangeLabel)}</span>${next}</div>`
 }
 
-function renderHoraDay(day, interactive, loginPrompt) {
+function renderHoraDay(day, interactive, loginPrompt, formController) {
   const cells = day.hora.length
-    ? day.hora.map((slot) => renderHoraSlot(day, slot, interactive, loginPrompt)).join("")
+    ? day.hora.map((slot) => renderHoraSlot(day, slot, interactive, loginPrompt, formController)).join("")
     : `<p class="text-center text-[10px] text-gray-300">—</p>`
 
   return `<div class="rounded-xl border border-gray-200 p-2"><p class="text-center text-xs font-semibold text-gray-700">${escapeHtml(day.dayShort)}</p><p class="text-center text-[10px] text-gray-400">${escapeHtml(day.dateLabel)}</p><div class="mt-2 space-y-1">${cells}</div></div>`
 }
 
-function renderHoraSlot(day, slot, interactive, loginPrompt) {
+function renderHoraSlot(day, slot, interactive, loginPrompt, formController) {
   const label = `${slot.start}–${slot.end}`
   if (interactive && slot.available) {
-    return `<button type="button" data-action="click-&gt;booking-form#selectSlot" data-date="${escapeHtml(day.date)}" data-start-time="${escapeHtml(slot.start)}" class="${slotButtonClasses(true, true)}">${escapeHtml(label)}</button>`
+    return `<button type="button" data-action="click-&gt;${formController}#selectSlot" data-date="${escapeHtml(day.date)}" data-start-time="${escapeHtml(slot.start)}" class="${slotButtonClasses(true, true)}">${escapeHtml(label)}</button>`
   }
   if (loginPrompt && slot.checkoutUrl && slot.available) {
     return `<a href="${escapeHtml(slot.checkoutUrl)}" class="${slotButtonClasses(true, false)}" data-turbo-frame="_top">${escapeHtml(label)}</a>`
@@ -68,20 +68,20 @@ function renderHoraSlot(day, slot, interactive, loginPrompt) {
   return `<div class="${slotButtonClasses(slot.available, interactive)}">${escapeHtml(label)}</div>`
 }
 
-function renderBloqueDay(day, interactive, loginPrompt) {
+function renderBloqueDay(day, interactive, loginPrompt, formController) {
   const cells = day.bloque.length
-    ? day.bloque.map((entry) => renderBloqueEntry(day, entry, interactive, loginPrompt)).join("")
+    ? day.bloque.map((entry) => renderBloqueEntry(day, entry, interactive, loginPrompt, formController)).join("")
     : `<p class="text-center text-[10px] text-gray-300">—</p>`
 
   return `<div class="rounded-xl border border-gray-200 p-2"><p class="text-center text-xs font-semibold text-gray-700">${escapeHtml(day.dayShort)}</p><p class="text-center text-[10px] text-gray-400">${escapeHtml(day.dateLabel)}</p><div class="mt-2 space-y-1">${cells}</div></div>`
 }
 
-function renderBloqueEntry(day, entry, interactive, loginPrompt) {
+function renderBloqueEntry(day, entry, interactive, loginPrompt, formController) {
   const timeRange = `${entry.start}–${entry.end}`
   const inner = `<span class="block font-medium">${escapeHtml(entry.name)}</span><span class="block text-[9px] opacity-80">${escapeHtml(timeRange)}</span>`
 
   if (interactive && entry.available) {
-    return `<button type="button" data-action="click-&gt;booking-form#selectBloque" data-date="${escapeHtml(day.date)}" data-slot-rate-id="${escapeHtml(entry.rateId)}" class="${bloqueButtonClasses(true, true)}">${inner}</button>`
+    return `<button type="button" data-action="click-&gt;${formController}#selectBloque" data-date="${escapeHtml(day.date)}" data-slot-rate-id="${escapeHtml(entry.rateId)}" class="${bloqueButtonClasses(true, true)}">${inner}</button>`
   }
   if (loginPrompt && entry.checkoutUrl && entry.available) {
     return `<a href="${escapeHtml(entry.checkoutUrl)}" class="${bloqueButtonClasses(true, false)}" data-turbo-frame="_top">${inner}</a>`
@@ -92,7 +92,7 @@ function renderBloqueEntry(day, entry, interactive, loginPrompt) {
   return `<div class="${bloqueButtonClasses(false, false)}"><span class="block font-medium">${escapeHtml(entry.name)}</span><span class="block text-[9px]">${escapeHtml(timeRange)}</span></div>`
 }
 
-function renderJornadaDay(day, interactive, loginPrompt) {
+function renderJornadaDay(day, interactive, loginPrompt, formController) {
   const entry = day.jornada
   if (!entry) {
     return `<div class="rounded-xl border border-gray-200 p-2"><p class="text-center text-xs font-semibold text-gray-700">${escapeHtml(day.dayShort)}</p><p class="text-center text-[10px] text-gray-400">${escapeHtml(day.dateLabel)}</p><div class="mt-2"><p class="text-center text-[10px] text-gray-300">—</p></div></div>`
@@ -103,7 +103,7 @@ function renderJornadaDay(day, interactive, loginPrompt) {
   let cell
 
   if (interactive && entry.available) {
-    cell = `<button type="button" data-action="click-&gt;booking-form#selectJornada" data-date="${escapeHtml(day.date)}" class="${bloqueButtonClasses(true, true)}">${inner}</button>`
+    cell = `<button type="button" data-action="click-&gt;${formController}#selectJornada" data-date="${escapeHtml(day.date)}" class="${bloqueButtonClasses(true, true)}">${inner}</button>`
   } else if (loginPrompt && entry.checkoutUrl && entry.available) {
     cell = `<a href="${escapeHtml(entry.checkoutUrl)}" class="${bloqueButtonClasses(true, false)}" data-turbo-frame="_top">${inner}</a>`
   } else if (entry.available) {
@@ -115,12 +115,12 @@ function renderJornadaDay(day, interactive, loginPrompt) {
   return `<div class="rounded-xl border border-gray-200 p-2"><p class="text-center text-xs font-semibold text-gray-700">${escapeHtml(day.dayShort)}</p><p class="text-center text-[10px] text-gray-400">${escapeHtml(day.dateLabel)}</p><div class="mt-2">${cell}</div></div>`
 }
 
-function renderWeekGrid(days, view, interactive, loginPrompt) {
+function renderWeekGrid(days, view, interactive, loginPrompt, formController) {
   const dayHtml = days
     .map((day) => {
-      if (view === "bloque") return renderBloqueDay(day, interactive, loginPrompt)
-      if (view === "jornada") return renderJornadaDay(day, interactive, loginPrompt)
-      return renderHoraDay(day, interactive, loginPrompt)
+      if (view === "bloque") return renderBloqueDay(day, interactive, loginPrompt, formController)
+      if (view === "jornada") return renderJornadaDay(day, interactive, loginPrompt, formController)
+      return renderHoraDay(day, interactive, loginPrompt, formController)
     })
     .join("")
 
@@ -134,9 +134,9 @@ function renderEmptyWeekNotice(week, availabilityUrl) {
   return `<p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">No hay horarios visibles en esta semana (días pasados, fin de plantilla o sin agenda). <a href="${escapeHtml(href)}" class="font-medium text-rose-700 hover:underline" data-week-start="${escapeHtml(week.nextWeekStart)}" data-action="click-&gt;availability-schedule#navigate">Ver semana siguiente →</a></p>`
 }
 
-export function renderAvailabilityWeek(week, view, { interactive, loginPrompt, availabilityUrl }) {
+export function renderAvailabilityWeek(week, view, { interactive, loginPrompt, availabilityUrl, formController = "booking-form" }) {
   const navigation = renderNavigation(week, availabilityUrl)
-  const grid = renderWeekGrid(week.days, view, interactive, loginPrompt)
+  const grid = renderWeekGrid(week.days, view, interactive, loginPrompt, formController)
   const emptyNotice = view === "hora" ? renderEmptyWeekNotice(week, availabilityUrl) : ""
   return `${navigation}${grid}${emptyNotice}`
 }

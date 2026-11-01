@@ -53,6 +53,7 @@ module Bookings
 
     def slots_for(date, day_of_week)
       blocks = space.schedule_blocks.for_day(day_of_week).ordered.select { |block| block.active_on?(date) }
+      blocks = ScheduleBlock.sort_for_display_on(blocks, date)
 
       blocks.map do |block|
         starts_at = block.starts_at_on(date)

@@ -51,6 +51,35 @@ class BookingsReschedulePaymentTest < ActiveSupport::TestCase
     assert_equal 1, replacement.reschedule_modifications_count
   end
 
+  test 'rejects reschedule on the same calendar date as the booking' do
+    same_day = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 11, 0)
+    assert_equal @start_at.to_date, same_day.to_date
+
+    result = reschedule!(@booking, same_day, slot_count: 2)
+
+    assert_not result.success?
+    assert_includes result.errors.join, 'fecha distinta'
+    assert @booking.reload.confirmed?
+  end
+
+  test 'same duration after promo does not require extra payment' do
+    subtotal = @booking.pricing_breakdown['subtotal_cents']
+    promo = (subtotal * 0.1).round
+    @booking.update!(
+      promo_discount_cents: promo,
+      total_amount_cents: subtotal - promo
+    )
+
+    new_start = @start_at + 7.days
+    result = reschedule!(@booking, new_start, slot_count: 2)
+
+    assert result.success?, result.errors.inspect
+    assert_not result.requires_payment?
+    assert result.booking.confirmed?
+    assert_equal 0, result.booking.total_amount_cents
+    assert @booking.reload.rescheduled?
+  end
+
   private
 
   def create_confirmed_booking!(start_at, slot_count:)

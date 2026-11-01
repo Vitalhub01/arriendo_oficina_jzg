@@ -16,27 +16,68 @@ module Users
         return
       end
 
-      resource.save
-      if resource.persisted?
-        profile = resource.professional_profile || resource.build_professional_profile
-        profile.rut = rut
-        profile.save!
-        ValidateProfessionalJob.perform_later(profile.id)
-        flash[:ga_event] = { name: 'sign_up', params: { method: 'email' } }
+      resource.build_professional_profile unless resource.professional_profile
+      resource.professional_profile.rut = rut
 
-        if resource.active_for_authentication?
-          set_flash_message! :notice, :signed_up
-          sign_up(resource_name, resource)
-          respond_with resource, location: after_sign_up_path_for(resource)
-        else
-          set_flash_message! :notice, :"signed_up_but_#{resource.inactive_message}"
-          expire_data_after_sign_in!
-          respond_with resource, location: after_inactive_sign_up_path_for(resource)
-        end
-      else
+      if ProfessionalProfile.exists?(rut: rut)
+        resource.professional_profile.errors.add(:rut, :taken)
         clean_up_passwords resource
         set_minimum_password_length
         finish_registration_failure
+        return
+      end
+
+      unless resource.valid?
+        clean_up_passwords resource
+        set_minimum_password_length
+        finish_registration_failure
+        return
+      end
+
+      unless resource.professional_profile.valid?
+        clean_up_passwords resource
+        set_minimum_password_length
+        finish_registration_failure
+        return
+      end
+
+      registration_completed = false
+      profile_id = nil
+
+      User.transaction do
+        unless resource.save
+          raise ActiveRecord::Rollback
+        end
+
+        profile = resource.professional_profile
+        profile.user = resource
+        unless profile.save
+          transfer_profile_errors(profile)
+          raise ActiveRecord::Rollback
+        end
+
+        profile_id = profile.id
+        registration_completed = true
+      end
+
+      unless registration_completed
+        clean_up_passwords resource
+        set_minimum_password_length
+        finish_registration_failure
+        return
+      end
+
+      ValidateProfessionalJob.perform_later(profile_id)
+      flash[:ga_event] = { name: 'sign_up', params: { method: 'email' } }
+
+      if resource.active_for_authentication?
+        set_flash_message! :notice, :signed_up
+        sign_up(resource_name, resource)
+        respond_with resource, location: after_sign_up_path_for(resource)
+      else
+        set_flash_message! :notice, :"signed_up_but_#{resource.inactive_message}"
+        expire_data_after_sign_in!
+        respond_with resource, location: after_inactive_sign_up_path_for(resource)
       end
     end
 
@@ -58,6 +99,13 @@ module Users
       params.expect(user: %i[name email password password_confirmation rut])
     end
 
+    def transfer_profile_errors(profile)
+      resource.professional_profile ||= profile
+      profile.errors.each do |error|
+        resource.professional_profile.errors.add(error.attribute, error.message)
+      end
+    end
+
     def prepare_registration_failure
       redirect_target = checkout_return_location
       @registration_failure_alert = registration_failure_alert(resource, inline_details: redirect_target.blank?)
@@ -72,18 +120,29 @@ module Users
 
       if @registration_failure_redirect
         redirect_to @registration_failure_redirect, alert: @registration_failure_alert, status: :see_other
-      else
-        flash.now[:alert] = @registration_failure_alert
-        render :new, status: :unprocessable_entity
+        return
+      end
+
+      flash.now[:alert] = @registration_failure_alert
+      respond_to do |format|
+        format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render :new, status: :unprocessable_entity }
       end
     end
 
     def checkout_return_location
+      return unless registration_from_checkout?
+
       location = stored_location_for(:user)
       return if location.blank?
       return unless location.include?('/checkout')
 
       location
+    end
+
+    def registration_from_checkout?
+      referer = request.referer
+      referer.present? && referer.include?('/checkout')
     end
 
     def append_auth_tab(path, tab)

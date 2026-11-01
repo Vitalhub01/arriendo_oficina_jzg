@@ -1,10 +1,19 @@
-<div class="mx-auto max-w-3xl px-4 py-8">
+<div class="mx-auto px-4 py-8 <%= @booking.confirmed? && policy(@booking).reschedule? ? 'max-w-6xl' : 'max-w-3xl' %>">
   <% unless current_user.profile_complete? %>
     <div class="mb-6">
       <%= render "shared/profile_incomplete_reminder", variant: :after_booking %>
     </div>
   <% end %>
   <h1 class="text-2xl font-bold">Detalle de reserva</h1>
+  <% if @booking.confirmed? && (replacement = @booking.pending_reschedule_replacement) %>
+    <div class="mt-6">
+      <%= render "pending_reschedule_alert", booking: @booking, replacement: replacement, variant: :source %>
+    </div>
+  <% elsif @booking.reschedule_replacement? && @booking.pending_payment? %>
+    <div class="mt-6">
+      <%= render "pending_reschedule_alert", booking: @booking, variant: :replacement %>
+    </div>
+  <% end %>
   <div class="card mt-6 p-6">
     <h2 class="text-lg font-semibold"><%= @booking.space.title %></h2>
     <dl class="mt-4 space-y-2 text-sm">
@@ -14,7 +23,18 @@
       <% if @booking.promo_discount_cents.positive? %>
         <div class="flex justify-between"><dt class="text-gray-500">Descuento (código <%= @booking.discount_code&.code %>)</dt><dd class="text-green-700">−<%= Money.new(@booking.promo_discount_cents, 'CLP').format(no_cents_if_whole: true) %></dd></div>
       <% end %>
-      <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="font-semibold"><%= @booking.formatted_total %></dd></div>
+      <% if @booking.reservation_value_cents != @booking.total_amount_cents && @booking.reservation_value_cents.positive? %>
+        <div class="flex justify-between"><dt class="text-gray-500">Valor del arriendo</dt><dd><%= @booking.formatted_reservation_value %></dd></div>
+        <% if @booking.applied_reschedule_credit_cents.positive? %>
+          <div class="flex justify-between"><dt class="text-gray-500">Crédito por reagendamiento</dt><dd class="text-green-700">−<%= @booking.formatted_applied_reschedule_credit %></dd></div>
+        <% end %>
+        <div class="flex justify-between"><dt class="text-gray-500">Total a pagar</dt><dd class="font-semibold"><%= @booking.formatted_total %></dd></div>
+      <% else %>
+        <div class="flex justify-between"><dt class="text-gray-500">Total</dt><dd class="font-semibold"><%= @booking.formatted_total %></dd></div>
+      <% end %>
+      <% if @booking.spot_offer_booking? %>
+        <%= render "shared/booking_spot_offer_price_badge", booking: @booking, wrapper_class: "mt-3" %>
+      <% end %>
       <div class="flex justify-between"><dt class="text-gray-500">Estado</dt><dd><%= booking_status_label(@booking) %></dd></div>
       <% if (invoice = @booking.payment&.invoice)&.downloadable? %>
         <div class="flex justify-between"><dt class="text-gray-500">Boleta</dt><dd><%= link_to "Descargar boleta #{invoice.folio}", rails_blob_path(invoice.pdf, disposition: 'attachment'), class: "text-brand hover:underline" %></dd></div>
@@ -41,23 +61,35 @@
         <%= button_to "Cancelar reserva", cancel_booking_path(@booking), method: :patch, class: "btn-secondary", data: { turbo_confirm: "¿Cancelar esta reserva?" } %>
       <% end %>
       <% if @booking.confirmed? && current_user == @booking.profesional %>
-        <p class="w-full text-sm text-gray-600">
-          Puedes reagendar hasta <%= @booking.reschedule_notice_hours %> horas antes del inicio.
-          <% if @booking.reschedule_modifications_remaining.positive? %>
-            Modificaciones restantes: <%= @booking.reschedule_modifications_remaining %>.
-          <% else %>
-            Ya usaste el máximo de modificaciones permitidas.
-          <% end %>
-        </p>
+        <% if (replacement = @booking.pending_reschedule_replacement) %>
+          <p class="w-full text-sm text-gray-600">
+            Completa el pago del reagendamiento arriba para cambiar al <%= l(replacement.start_at, format: :long) %>.
+          </p>
+        <% elsif @booking.spot_offer_booking? %>
+          <p class="w-full text-sm text-gray-600">
+            Esta sesión forma parte de una tarifa spot. Solo un administrador puede reprogramarla; escríbenos si necesitas un cambio.
+          </p>
+        <% elsif policy(@booking).reschedule? %>
+          <p class="w-full text-sm text-gray-600">
+            Puedes reagendar hasta <%= @booking.reschedule_notice_hours %> horas antes del inicio.
+            <% if @booking.reschedule_modifications_remaining.positive? %>
+              Modificaciones restantes: <%= @booking.reschedule_modifications_remaining %>.
+            <% else %>
+              Ya usaste el máximo de modificaciones permitidas.
+            <% end %>
+          </p>
+        <% elsif @booking.reschedule_modifications_remaining.zero? %>
+          <p class="w-full text-sm text-gray-600">Ya usaste el máximo de modificaciones permitidas.</p>
+        <% end %>
       <% end %>
       <% if @booking.confirmed? && policy(@booking).reschedule? %>
-        <%= form_with url: reschedule_booking_path(@booking), method: :patch, class: "w-full space-y-3 rounded-xl border border-gray-200 p-4" do %>
-          <p class="font-medium">Reagendar (sin reembolso, con crédito aplicado)</p>
-          <%= date_field_tag :date, @booking.start_at.to_date + 7.days, class: "input-field", required: true %>
-          <%= time_field_tag :start_time, l(@booking.start_at, format: "%H:%M"), class: "input-field", required: true %>
-          <%= number_field_tag :slot_count, @booking.slot_count, min: @booking.space.minimum_slots, class: "input-field", required: true %>
-          <%= submit_tag "Reagendar reserva", class: "btn-primary" %>
-        <% end %>
+        <div class="w-full rounded-xl border border-gray-200 p-4">
+          <%= render "bookings/reschedule_form",
+                booking: @booking,
+                reschedule_mode: @booking.reschedule_reservation_mode,
+                week_start: @week_start,
+                schedule_payload: @availability_schedule_payload %>
+        </div>
       <% end %>
     </div>
 

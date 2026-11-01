@@ -1,0 +1,85 @@
+<%# locals: (booking:, reschedule_mode:, week_start:, schedule_payload:) %>
+<% schedule_title =
+     case reschedule_mode
+     when "jornada" then "Referencia: días completos disponibles"
+     when "bloque" then "Referencia: bloques mañana / tarde"
+     else "Referencia: horarios por hora"
+     end %>
+<% default_date = booking.start_at.to_date + 7.days %>
+<div data-controller="reschedule-form" data-reschedule-form-mode-value="<%= reschedule_mode %>">
+  <section class="mb-4">
+    <h3 class="text-sm font-semibold text-gray-900"><%= schedule_title %></h3>
+    <%= turbo_frame_tag "reschedule_availability_schedule",
+          data: space_availability_schedule_frame_data(
+            booking.space,
+            schedule_payload,
+            availability_url: availability_booking_path(booking),
+            form_controller: "reschedule-form",
+            sync_booking_form: false
+          ) do %>
+      <%= render "spaces/availability_schedule",
+            space: booking.space,
+            week_start: week_start,
+            interactive: true,
+            login_prompt_on_slots: false,
+            initial_view: reschedule_mode,
+            show_view_toggles: false,
+            hint: "Haz clic en una franja disponible (verde) para rellenar la fecha y el horario abajo." %>
+    <% end %>
+  </section>
+
+  <%= form_with url: reschedule_booking_path(booking), method: :patch, class: "space-y-3", data: { turbo: false } do %>
+    <p class="font-medium">Reagendar (sin reembolso, con crédito aplicado)</p>
+    <p class="text-sm text-gray-600">
+      <% case reschedule_mode %>
+      <% when "jornada" %>
+        Mantendremos el arriendo por <strong>día completo</strong> con el crédito de esta reserva. Solo cambia la fecha.
+      <% when "bloque" %>
+        Mantendremos el arriendo por <strong>bloque</strong> (mañana o tarde). Puedes cambiar de bloque; si el precio del bloque es distinto, se cobrará o acreditará la diferencia.
+      <% else %>
+        Se creará una nueva reserva por horas con el crédito de esta reserva. Si el nuevo horario cuesta más, deberás pagar la diferencia antes de confirmar el cambio.
+      <% end %>
+    </p>
+    <p class="text-sm font-medium text-brand" data-reschedule-form-target="selectionSummary">Elige un horario en el calendario.</p>
+    <%= hidden_field_tag :reservation_mode, reschedule_mode, data: { reschedule_form_target: "reservationMode" } %>
+    <%= date_field_tag :date,
+          default_date,
+          class: "input-field",
+          required: true,
+          data: { reschedule_form_target: "date", action: "change->reschedule-form#fieldChanged" } %>
+    <% if reschedule_mode == "bloque" %>
+      <% current_rate = booking.reschedule_slot_rate %>
+      <%= label_tag :slot_rate_id, "Bloque", class: "block text-sm font-medium" %>
+      <%= select_tag :slot_rate_id,
+            options_from_collection_for_select(
+              booking.space.bloque_slot_rates,
+              :id,
+              ->(r) {
+                "#{r.name} (#{r.start_time.strftime('%H:%M')} – #{r.end_time.strftime('%H:%M')})"
+              },
+              current_rate&.id
+            ),
+            class: "input-field",
+            required: true,
+            data: { reschedule_form_target: "slotRate", action: "change->reschedule-form#fieldChanged" } %>
+    <% elsif reschedule_mode == "hora" %>
+      <%= label_tag :start_time, "Hora de inicio", class: "block text-sm font-medium" %>
+      <%= time_field_tag :start_time,
+            l(booking.start_at, format: "%H:%M"),
+            class: "input-field",
+            required: true,
+            data: { reschedule_form_target: "startTime", action: "change->reschedule-form#fieldChanged" } %>
+      <%= label_tag :slot_count, "Cantidad de horas", class: "block text-sm font-medium" %>
+      <%= number_field_tag :slot_count,
+            booking.slot_count,
+            min: booking.space.minimum_slots,
+            class: "input-field",
+            required: true,
+            data: { reschedule_form_target: "slotCount", action: "change->reschedule-form#fieldChanged" } %>
+    <% end %>
+    <% reschedule_confirm = "¿Confirmas reagendar? Se aplicará un crédito por el valor de esta reserva. Si el nuevo horario cuesta más, deberás pagar la diferencia para confirmar el cambio." %>
+    <%= submit_tag "Reagendar reserva",
+          class: "btn-primary",
+          onclick: "return confirm(#{reschedule_confirm.to_json})" %>
+  <% end %>
+</div>

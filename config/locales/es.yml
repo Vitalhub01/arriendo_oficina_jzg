@@ -3,10 +3,24 @@ es:
     errors:
       messages:
         record_invalid: "Validación fallida: %{errors}"
+        taken: "ya está en uso"
+        blank: "no puede estar en blanco"
+        invalid: "no es válido"
+        too_short: "es demasiado corto (mínimo %{count} caracteres)"
+        confirmation: "no coincide"
     models:
       box: Box
       booking: Reserva
+      user: Usuario
+      professional_profile: Perfil profesional
     attributes:
+      user:
+        name: Nombre
+        email: Email
+        password: Contraseña
+        password_confirmation: Confirmación de contraseña
+      professional_profile:
+        rut: RUT
       box:
         title: Título
         price_per_hour_cents: Precio por hora

@@ -22,8 +22,9 @@ class AvailabilityChecker
     window_available?(date, blocks, fallback: 'No hay horario disponible para jornada completa en la fecha elegida')
   end
 
-  def available?(start_at, end_at)
+  def available?(start_at, end_at, exclude_booking: nil)
     @error_message = nil
+    @exclude_booking = exclude_booking
     if end_at <= start_at
       mark_unavailable('Horario inválido')
       return false
@@ -42,6 +43,8 @@ class AvailabilityChecker
     end
 
     true
+  ensure
+    @exclude_booking = nil
   end
 
   def consecutive_slots_available?(start_at, block_count)
@@ -72,7 +75,10 @@ class AvailabilityChecker
   end
 
   def booked?(start_at, end_at)
-    box.bookings.blocking_availability.exists?(['start_at < ? AND end_at > ?', end_at, start_at])
+    scope = box.bookings.blocking_availability
+               .where('start_at < ? AND end_at > ?', end_at, start_at)
+    scope = scope.where.not(id: @exclude_booking.id) if @exclude_booking
+    scope.exists?
   end
 
   def window_available?(date, blocks, fallback:)

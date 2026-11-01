@@ -38,6 +38,7 @@
           </div>
           <span class="rounded-full bg-brand-pale px-3 py-1 text-sm font-medium text-brand"><%= @space.box_type_label %></span>
         </div>
+        <%= render "shared/space_pricing_summary", space: @space %>
         <p class="mt-4 leading-relaxed text-gray-700"><%= simple_format(@space.description) %></p>
 
         <% if equipment_list(@space).any? %>

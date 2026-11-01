@@ -55,6 +55,11 @@ module AdminHelper
           match: ->(req) { req.path == '/admin/bookings' }
         },
         {
+          label: 'Reservas spot',
+          path: :admin_spot_packages_path,
+          match: ->(req) { req.path.start_with?('/admin/bookings/spot') }
+        },
+        {
           label: 'Calendario',
           path: :calendar_admin_bookings_path,
           match: ->(req) { req.path == '/admin/bookings/calendar' }

@@ -132,6 +132,27 @@
     @apply mt-2 space-y-1 text-sm text-gray-600;
   }
 
+  .price-period-segment {
+    @apply relative inline-grid auto-cols-fr grid-flow-col gap-0 rounded-full bg-gray-100 p-0.5 align-middle;
+  }
+
+  .price-period-segment__indicator {
+    @apply pointer-events-none absolute left-0 top-0 rounded-full bg-brand transition-transform duration-500 ease-in-out;
+    will-change: transform;
+  }
+
+  .price-period-segment__option {
+    @apply relative z-10 select-none whitespace-nowrap px-2.5 py-0.5 text-center text-xs font-medium lowercase text-gray-600 transition-colors duration-300 ease-out;
+  }
+
+  .price-period-segment__option.is-active {
+    @apply text-white;
+  }
+
+  .price-period-segment--hero .price-period-segment__option {
+    @apply px-3 py-1 text-xs uppercase tracking-widest;
+  }
+
   .shop-icon-block {
     @apply flex flex-col items-center text-center;
   }

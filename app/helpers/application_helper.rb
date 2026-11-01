@@ -43,7 +43,38 @@ module ApplicationHelper
     "https://waze.com/ul?ll=#{record.latitude},#{record.longitude}&navigate=yes"
   end
 
+  def spot_offer_status_label(offer)
+    {
+      'active' => 'Activa (pendiente de pago)',
+      'paid' => 'Pagada',
+      'cancelled' => 'Cancelada'
+    }.fetch(offer.status, offer.status.humanize)
+  end
+
+  def booking_spot_offer_price_badge_label(booking)
+    return unless booking.spot_offer_booking?
+
+    index = booking.spot_package_session_index
+    count = booking.spot_package_sessions_count
+    return if index.blank? || count.zero?
+
+    "Reserva de tarifa particular — ##{booking.id} — #{booking.formatted_spot_package_total} · #{index}/#{count} reservas"
+  end
+
+  def booking_spot_offer_price_badge_classes(booking)
+    base = 'inline-flex max-w-full flex-wrap items-center rounded-full px-3 py-1 text-xs font-medium'
+    if booking.spot_package_paid? || booking.confirmed? || booking.completed?
+      "#{base} bg-violet-100 text-violet-900"
+    else
+      "#{base} bg-violet-50 text-violet-800 ring-1 ring-violet-200"
+    end
+  end
+
   def booking_status_label(booking)
+    if booking.pending_payment? && booking.reschedule_replacement?
+      return 'Reagendamiento pendiente de pago'
+    end
+
     if booking.confirmed? && booking.respond_to?(:manually_confirmed_at) && booking.manually_confirmed_at.present?
       return 'Confirmada manualmente'
     end

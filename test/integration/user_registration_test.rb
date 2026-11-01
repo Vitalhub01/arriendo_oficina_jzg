@@ -36,6 +36,23 @@ class UserRegistrationTest < ActionDispatch::IntegrationTest
     assert_match 'registration-errors', response.body
   end
 
+  test 'duplicate rut shows feedback without server error' do
+    post user_registration_path, params: {
+      user: {
+        name: 'Otro Profesional',
+        rut: professional_profiles(:renter_profile).rut,
+        email: 'nuevo-rut@test.com',
+        password: 'password123',
+        password_confirmation: 'password123'
+      }
+    }
+
+    assert_response :unprocessable_entity
+    assert_match 'No pudimos crear tu cuenta', response.body
+    assert_match 'registration-profile-errors', response.body
+    assert_nil User.find_by(email: 'nuevo-rut@test.com')
+  end
+
   test 'failed registration from checkout redirects back with flash and register tab' do
     space = boxes(:published_box)
     checkout_url = checkout_space_path(
@@ -49,7 +66,8 @@ class UserRegistrationTest < ActionDispatch::IntegrationTest
     get checkout_url
     assert_response :success
 
-    post user_registration_path, params: {
+    post user_registration_path,
+         params: {
       user: {
         name: 'Checkout Guest',
         rut: '',
@@ -57,7 +75,8 @@ class UserRegistrationTest < ActionDispatch::IntegrationTest
         password: 'password123',
         password_confirmation: 'password123'
       }
-    }
+    },
+         headers: { 'HTTP_REFERER' => checkout_url }
 
     assert_redirected_to %r{auth=register}
     follow_redirect!

@@ -2,10 +2,12 @@
 
 module Admin
   class BookingsController < Admin::BaseController
+    include SpaceScheduleWeeks
+
     before_action :set_booking, only: %i[show update]
 
     def index
-      scope = Booking.includes(:space, :profesional, :payment).order(start_at: :desc)
+      scope = Booking.includes(:space, :profesional, :payment).without_spot_offer.order(created_at: :desc)
       scope = scope.where(status: params[:status]) if params[:status].present?
       scope = scope.where(box_id: params[:space_id]) if params[:space_id].present?
       @pagy, @bookings = pagy(scope)
@@ -17,7 +19,7 @@ module Admin
       @calendar_space = Space.find_by(id: params[:space_id]) || @spaces.first
       return unless @calendar_space
 
-      @calendar_days = Bookings::AdminCalendarBuilder.new(
+      @calendar_days = ::Bookings::AdminCalendarBuilder.new(
         space: @calendar_space,
         week_start: @week_start
       ).build
@@ -43,11 +45,29 @@ module Admin
       @professionals = bookable_professionals
       @spaces = Space.includes(:office).order(:title)
       @booking = Booking.new
+      @booking_form_params = booking_form_params
+      prepare_admin_booking_schedule
+    end
+
+    def schedule
+      @selected_space = Space.find(params.expect(:space_id))
+      load_admin_space_schedule(@selected_space)
+
+      render partial: 'admin/bookings/schedule_frame',
+             locals: schedule_frame_locals
+    end
+
+    def availability
+      @selected_space = Space.find(params.expect(:space_id))
+      load_admin_space_schedule(@selected_space)
+
+      render json: @availability_schedule_payload
     end
 
     def create
       @professionals = bookable_professionals
       @spaces = Space.includes(:office).order(:title)
+      @booking_form_params = booking_form_params
 
       space = Space.find_by(id: create_params[:space_id])
       profesional = User.find_by(id: create_params[:profesional_id])
@@ -55,20 +75,21 @@ module Admin
       unless space && profesional && bookable_professionals.exists?(profesional.id)
         flash.now[:alert] = 'Selecciona un espacio y un profesional válidos'
         @booking = Booking.new
+        prepare_admin_booking_schedule(space)
         return render :new, status: :unprocessable_content
       end
 
-      result = Bookings::Create.new(
+      result = ::Bookings::Create.new(
         space: space,
         profesional: profesional,
-        params: create_params.slice(:date, :start_time, :slot_count, :hours),
+        params: create_params.slice(:date, :start_time, :slot_count, :hours, :reservation_mode, :slot_rate_id),
         require_terms_acceptance: false
       ).call
 
       if result.success?
         booking = result.booking
         if ActiveModel::Type::Boolean.new.cast(create_params[:confirm_manually]) && booking.pending_payment?
-          confirm = Bookings::ConfirmManually.new(booking: booking, actor: current_user).call
+          confirm = ::Bookings::ConfirmManually.new(booking: booking, actor: current_user).call
           unless confirm.success?
             flash[:alert] = "Reserva creada pero no se pudo confirmar: #{confirm.errors.join(', ')}"
             redirect_to admin_booking_path(booking)
@@ -81,17 +102,18 @@ module Admin
       else
         flash.now[:alert] = result.errors.join(', ')
         @booking = Booking.new
+        prepare_admin_booking_schedule(space)
         render :new, status: :unprocessable_content
       end
     end
 
     def update
       if params[:cancel].present?
-        result = Bookings::Cancel.new(booking: @booking, actor: current_user).call
+        result = ::Bookings::Cancel.new(booking: @booking, actor: current_user).call
         flash_key = result.success? ? :notice : :alert
         flash[flash_key] = result.success? ? 'Reserva anulada' : result.errors.join(', ')
       elsif params[:confirm_manually].present?
-        result = Bookings::ConfirmManually.new(booking: @booking, actor: current_user).call
+        result = ::Bookings::ConfirmManually.new(booking: @booking, actor: current_user).call
         flash_key = result.success? ? :notice : :alert
         flash[flash_key] = result.success? ? 'Reserva confirmada manualmente' : result.errors.join(', ')
       elsif params[:verify_profesional].present?
@@ -118,7 +140,7 @@ module Admin
     private
 
     def set_booking
-      @booking = Booking.find(params.expect(:id))
+      @booking = Booking.includes(spot_offer: :bookings).find(params.expect(:id))
     end
 
     def bookable_professionals
@@ -126,7 +148,60 @@ module Admin
     end
 
     def create_params
-      params.expect(booking: %i[space_id profesional_id date start_time slot_count hours confirm_manually])
+      params.expect(booking: %i[
+                      space_id profesional_id date start_time slot_count hours confirm_manually
+                      reservation_mode slot_rate_id
+                    ])
+    end
+
+    def prepare_admin_booking_schedule(space = nil)
+      space_id = space&.id || params.dig(:booking, :space_id).presence || params[:space_id].presence
+      @selected_space = Space.includes(:office, :slot_rates, :jornada_definitions, :schedule_blocks)
+                             .find_by(id: space_id)
+      return unless @selected_space
+
+      load_admin_space_schedule(@selected_space)
+    end
+
+    def load_admin_space_schedule(space)
+      @week_start = schedule_week_start(space)
+      @schedule_week_entries = AvailabilityScheduleBuilder.new(
+        space,
+        week_start: @week_start,
+        week_count: SpaceScheduleWeeks::PRELOAD_WEEKS,
+        exclude_renter_id: nil
+      ).build_weeks
+      @availability_schedule_payload = SpaceAvailabilitySchedulePresenter.new(
+        space: space,
+        schedule_week_entries: @schedule_week_entries,
+        week_start: @week_start,
+        interactive: true,
+        login_prompt_on_slots: false
+      ).as_json
+    end
+
+    def schedule_frame_locals
+      {
+        selected_space: @selected_space,
+        week_start: @week_start,
+        schedule_payload: @availability_schedule_payload,
+        booking_params: booking_form_params
+      }
+    end
+
+    def booking_form_params
+      raw = params[:booking]
+      return {} unless raw.respond_to?(:permit)
+
+      raw.permit(:date, :start_time, :slot_count, :reservation_mode, :slot_rate_id).to_h
+    end
+
+    def availability_schedule_interactive?
+      true
+    end
+
+    def availability_schedule_login_prompt?
+      false
     end
 
     def parse_week_start

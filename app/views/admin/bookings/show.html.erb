@@ -1,6 +1,10 @@
 <div class="flex flex-wrap items-center justify-between gap-4">
   <h1 class="text-2xl font-bold">Reserva #<%= @booking.id %></h1>
-  <%= link_to "← Reservas", admin_bookings_path, class: "text-sm text-brand hover:underline" %>
+  <% if @booking.spot_offer_booking? %>
+    <%= link_to "← Paquete spot", admin_spot_package_path(@booking.spot_offer), class: "text-sm text-brand hover:underline" %>
+  <% else %>
+    <%= link_to "← Reservas", admin_bookings_path, class: "text-sm text-brand hover:underline" %>
+  <% end %>
 </div>
 
 <div class="card mt-6 p-6 text-sm">
@@ -20,6 +24,7 @@
   <p><strong>Fecha:</strong> <%= l(@booking.start_at, format: :long) %> — <%= l(@booking.end_at, format: "%H:%M") %></p>
   <p><strong>Duración:</strong> <%= @booking.formatted_duration %> (<%= @booking.slot_count %> hora(s))</p>
   <p><strong>Total:</strong> <%= @booking.formatted_total %></p>
+  <%= render "shared/booking_spot_offer_price_badge", booking: @booking if @booking.spot_offer_booking? %>
   <p><strong>Estado:</strong> <%= booking_status_label(@booking) %></p>
   <% if @booking.profesional.banned? %>
     <p class="mt-2 text-red-700"><strong>Usuario en lista negra</strong> desde <%= l(@booking.profesional.banned_at, format: :short) %></p>
@@ -31,8 +36,10 @@
     <%= button_to "Anular reserva", admin_booking_path(@booking), method: :patch, params: { cancel: true }, class: "btn-secondary", data: { turbo_confirm: "¿Anular esta reserva?" } %>
   <% end %>
 
-  <% if @booking.pending_payment? && !@booking.payment_expired? %>
+  <% if @booking.pending_payment? && !@booking.payment_expired? && @booking.spot_offer_id.blank? %>
     <%= button_to "Confirmar manualmente", admin_booking_path(@booking), method: :patch, params: { confirm_manually: true }, class: "btn-primary", data: { turbo_confirm: "¿Confirmar sin pasar por Mercado Pago?" } %>
+  <% elsif @booking.spot_offer_id.present? && @booking.pending_payment? %>
+    <p class="text-sm text-gray-600">Parte de un paquete spot — <%= link_to "confirmar el paquete completo", admin_spot_package_path(@booking.spot_offer), class: "text-brand hover:underline" %>.</p>
   <% end %>
 
   <% if @booking.profesional.banned? %>
@@ -48,4 +55,8 @@
   <% end %>
 
   <%= link_to "Editar permisos del usuario", edit_admin_user_path(@booking.profesional), class: "btn-secondary" %>
+
+  <% if @booking.spot_offer_booking? && @booking.confirmed? %>
+    <%= link_to "Reprogramar sesión", booking_path(@booking), class: "btn-primary" %>
+  <% end %>
 </div>

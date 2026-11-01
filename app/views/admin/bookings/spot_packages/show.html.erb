@@ -1,0 +1,67 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <h1 class="text-2xl font-bold">Paquete spot</h1>
+  <%= link_to "← Reservas spot", admin_spot_packages_path, class: "text-sm text-brand hover:underline" %>
+</div>
+
+<div class="card mt-6 p-6 text-sm">
+  <p><strong>Espacio:</strong> <%= @spot_offer.space.title %></p>
+  <% if @spot_offer.title.present? %>
+    <p><strong>Nombre interno:</strong> <%= @spot_offer.title %></p>
+  <% end %>
+  <p><strong>Profesional:</strong> <%= @spot_offer.profesional&.name || '—' %> <%= @spot_offer.profesional&.email %></p>
+  <p><strong>Rango:</strong> <%= l(@spot_offer.starts_on) %> — <%= l(@spot_offer.ends_on) %></p>
+  <p><strong>Horario diario:</strong> <%= @spot_offer.daily_start_time.strftime('%H:%M') %> – <%= @spot_offer.daily_end_time.strftime('%H:%M') %></p>
+  <p><strong>Total paquete:</strong> <%= format_clp(@spot_offer.total_price_cents) %></p>
+  <p><strong>Estado:</strong> <%= spot_offer_status_label(@spot_offer) %></p>
+  <% if @spot_offer.payment.present? %>
+    <p><strong>Pago:</strong> <%= @spot_offer.payment.status.humanize %> <%= "(#{format_clp(@spot_offer.payment.amount_cents)})" if @spot_offer.payment.amount_cents.positive? %></p>
+  <% end %>
+</div>
+
+<div class="admin-table-card mt-6">
+  <h2 class="mb-4 text-lg font-semibold">Sesiones incluidas</h2>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Horario</th>
+        <th>Precio</th>
+        <th>Estado</th>
+        <th class="admin-table__actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @bookings.each do |booking| %>
+        <tr>
+          <td><%= l(booking.start_at, format: :short) %></td>
+          <td><%= l(booking.start_at, format: '%H:%M') %> – <%= l(booking.end_at, format: '%H:%M') %></td>
+          <td>
+            <%= booking.formatted_total %>
+            <%= render "shared/booking_spot_offer_price_badge", booking: booking, wrapper_class: "mt-1" if booking.spot_offer_booking? %>
+          </td>
+          <td><%= booking_status_label(booking) %></td>
+          <td class="admin-table__actions whitespace-nowrap">
+            <% if booking.confirmed? %>
+              <%= link_to "Reprogramar", booking_path(booking), class: "text-brand hover:underline" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+  <% if @confirm.confirmable? %>
+    <%= button_to "Confirmar paquete manualmente",
+                  admin_spot_package_path(@spot_offer),
+                  method: :patch,
+                  params: { confirm_manually: true },
+                  class: "btn-primary",
+                  data: { turbo_confirm: "¿Confirmar las #{@bookings.size} sesiones y marcar la tarifa como pagada, sin Mercado Pago?" } %>
+  <% elsif @spot_offer.active? && @bookings.any? { |b| b.pending_payment? } %>
+    <p class="text-sm text-amber-800">No se puede confirmar el paquete completo: revisa que todas las sesiones sigan pendientes de pago y dentro del plazo.</p>
+  <% end %>
+
+  <%= link_to "Ver enlace público", admin_spot_offer_path(@spot_offer), class: "btn-secondary" %>
+</div>

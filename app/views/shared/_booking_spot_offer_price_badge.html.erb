@@ -1,0 +1,13 @@
+<% label = booking_spot_offer_price_badge_label(booking) %>
+<% if label.present? %>
+  <p class="<%= local_assigns.fetch(:wrapper_class, 'mt-2') %>">
+    <span class="<%= booking_spot_offer_price_badge_classes(booking) %>" title="Cuota de tarifa spot pagada en paquete">
+      <%= label %>
+    </span>
+  </p>
+  <% if booking.spot_package_paid? || booking.confirmed? %>
+    <p class="mt-1 text-xs text-gray-500">
+      Monto asignado a esta sesión: <%= booking.formatted_total %>
+    </p>
+  <% end %>
+<% end %>

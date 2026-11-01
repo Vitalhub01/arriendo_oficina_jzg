@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_24_160000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_01_031136) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -302,7 +302,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_160000) do
   end
 
   create_table "payments", force: :cascade do |t|
-    t.bigint "booking_id", null: false
+    t.bigint "booking_id"
     t.bigint "payer_id", null: false
     t.string "mercadopago_preference_id"
     t.string "mercadopago_payment_id"

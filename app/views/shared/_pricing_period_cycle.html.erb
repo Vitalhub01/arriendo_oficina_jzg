@@ -1,4 +1,4 @@
-<%# locals: morning_cents:, afternoon_cents:, unit:, fallback_cents: nil %>
+<%# locals: morning_cents:, afternoon_cents:, unit:, fallback_cents: nil, amount_class: nil, unit_class: nil, segment_class: nil %>
 <% fallback = local_assigns[:fallback_cents]
    morning = morning_cents.presence || fallback
    afternoon = afternoon_cents.presence || fallback
@@ -6,7 +6,11 @@
    period_prices << { label: "mañana", amount: format_clp(morning) } if morning.present?
    period_prices << { label: "tarde", amount: format_clp(afternoon) } if afternoon.present?
    period_prices.uniq! { |item| [item[:label], item[:amount]] }
-   first = period_prices.first %>
+   first = period_prices.first
+   amount_class = local_assigns.fetch(:amount_class, "font-medium text-gray-900 transition-all duration-300 ease-out")
+   unit_class = local_assigns.fetch(:unit_class, "")
+   segment_extra_class = local_assigns[:segment_class].to_s
+   option_class = "relative z-10 cursor-pointer select-none whitespace-nowrap border-0 bg-transparent px-2.5 py-0.5 text-center text-xs font-medium lowercase transition-colors duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1" %>
 <% if first %>
   <p>
     <% if period_prices.size > 1 %>
@@ -15,13 +19,34 @@
         data-controller="price-cycle"
         data-price-cycle-items-value="<%= period_prices.to_json %>"
       >
-        <span class="font-medium text-gray-900 transition-all duration-300 ease-out" data-price-cycle-target="amount"><%= first[:amount] %></span>
-        <span>/ <%= unit %> </span>
-        <span class="transition-opacity duration-300 ease-out" data-price-cycle-target="period"><%= first[:label] %></span>
+        <span class="<%= amount_class %>" data-price-cycle-target="amount"><%= first[:amount] %></span>
+        <span class="<%= unit_class %>">/ <%= unit %> </span>
+        <span
+          class="relative inline-grid auto-cols-fr grid-flow-col gap-0 rounded-full bg-gray-100 p-0.5 align-middle <%= segment_extra_class %>"
+          data-price-cycle-target="track"
+          role="group"
+          aria-label="Precio por período del día"
+        >
+          <span
+            class="pointer-events-none absolute left-0 top-0 z-0 rounded-full bg-brand transition-transform duration-500 ease-in-out"
+            data-price-cycle-target="indicator"
+            aria-hidden="true"
+          ></span>
+          <% period_prices.each_with_index do |item, index| %>
+            <button
+              type="button"
+              class="<%= option_class %> <%= index.zero? ? "text-white" : "text-gray-600" %>"
+              data-price-cycle-target="option"
+              data-action="click->price-cycle#select"
+              data-price-cycle-index-param="<%= index %>"
+              aria-pressed="<%= index.zero? %>"
+            ><%= item[:label] %></button>
+          <% end %>
+        </span>
       </span>
     <% else %>
       <span class="font-medium text-gray-900"><%= first[:amount] %></span>
-      <span>/ <%= unit %> <%= first[:label] %></span>
+      <span class="<%= unit_class %>">/ <%= unit %> <%= first[:label] %></span>
     <% end %>
   </p>
 <% end %>

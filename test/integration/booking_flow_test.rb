@@ -74,6 +74,32 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to 'https://sandbox.mercadopago.cl/checkout'
   end
 
+  test 'checkout from space rejects slot held by another pending payment' do
+    sign_in users(:profesional)
+    create_pending_booking
+
+    assert_no_difference 'Booking.count' do
+      post space_bookings_path(@box),
+           params: booking_params.merge(from_checkout: '1')
+    end
+
+    assert_redirected_to checkout_space_path(@box, date: booking_date_param(@slot_time),
+                                                      start_time: booking_start_time_param(@slot_time),
+                                                      slot_count: 2)
+    assert_match 'otra persona', flash[:alert]
+  end
+
+  test 'checkout payment blocked when payment window expired' do
+    sign_in @renter
+    booking = create_pending_booking
+    booking.update!(payment_expires_at: 1.minute.ago)
+
+    get checkout_booking_path(booking)
+
+    assert_redirected_to booking_path(booking)
+    assert_match 'plazo', flash[:alert]
+  end
+
   test 'apply discount code before checkout updates mercado pago amount' do
     sign_in @renter
     booking = create_pending_booking

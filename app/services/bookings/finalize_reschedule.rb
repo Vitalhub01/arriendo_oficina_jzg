@@ -19,10 +19,9 @@ module Bookings
         if source.rescheduled?
           true
         else
-          source.update!(status: :rescheduled)
-          @booking.update!(
-            reschedule_modifications_count: source.reschedule_modifications_count + 1
-          )
+          new_count = source.reschedule_modifications_count + 1
+          source.update!(status: :rescheduled, reschedule_modifications_count: new_count)
+          @booking.update!(reschedule_modifications_count: new_count)
           true
         end
       end

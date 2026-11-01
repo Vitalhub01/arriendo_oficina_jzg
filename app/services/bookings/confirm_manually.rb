@@ -9,6 +9,9 @@ module Bookings
 
     def call
       return failure('Solo un administrador puede confirmar manualmente') unless @actor.admin?
+      if @booking.spot_offer_id.present?
+        return failure('Esta reserva es parte de un paquete spot; confírmala desde Reservas spot')
+      end
       return failure('La reserva no está pendiente de pago') unless @booking.pending_payment?
       return failure('El plazo de pago ya venció') if @booking.payment_expired?
 

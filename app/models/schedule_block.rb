@@ -13,6 +13,11 @@ class ScheduleBlock < ApplicationRecord
   scope :for_day, ->(day) { where(day_of_week: day) }
   scope :ordered, -> { order(:position, :start_time) }
 
+  def self.sort_for_display_on(blocks, date)
+    day = date.to_date
+    blocks.sort_by { |block| [block.starts_at_on(day), block.id] }
+  end
+
   def duration_minutes
     ((end_time - start_time) / 60).to_i
   end

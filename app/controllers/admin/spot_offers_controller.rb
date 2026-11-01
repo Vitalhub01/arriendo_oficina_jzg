@@ -44,7 +44,7 @@ module Admin
     private
 
     def set_spot_offer
-      @spot_offer = SpotOffer.find(params.expect(:id))
+      @spot_offer = SpotOffer.find_by!(token: params.expect(:id))
     end
 
     def spot_offer_params

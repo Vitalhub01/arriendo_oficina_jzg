@@ -1,0 +1,43 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <h1 class="text-2xl font-bold">Reservas — Spot</h1>
+  <%= link_to "Tarifas spot (enlaces)", admin_spot_offers_path, class: "text-sm text-brand hover:underline" %>
+</div>
+
+<p class="mt-2 max-w-3xl text-sm text-gray-600">
+  Paquetes generados cuando un profesional inicia el pago de una tarifa spot. Se confirman y gestionan como un todo, no sesión por sesión.
+</p>
+
+<div class="admin-table-card mt-6">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Espacio</th>
+        <th>Profesional</th>
+        <th>Rango</th>
+        <th>Sesiones</th>
+        <th>Total</th>
+        <th>Estado paquete</th>
+        <th>Creación</th>
+        <th class="admin-table__actions">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @spot_offers.each do |offer| %>
+        <tr>
+          <td class="font-medium text-gray-900"><%= offer.space.title %></td>
+          <td><%= offer.profesional&.name || '—' %></td>
+          <td><%= l(offer.starts_on) %> — <%= l(offer.ends_on) %></td>
+          <td><%= offer.bookings.size %> / <%= offer.occurrence_count %></td>
+          <td><%= format_clp(offer.total_price_cents) %></td>
+          <td><%= spot_offer_status_label(offer) %></td>
+          <td><%= l(offer.created_at, format: :short) %></td>
+          <td class="admin-table__actions">
+            <%= link_to "Ver paquete", admin_spot_package_path(offer), class: "text-brand hover:underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>

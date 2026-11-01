@@ -26,7 +26,7 @@ class BookingPolicy < ApplicationPolicy
   end
 
   def checkout?
-    (user&.admin? || record.profesional_id == user&.id) && record.pending_payment? && !record.payment_expired?
+    (user&.admin? || record.profesional_id == user&.id) && record.pending_payment?
   end
 
   def apply_discount_code?

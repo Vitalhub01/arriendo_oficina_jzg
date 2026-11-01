@@ -5,7 +5,7 @@ class BookingsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :require_can_book!, only: %i[new create reschedule]
-  before_action :set_booking, only: %i[show checkout cancel reschedule apply_discount_code]
+  before_action :set_booking, only: %i[show checkout cancel reschedule apply_discount_code availability]
 
   BOOKING_INDEX_FILTERS = {
     'confirmed' => { label: 'Confirmadas', statuses: %i[confirmed completed] },
@@ -15,7 +15,7 @@ class BookingsController < ApplicationController
 
   def index
     @filter = BOOKING_INDEX_FILTERS.key?(params[:filter]) ? params[:filter] : 'confirmed'
-    base_scope = policy_scope(Booking).includes(:space, :payment, :testimonial)
+    base_scope = policy_scope(Booking).includes(:space, :payment, :testimonial, spot_offer: :bookings)
     statuses = BOOKING_INDEX_FILTERS.fetch(@filter)[:statuses]
     @filter_counts = booking_index_filter_counts(base_scope)
 
@@ -28,6 +28,10 @@ class BookingsController < ApplicationController
     authorize @booking
     Payments::MercadoPago::ProcessReturn.new(booking: @booking, params: params).call
     @booking.reload
+
+    if policy(@booking).reschedule?
+      load_space_schedule(@booking.space, exclude_renter_id: current_user.id)
+    end
 
     if @booking.confirmed? && params[:collection_status] == 'approved'
       flash.now[:ga_event] = { name: 'payment_completed', params: { booking_id: @booking.id } }
@@ -100,16 +104,28 @@ class BookingsController < ApplicationController
       return
     end
 
-    result = nil
+    payment_error = nil
+    init_point = nil
     @booking.with_lock do
       @booking.reload
+      slot_check = Bookings::VerifyPaymentSlot.new(booking: @booking).call
+      unless slot_check.success?
+        payment_error = slot_check.errors.join(', ')
+        next
+      end
+
       result = Payments::MercadoPago::CreatePreference.new(booking: @booking, payer: current_user).call
+      if result.success? && result.init_point.present?
+        init_point = result.init_point
+      else
+        payment_error = result.error || 'No se pudo iniciar el pago. Configura MERCADOPAGO_ACCESS_TOKEN.'
+      end
     end
 
-    if result.success? && result.init_point.present?
-      redirect_to result.init_point, allow_other_host: true
+    if init_point.present?
+      redirect_to init_point, allow_other_host: true
     else
-      redirect_to @booking, alert: result.error || 'No se pudo iniciar el pago. Configura MERCADOPAGO_ACCESS_TOKEN.'
+      redirect_to @booking, alert: payment_error
     end
   end
 
@@ -124,6 +140,13 @@ class BookingsController < ApplicationController
     end
   end
 
+  def availability
+    authorize @booking, :reschedule?
+    load_space_schedule(@booking.space, exclude_renter_id: current_user.id)
+
+    render json: @availability_schedule_payload
+  end
+
   def reschedule
     authorize @booking, :reschedule?
 
@@ -135,11 +158,15 @@ class BookingsController < ApplicationController
 
     if result.success?
       if result.requires_payment?
+        amount = result.booking.formatted_total
         redirect_to checkout_booking_path(result.booking),
-                    notice: 'Completa el pago de la diferencia para confirmar el reagendamiento',
+                    notice: "Reagendamiento iniciado. Debes pagar #{amount} de diferencia para confirmar el nuevo horario.",
                     status: :see_other
       else
-        redirect_to result.booking, notice: 'Reserva reprogramada'
+        booking = result.booking
+        redirect_to booking,
+                    notice: "Reserva reprogramada al #{l(booking.start_at, format: :long)}. Valor del arriendo: #{booking.formatted_reservation_value}.",
+                    status: :see_other
       end
     else
       redirect_to @booking, alert: result.errors.join(', ')
@@ -168,7 +195,7 @@ class BookingsController < ApplicationController
   end
 
   def set_booking
-    @booking = Booking.find(params.expect(:id))
+    @booking = Booking.includes(spot_offer: :bookings).find(params.expect(:id))
   end
 
   def load_space_show_vars
@@ -185,7 +212,7 @@ class BookingsController < ApplicationController
   end
 
   def reschedule_params
-    params.permit(:date, :start_time, :slot_count, :hours)
+    params.permit(:date, :start_time, :slot_count, :hours, :reservation_mode, :slot_rate_id)
   end
 
   def booking_index_filter_counts(scope)

@@ -1,0 +1,56 @@
+<%# locals: (booking:, replacement: nil, variant: :source) %>
+<div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+  <% if variant == :source %>
+    <% replacement = local_assigns[:replacement] || booking.pending_reschedule_replacement %>
+    <p class="font-semibold">Tienes un reagendamiento sin confirmar</p>
+    <p class="mt-2">
+      Elegiste mover esta reserva al
+      <strong><%= l(replacement.start_at, format: :long) %></strong>.
+      Para completarlo debes pagar la diferencia de
+      <strong><%= replacement.formatted_total %></strong>.
+      Hasta entonces se mantiene tu reserva actual del
+      <%= l(booking.start_at, format: :long) %>.
+    </p>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <%= link_to "Pagar diferencia y confirmar",
+                  checkout_booking_path(replacement),
+                  class: "btn-primary",
+                  data: { turbo: false } %>
+      <%= link_to "Ver reserva pendiente", booking_path(replacement), class: "btn-secondary" %>
+      <% if policy(replacement).cancel? %>
+        <%= button_to "Descartar reagendamiento",
+                      cancel_booking_path(replacement),
+                      method: :patch,
+                      class: "btn-secondary",
+                      data: { turbo_confirm: "¿Descartar el nuevo horario y mantener la reserva actual?" } %>
+      <% end %>
+    </div>
+    <% pending = replacement %>
+  <% else %>
+    <% source = booking.reschedule_source_booking %>
+    <p class="font-semibold">Pago pendiente para confirmar el reagendamiento</p>
+    <p class="mt-2">
+      Esta reserva reemplazará tu reserva del
+      <strong><%= l(source.start_at, format: :long) %></strong>
+      cuando pagues
+      <strong><%= booking.formatted_total %></strong>.
+    </p>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <%= link_to "Ir a pagar", checkout_booking_path(booking), class: "btn-primary", data: { turbo: false } %>
+      <%= link_to "Ver reserva original", booking_path(source), class: "btn-secondary" %>
+      <% if policy(booking).cancel? %>
+        <%= button_to "Descartar reagendamiento",
+                      cancel_booking_path(booking),
+                      method: :patch,
+                      class: "btn-secondary",
+                      data: { turbo_confirm: "¿Descartar el nuevo horario y mantener la reserva actual?" } %>
+      <% end %>
+    </div>
+    <% pending = booking %>
+  <% end %>
+  <% if pending.payment_expires_at.present? && !pending.payment_expired? %>
+    <p class="mt-3 text-xs text-amber-800"><%= booking_payment_expires_label(pending) %></p>
+  <% elsif pending.payment_expired? %>
+    <p class="mt-3 text-xs text-red-800">El plazo de pago venció. Descarta este reagendamiento o contacta al administrador.</p>
+  <% end %>
+</div>

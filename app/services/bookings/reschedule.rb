@@ -11,17 +11,22 @@ module Bookings
     end
 
     def call
+      if @booking.spot_offer_id.present? && !@actor.admin?
+        return failure('Las reservas de tarifa spot solo pueden reprogramarlas un administrador')
+      end
+
       return failure(modification_limit_message) if modification_limit_reached?
       return failure('La reserva no puede reprogramarse') unless rescheduleable?
       return failure('Indica la nueva fecha y horario') if @params[:date].blank?
 
-      new_start_at = parse_start_at
-      slot_count = resolve_slot_count
-      new_end_at = new_start_at + (slot_count * @booking.space.slot_duration_minutes).minutes
+      interval = ReservationInterval.new(space: @booking.space, params: create_params).resolve
+      return failure(interval.errors.join(', ')) unless interval.success?
 
-      checker = AvailabilityChecker.new(@booking.space)
-      unless checker.consecutive_slots_available?(new_start_at, slot_count)
-        return failure(checker.error_message || 'Horario no disponible')
+      date_error = validate_reschedule_date!(interval)
+      return date_error if date_error
+
+      if same_schedule?(interval.start_at, interval.end_at)
+        return failure('Elige una fecha y horario distintos a los de la reserva actual')
       end
 
       new_booking = nil
@@ -35,7 +40,6 @@ module Bookings
           space: @booking.space,
           profesional: @booking.profesional,
           params: create_params.merge(
-            slot_count: slot_count,
             reschedule_credit_id: credit.id
           ),
           require_terms_acceptance: false
@@ -69,6 +73,8 @@ module Bookings
 
     def rescheduleable?
       return true if @actor.admin?
+      return false if @booking.spot_offer_id.present?
+
       return false unless @booking.profesional_id == @actor.id
       return false if @booking.cancelled? || @booking.completed? || @booking.rescheduled? || @booking.pending_payment?
       return false if modification_limit_reached?
@@ -88,7 +94,8 @@ module Bookings
     end
 
     def credit_amount_cents
-      return @booking.total_amount_cents if @booking.total_amount_cents.positive?
+      face_value = reschedule_face_value_cents
+      return face_value if face_value.positive?
 
       inherited = @booking.reschedule_credit&.amount_cents
       return inherited if inherited.to_i.positive?
@@ -118,11 +125,49 @@ module Bookings
     end
 
     def create_params
-      {
-        date: @params[:date],
-        start_time: @params[:start_time],
-        slot_count: resolve_slot_count
-      }
+      params = { date: @params[:date] }
+
+      case reservation_mode
+      when 'jornada'
+        params.merge(reservation_mode: 'jornada')
+      when 'bloque'
+        slot_rate_id = effective_slot_rate_id
+        return params unless slot_rate_id
+
+        params.merge(reservation_mode: 'bloque', slot_rate_id: slot_rate_id)
+      else
+        params.merge(
+          reservation_mode: 'hora',
+          start_time: @params[:start_time],
+          slot_count: resolve_slot_count
+        )
+      end
+    end
+
+    def reservation_mode
+      @params[:reservation_mode].presence || @booking.reschedule_reservation_mode
+    end
+
+    def effective_slot_rate_id
+      @params[:slot_rate_id].presence ||
+        @booking.stored_slot_rate_id ||
+        @booking.reschedule_slot_rate&.id
+    end
+
+    def validate_reschedule_date!(interval)
+      new_date = interval.start_at.to_date
+      return nil if new_date != @booking.start_at.to_date
+      return nil if bloque_block_swap?
+
+      failure('Elige una fecha distinta a la de la reserva actual')
+    end
+
+    def bloque_block_swap?
+      return false unless reservation_mode == 'bloque'
+
+      new_rate_id = effective_slot_rate_id.to_i
+      original_rate_id = @booking.reschedule_slot_rate&.id.to_i
+      new_rate_id.positive? && original_rate_id.positive? && new_rate_id != original_rate_id
     end
 
     def resolve_slot_count
@@ -135,18 +180,22 @@ module Bookings
       end
     end
 
-    def parse_start_at
-      date = Date.parse(@params[:date].to_s)
-      hour, min = @params[:start_time].to_s.split(':').map(&:to_i)
-      Time.zone.local(date.year, date.month, date.day, hour, min)
+    def same_schedule?(new_start_at, new_end_at)
+      new_start_at == @booking.start_at && new_end_at == @booking.end_at
+    end
+
+    def reschedule_face_value_cents
+      subtotal = @booking.pricing_breakdown&.dig('subtotal_cents').to_i
+      return subtotal if subtotal.positive?
+
+      paid = @booking.total_amount_cents.to_i + @booking.promo_discount_cents.to_i
+      return paid if paid.positive?
+
+      0
     end
 
     def pending_reschedule_in_progress?
-      RescheduleCredit
-        .applied
-        .where(source_booking_id: @booking.id)
-        .joins(:applied_booking)
-        .exists?(bookings: { status: Booking.statuses[:pending_payment] })
+      @booking.pending_reschedule_replacement.present?
     end
 
     def payment_required_to_complete?(booking)

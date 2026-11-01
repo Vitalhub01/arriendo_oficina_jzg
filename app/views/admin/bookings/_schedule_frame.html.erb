@@ -1,0 +1,12 @@
+<%# locals: (selected_space: nil, week_start: nil, schedule_payload: nil, booking_params: {}) %>
+<%= turbo_frame_tag "admin_booking_schedule", data: { admin_booking_form_target: "scheduleFrame" } do %>
+  <% if selected_space.present? && schedule_payload.present? %>
+    <%= render "admin/bookings/schedule_fields",
+          space: selected_space,
+          week_start: week_start,
+          schedule_payload: schedule_payload,
+          booking_params: booking_params %>
+  <% else %>
+    <p class="text-sm text-gray-500">Selecciona un espacio para ver el calendario de horarios disponibles.</p>
+  <% end %>
+<% end %>
