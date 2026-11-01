@@ -51,14 +51,22 @@ class BookingsReschedulePaymentTest < ActiveSupport::TestCase
     assert_equal 1, replacement.reschedule_modifications_count
   end
 
-  test 'rejects reschedule on the same calendar date as the booking' do
-    same_day = Time.zone.local(@start_at.year, @start_at.month, @start_at.day, 11, 0)
+  test 'allows reschedule to different time on the same day' do
+    same_day = @start_at + 2.hours
     assert_equal @start_at.to_date, same_day.to_date
+    assert_not_equal @start_at, same_day
 
     result = reschedule!(@booking, same_day, slot_count: 2)
 
+    assert result.success?, result.errors.inspect
+    assert @booking.reload.confirmed? || @booking.rescheduled?
+  end
+
+  test 'rejects reschedule with the same start and end as the current booking' do
+    result = reschedule!(@booking, @start_at, slot_count: 2)
+
     assert_not result.success?
-    assert_includes result.errors.join, 'fecha distinta'
+    assert_includes result.errors.join, 'horario distintos'
     assert @booking.reload.confirmed?
   end
 

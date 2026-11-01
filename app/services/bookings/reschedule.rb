@@ -22,9 +22,6 @@ module Bookings
       interval = ReservationInterval.new(space: @booking.space, params: create_params).resolve
       return failure(interval.errors.join(', ')) unless interval.success?
 
-      date_error = validate_reschedule_date!(interval)
-      return date_error if date_error
-
       if same_schedule?(interval.start_at, interval.end_at)
         return failure('Elige una fecha y horario distintos a los de la reserva actual')
       end
@@ -152,22 +149,6 @@ module Bookings
       @params[:slot_rate_id].presence ||
         @booking.stored_slot_rate_id ||
         @booking.reschedule_slot_rate&.id
-    end
-
-    def validate_reschedule_date!(interval)
-      new_date = interval.start_at.to_date
-      return nil if new_date != @booking.start_at.to_date
-      return nil if bloque_block_swap?
-
-      failure('Elige una fecha distinta a la de la reserva actual')
-    end
-
-    def bloque_block_swap?
-      return false unless reservation_mode == 'bloque'
-
-      new_rate_id = effective_slot_rate_id.to_i
-      original_rate_id = @booking.reschedule_slot_rate&.id.to_i
-      new_rate_id.positive? && original_rate_id.positive? && new_rate_id != original_rate_id
     end
 
     def resolve_slot_count
