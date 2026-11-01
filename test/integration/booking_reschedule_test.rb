@@ -98,8 +98,11 @@ class BookingRescheduleTest < ActionDispatch::IntegrationTest
     assert_select '[data-controller~="reschedule-form"]'
     assert_select '[data-controller~="availability-schedule"]'
     assert_match 'data-availability-schedule-form-controller-value="reschedule-form"', response.body
-    assert_match 'Referencia: horarios por hora', response.body
+    assert_match 'Elige día y franja de inicio', response.body
     assert_select '[data-availability-schedule-target="content"][data-view="hora"]'
+    assert_select 'select[name=start_time]'
+    assert_select 'input[type=time][name=start_time]', count: 0
+    assert_select 'input[type=number][name=slot_count]', count: 0
   end
 
   test 'availability json for reschedule booking' do

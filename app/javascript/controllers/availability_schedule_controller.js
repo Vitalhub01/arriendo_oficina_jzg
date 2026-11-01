@@ -89,6 +89,31 @@ export default class extends Controller {
     this.fetchSchedule(weekStart)
   }
 
+  showWeekContaining(dateIso) {
+    if (!dateIso || !this.hasContentTarget) return
+
+    const date = new Date(`${dateIso}T12:00:00`)
+    if (Number.isNaN(date.getTime())) return
+
+    const day = date.getDay()
+    const mondayOffset = (day + 6) % 7
+    const monday = new Date(date)
+    monday.setDate(date.getDate() - mondayOffset)
+    const weekStart = this.normalizeWeekStart(
+      `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`
+    )
+
+    this.contentTarget.dataset.weekStart = weekStart
+
+    if (this.weekFor(weekStart)) {
+      this.renderCurrentWeek()
+      this.hideLoading()
+      return
+    }
+
+    this.fetchSchedule(weekStart)
+  }
+
   async fetchSchedule(weekStart) {
     if (!this.hasAvailabilityUrlValue) return
 

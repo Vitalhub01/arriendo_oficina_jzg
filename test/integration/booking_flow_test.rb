@@ -267,6 +267,8 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'Reservar y pagar', response.body
     assert_no_match 'no puede reservar', response.body
+    assert_select 'select#start_time'
+    assert_select 'input[type=time][name=start_time]', count: 0
   end
 
   test 'guest is prompted to sign in on space page' do

@@ -59,7 +59,7 @@
       <%= label_tag :start_time, "Inicio", class: "mb-1 block text-sm font-medium text-gray-900" %>
       <%= select_tag :start_time,
             options_for_select(
-              space_checkout_start_time_options(space, booking_date),
+              space_checkout_start_time_options(space, booking_date, user: current_user),
               checkout_params["start_time"]
             ),
             class: "input-field",

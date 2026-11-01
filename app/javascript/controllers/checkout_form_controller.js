@@ -52,6 +52,7 @@ export default class extends Controller {
     this.element.addEventListener("turbo:frame-missing", this.onHideLoading)
     this.element.addEventListener("turbo:fetch-request-error", this.onHideLoading)
 
+    this.refreshStarts()
     this.applyModeUI(this.currentMode())
     this.refreshClientState()
   }

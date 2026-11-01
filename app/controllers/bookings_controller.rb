@@ -30,7 +30,13 @@ class BookingsController < ApplicationController
     @booking.reload
 
     if policy(@booking).reschedule?
-      load_space_schedule(@booking.space, exclude_renter_id: current_user.id)
+      @reschedule_date = reschedule_form_default_date(@booking)
+      load_space_schedule(
+        @booking.space,
+        exclude_renter_id: current_user.id,
+        week_count: SpaceScheduleWeeks::SHOW_PRELOAD_WEEKS,
+        week_start: @reschedule_date.beginning_of_week(:monday)
+      )
     end
 
     if @booking.confirmed? && params[:collection_status] == 'approved'
@@ -214,6 +220,14 @@ class BookingsController < ApplicationController
 
   def reschedule_params
     params.permit(:date, :start_time, :slot_count, :hours, :reservation_mode, :slot_rate_id)
+  end
+
+  def reschedule_form_default_date(booking)
+    return Date.parse(params[:date]) if params[:date].present?
+
+    booking.start_at.to_date + 7.days
+  rescue ArgumentError
+    booking.start_at.to_date + 7.days
   end
 
   def booking_index_filter_counts(scope)

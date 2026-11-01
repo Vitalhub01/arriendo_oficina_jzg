@@ -39,11 +39,11 @@ module SpacesHelper
   end
 
   def space_checkout_mode_quote(space, mode, date:, checkout_params: {}, user: nil)
-    params = space_checkout_params_for_mode(space, mode, date, checkout_params)
+    params = space_checkout_params_for_mode(space, mode, date, checkout_params, user: user)
     Bookings::Quote.new(space: space, params: params, user: user).call
   end
 
-  def space_checkout_params_for_mode(space, mode, date, checkout_params)
+  def space_checkout_params_for_mode(space, mode, date, checkout_params, user: nil)
     params = checkout_params.to_h.stringify_keys.slice('start_time', 'slot_count', 'slot_rate_id')
     params['reservation_mode'] = mode
     params['date'] = date.to_date.iso8601
@@ -52,7 +52,7 @@ module SpacesHelper
     when 'hora'
       params['slot_count'] = params['slot_count'].presence || space.minimum_slots
       if params['start_time'].blank?
-        params['start_time'] = space_booking_start_time_options(space, date).first&.last
+        params['start_time'] = space_booking_start_time_options(space, date, for_user: user).first&.last
       end
     when 'bloque'
       params['slot_rate_id'] = params['slot_rate_id'].presence || space.bloque_slot_rates.first&.id&.to_s
@@ -89,8 +89,8 @@ module SpacesHelper
     "#{labels[:start]}–#{labels[:end]}"
   end
 
-  def space_checkout_start_time_options(space, date)
-    space.bookable_schedule_blocks_on(date).map do |block|
+  def space_checkout_start_time_options(space, date, user: nil)
+    selectable_schedule_blocks_on(space, date, for_user: user).map do |block|
       d = date.to_date
       start_label = block.starts_at_on(d).strftime('%H:%M')
       end_label = block.ends_at_on(d).strftime('%H:%M')
@@ -207,13 +207,38 @@ module SpacesHelper
     end
   end
 
-  def space_booking_start_time_options(space, date)
-    space.bookable_schedule_blocks_on(date).map do |block|
+  def space_booking_start_time_options(space, date, for_user: nil)
+    selectable_schedule_blocks_on(space, date, for_user: for_user).map do |block|
       d = date.to_date
       start_label = block.starts_at_on(d).strftime('%H:%M')
       end_label = block.ends_at_on(d).strftime('%H:%M')
       price = block.price_cents_on(d)
       ["#{start_label} – #{end_label} (#{format_clp(price)})", start_label]
+    end
+  end
+
+  def selectable_schedule_blocks_on(space, date, for_user: nil)
+    d = date.to_date
+    reserved = space_booking_reserved_intervals(space, for_user: for_user)
+
+    space.bookable_schedule_blocks_on(d).reject do |block|
+      start_at = block.starts_at_on(d)
+      end_at = block.ends_at_on(d)
+      reserved_interval_overlaps?(start_at, end_at, reserved)
+    end
+  end
+
+  def space_selectable_bloque_slot_rates(space, date, for_user: nil)
+    d = date.to_date
+    checker = AvailabilityChecker.new(space)
+    space.bloque_slot_rates.select { |rate| checker.slot_rate_window_available?(d, rate) }
+  end
+
+  def reserved_interval_overlaps?(start_at, end_at, reserved_intervals)
+    reserved_intervals.any? do |interval|
+      interval_start = Time.zone.parse(interval[:start].to_s)
+      interval_end = Time.zone.parse(interval[:end].to_s)
+      interval_start < end_at && interval_end > start_at
     end
   end
 

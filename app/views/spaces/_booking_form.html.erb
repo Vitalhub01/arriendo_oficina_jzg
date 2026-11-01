@@ -38,7 +38,10 @@
           <div>
             <%= label_tag :start_time, "Hora de inicio", class: "mb-1 block text-sm font-medium" %>
             <%= select_tag :start_time,
-                  options_for_select(space_booking_start_time_options(space, booking_date), @prefill_start_time),
+                  options_for_select(
+                    space_booking_start_time_options(space, booking_date, for_user: current_user),
+                    @prefill_start_time
+                  ),
                   class: "input-field",
                   data: { booking_form_target: "startTime", action: "change->booking-form#startTimeChanged" } %>
           </div>
