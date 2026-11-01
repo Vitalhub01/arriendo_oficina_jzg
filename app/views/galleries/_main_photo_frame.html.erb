@@ -30,16 +30,17 @@
       </ul>
     </nav>
 
-    <%# Fila 2: foto seleccionada (grande) %>
-    <div class="w-full max-h-[min(52vh,36rem)]">
+    <%# Fila 2: foto seleccionada (grande; proporción real, sin recorte) %>
+    <div class="w-full">
       <% if @item.image.attached? %>
         <%= lazy_variant_image @item.image,
               alt: @item.display_alt,
-              aspect_class: "aspect-[4/3] max-h-[min(52vh,36rem)] w-full",
+              aspect_class: "flex w-full min-h-48 max-h-[min(52vh,36rem)] items-center justify-center",
+              img_class: "max-h-[min(52vh,36rem)] w-full object-contain",
               resize_to_limit: LazyImageHelper::VARIANT_LIMITS_GALLERY_MAIN,
               eager: true,
               animated: false,
-              wrapper_class: "overflow-hidden rounded-lg ring-1 ring-black/5 max-h-[min(52vh,36rem)]" %>
+              wrapper_class: "rounded-lg ring-1 ring-black/5" %>
       <% else %>
         <div class="flex aspect-[4/3] items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400 ring-1 ring-black/5">
           Sin imagen

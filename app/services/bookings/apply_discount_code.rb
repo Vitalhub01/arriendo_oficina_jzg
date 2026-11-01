@@ -30,6 +30,7 @@ module Bookings
       end
 
       auto_confirm_if_free!
+      Bookings::FinalizeReschedule.new(booking: @booking).call if @booking.confirmed?
       Result.new(success: true, booking: @booking.reload)
     rescue ActiveRecord::RecordInvalid
       failure('Este código ya no tiene usos disponibles')

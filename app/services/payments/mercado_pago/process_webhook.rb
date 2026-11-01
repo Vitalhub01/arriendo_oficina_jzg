@@ -41,6 +41,7 @@ module Payments
         if APPROVED_STATUSES.include?(status)
           payment.status = :approved
           booking.update!(status: :confirmed, payment_expires_at: nil)
+          Bookings::FinalizeReschedule.new(booking: booking).call
           BookingMailer.booking_confirmed(booking).deliver_later
         elsif status == 'rejected'
           payment.status = :rejected

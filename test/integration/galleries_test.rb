@@ -53,6 +53,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     assert_match 'gallery_main_photo', response.body
     assert_match 'data-controller="gallery-set"', response.body
     assert_match 'Todas las fotos de la galería', response.body
+    assert_match 'object-contain', response.body
     assert_match '/rails/active_storage/', response.body
   end
 

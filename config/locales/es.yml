@@ -82,3 +82,6 @@ es:
       signed_out: "Sesión cerrada."
     registrations:
       signed_up: "Cuenta creada exitosamente."
+      failure: "No pudimos crear tu cuenta. Revisa los datos e inténtalo de nuevo."
+      failure_with_detail: "No pudimos crear tu cuenta: %{detail}"
+      failure_with_details: "No pudimos crear tu cuenta: %{details}"

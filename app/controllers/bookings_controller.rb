@@ -134,7 +134,13 @@ class BookingsController < ApplicationController
     ).call
 
     if result.success?
-      redirect_to result.booking, notice: 'Reserva reprogramada'
+      if result.requires_payment?
+        redirect_to checkout_booking_path(result.booking),
+                    notice: 'Completa el pago de la diferencia para confirmar el reagendamiento',
+                    status: :see_other
+      else
+        redirect_to result.booking, notice: 'Reserva reprogramada'
+      end
     else
       redirect_to @booking, alert: result.errors.join(', ')
     end

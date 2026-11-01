@@ -4,8 +4,9 @@ export default class extends Controller {
   static targets = ["tab", "panel"]
 
   connect() {
-    const loginTab = this.tabTargets.find((t) => t.dataset.tab === "login")
-    if (loginTab) this.activateTab("login")
+    const authTab = new URLSearchParams(window.location.search).get("auth")
+    const initialTab = authTab === "register" ? "register" : "login"
+    this.activateTab(initialTab)
   }
 
   showTab(event) {

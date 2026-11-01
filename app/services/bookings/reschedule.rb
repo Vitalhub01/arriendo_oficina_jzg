@@ -25,9 +25,11 @@ module Bookings
       end
 
       new_booking = nil
+      requires_payment = false
+      rollback_errors = nil
+
       ActiveRecord::Base.transaction do
         credit = create_credit!
-        @booking.update!(status: :rescheduled)
 
         result = Bookings::Create.new(
           space: @booking.space,
@@ -40,17 +42,24 @@ module Bookings
         ).call
 
         unless result.success?
-          raise ActiveRecord::Rollback, result.errors.join(', ')
+          rollback_errors = result.errors
+          raise ActiveRecord::Rollback
         end
 
         new_booking = result.booking
-        new_booking.update!(
-          reschedule_modifications_count: @booking.reschedule_modifications_count + 1
-        )
+        requires_payment = payment_required_to_complete?(new_booking)
+
+        unless requires_payment
+          Bookings::FinalizeReschedule.new(booking: new_booking).call
+        end
+      end
+
+      if rollback_errors
+        return failure(rollback_errors.join(', '))
       end
 
       if new_booking
-        Result.new(success: true, booking: new_booking)
+        Result.new(success: true, booking: new_booking, requires_payment: requires_payment)
       else
         failure('No se pudo reprogramar la reserva')
       end
@@ -63,6 +72,7 @@ module Bookings
       return false unless @booking.profesional_id == @actor.id
       return false if @booking.cancelled? || @booking.completed? || @booking.rescheduled? || @booking.pending_payment?
       return false if modification_limit_reached?
+      return false if pending_reschedule_in_progress?
 
       @booking.confirmed? && @booking.start_at > reschedule_cutoff
     end
@@ -131,6 +141,18 @@ module Bookings
       Time.zone.local(date.year, date.month, date.day, hour, min)
     end
 
+    def pending_reschedule_in_progress?
+      RescheduleCredit
+        .applied
+        .where(source_booking_id: @booking.id)
+        .joins(:applied_booking)
+        .exists?(bookings: { status: Booking.statuses[:pending_payment] })
+    end
+
+    def payment_required_to_complete?(booking)
+      booking.pending_payment? && booking.total_amount_cents.positive?
+    end
+
     def failure(message)
       Result.new(success: false, errors: [message])
     end
@@ -138,14 +160,19 @@ module Bookings
     class Result
       attr_reader :booking, :errors
 
-      def initialize(success:, booking: nil, errors: [])
+      def initialize(success:, booking: nil, errors: [], requires_payment: false)
         @success = success
         @booking = booking
         @errors = errors
+        @requires_payment = requires_payment
       end
 
       def success?
         @success
+      end
+
+      def requires_payment?
+        @requires_payment
       end
     end
   end

@@ -3,10 +3,13 @@
 <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: local_assigns.fetch(:form_class, "mt-4 space-y-4") }) do |f| %>
   <%= render "devise/shared/error_messages", resource: resource %>
   <% if resource.professional_profile&.errors&.any? %>
-    <div class="rounded-xl bg-red-50 p-3 text-sm text-red-800">
-      <% resource.professional_profile.errors.full_messages.each do |msg| %>
-        <p><%= msg %></p>
-      <% end %>
+    <div id="registration-profile-errors" role="alert" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+      <p class="font-medium">Corrige lo siguiente:</p>
+      <ul class="mt-2 list-inside list-disc space-y-1">
+        <% resource.professional_profile.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
     </div>
   <% end %>
   <div>

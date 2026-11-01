@@ -11,6 +11,7 @@ module Bookings
       return failure('No se puede cancelar esta reserva') unless cancellable?
 
       release_discount_code_redemption!
+      ReleaseRescheduleAttempt.new(booking: @booking).call
       @booking.update!(status: :cancelled)
       Payments::MercadoPago::RefundJob.perform_later(@booking.payment.id) if @booking.payment&.approved?
       BookingMailer.booking_cancelled(@booking).deliver_later

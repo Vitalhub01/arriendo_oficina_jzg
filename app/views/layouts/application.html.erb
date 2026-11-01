@@ -22,14 +22,9 @@
   </head>
   <body class="min-h-screen bg-white<%= ' gallery-view' if @minimal_chrome.present? %>">
     <%= render "shared/navbar", compact: @minimal_chrome.present? %>
-    <% if notice.present? %>
+    <% if notice.present? || alert.present? %>
       <div class="mx-auto max-w-7xl px-4 py-3">
-        <div class="border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"><%= notice %></div>
-      </div>
-    <% end %>
-    <% if alert.present? %>
-      <div class="mx-auto max-w-7xl px-4 py-3">
-        <div class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><%= alert %></div>
+        <%= render "shared/flash_messages" %>
       </div>
     <% end %>
     <%= flash[:ga_event_script].html_safe if flash[:ga_event_script].present? %>

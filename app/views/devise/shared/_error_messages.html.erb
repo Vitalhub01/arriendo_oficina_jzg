@@ -1,5 +1,10 @@
 <% if resource.errors.any? %>
-  <div class="rounded-xl bg-red-50 p-4 text-sm text-red-800">
-    <%= resource.errors.full_messages.join(", ") %>
+  <div id="registration-errors" role="alert" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+    <p class="font-medium">Corrige lo siguiente:</p>
+    <ul class="mt-2 list-inside list-disc space-y-1">
+      <% resource.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
   </div>
 <% end %>

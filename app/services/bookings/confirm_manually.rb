@@ -17,6 +17,7 @@ module Bookings
         payment_expires_at: nil,
         manually_confirmed_at: Time.current
       )
+      Bookings::FinalizeReschedule.new(booking: @booking).call
       BookingMailer.booking_confirmed(@booking).deliver_later
       Result.new(success: true)
     rescue ActiveRecord::RecordInvalid => e
