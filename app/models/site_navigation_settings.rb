@@ -13,7 +13,7 @@ class SiteNavigationSettings
     'nav_link_reserve' => 'Reservar',
     'nav_link_sign_out' => 'Salir',
     'nav_link_sign_in' => 'Ingresar',
-    'footer_tagline' => 'Arriendo de espacio profesional para salud. Bloques flexibles o día completo en Chile.',
+    'footer_tagline' => 'Arriendo de espacio profesional para salud. Bloques flexibles o día completo en Providencia.',
     'footer_nav_heading' => 'Navegación',
     'footer_link_spaces' => 'Espacios',
     'footer_link_membership' => 'Membresía',

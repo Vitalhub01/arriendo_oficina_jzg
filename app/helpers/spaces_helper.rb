@@ -102,8 +102,18 @@ module SpacesHelper
     space_checkout_modes(space).map { |m| m[:value] }
   end
 
+  def space_booking_prefill_path(space, **params)
+    raw = params.stringify_keys
+    query = raw.slice('date', 'start_time', 'slot_count', 'hours', 'reservation_mode', 'slot_rate_id').compact
+    equipment_ids = raw['rented_equipment_item_ids'] || params[:rented_equipment_item_ids]
+    if equipment_ids.present?
+      query['rented_equipment_item_ids'] = Array(equipment_ids).map(&:to_s)
+    end
+    space_path(space, query)
+  end
+
   def space_slot_checkout_path(space, date:, start_time:)
-    checkout_space_path(
+    space_booking_prefill_path(
       space,
       date: date.to_date.iso8601,
       start_time: start_time,
@@ -113,7 +123,7 @@ module SpacesHelper
   end
 
   def space_bloque_checkout_path(space, date:, slot_rate:)
-    checkout_space_path(
+    space_booking_prefill_path(
       space,
       date: date.to_date.iso8601,
       reservation_mode: "bloque",
@@ -122,7 +132,7 @@ module SpacesHelper
   end
 
   def space_jornada_checkout_path(space, date:)
-    checkout_space_path(
+    space_booking_prefill_path(
       space,
       date: date.to_date.iso8601,
       reservation_mode: "jornada"

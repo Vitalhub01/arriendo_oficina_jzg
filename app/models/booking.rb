@@ -117,6 +117,72 @@ class Booking < ApplicationRecord
     Money.new(applied_reschedule_credit_cents, 'CLP').format(no_cents_if_whole: true)
   end
 
+  def pricing_detail_visible?
+    !spot_offer_booking? && (pricing_base_amount_cents.positive? || pricing_equipment_lines.any?)
+  end
+
+  def pricing_breakdown_lines
+    Array(pricing_breakdown&.dig('breakdown')).map { |line| line.with_indifferent_access }
+  end
+
+  def pricing_base_line
+    pricing_breakdown_lines.find { |line| line[:type] == 'base' }
+  end
+
+  def pricing_equipment_lines
+    pricing_breakdown_lines.select { |line| line[:type] == 'equipment_rental' }
+  end
+
+  def pricing_equipment_subtotal_cents
+    pricing_equipment_lines.sum { |line| line[:amount_cents].to_i }
+  end
+
+  def pricing_base_amount_cents
+    line = pricing_base_line
+    return line[:amount_cents].to_i if line&.dig(:amount_cents)
+
+    subtotal = pricing_subtotal_cents
+    if subtotal.positive?
+      return [subtotal - pricing_equipment_subtotal_cents, 0].max
+    end
+
+    [reservation_value_cents - pricing_equipment_subtotal_cents, 0].max
+  end
+
+  def pricing_base_label
+    mode = stored_reservation_mode || reschedule_reservation_mode
+    case mode
+    when 'bloque'
+      pricing_base_line&.dig(:label).presence || 'Reserva por bloque'
+    when 'jornada'
+      pricing_base_line&.dig(:label).presence || 'Jornada completa'
+    else
+      'Reserva por hora'
+    end
+  end
+
+  def pricing_equipment_line_label(line)
+    line = line.with_indifferent_access
+    item = EquipmentItem.find_by(id: line[:equipment_item_id])
+    amount_cents = line[:amount_cents].to_i
+    if item&.rentable? && item.price_per_hour_cents.positive?
+      rate = Money.new(item.price_per_hour_cents, 'CLP').format(no_cents_if_whole: true)
+      hours = amount_cents.to_f / item.price_per_hour_cents
+      hours_label = hours == hours.round ? "#{hours.round} hora(s)" : "#{hours.round(1)} h"
+      return "#{item.name} (#{rate}/hora × #{hours_label})"
+    end
+
+    line[:label].presence || 'Implemento adicional'
+  end
+
+  def formatted_pricing_base_amount
+    Money.new(pricing_base_amount_cents, 'CLP').format(no_cents_if_whole: true)
+  end
+
+  def formatted_pricing_line_amount(cents)
+    Money.new(cents.to_i, 'CLP').format(no_cents_if_whole: true)
+  end
+
   def slot_count
     return 0 unless space && start_at && end_at
 
@@ -257,7 +323,12 @@ class Booking < ApplicationRecord
   end
 
   def rented_equipment_items_for_pricing
-    space.rented_equipment_items_from_params({ rented_equipment_item_ids: rented_equipment_item_ids }).to_a
+    ids = rented_equipment_item_ids.presence || stored_rented_equipment_item_ids
+    space.rented_equipment_items_from_params({ rented_equipment_item_ids: ids }).to_a
+  end
+
+  def stored_rented_equipment_item_ids
+    Array(pricing_breakdown&.dig('rented_equipment_item_ids')).map(&:to_i).reject(&:zero?)
   end
 
   def minimum_slots_met

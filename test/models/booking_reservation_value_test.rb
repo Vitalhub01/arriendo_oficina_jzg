@@ -41,4 +41,28 @@ class BookingReservationValueTest < ActiveSupport::TestCase
     assert_equal 48_000, @booking.reservation_value_cents
     assert_equal '$48.000', @booking.formatted_reservation_value
   end
+
+  test 'pricing detail exposes base and equipment lines from breakdown' do
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 500)
+    @booking.update!(
+      total_amount_cents: 31_000,
+      pricing_breakdown: {
+        'subtotal_cents' => 31_000,
+        'reservation_mode' => 'hora',
+        'rented_equipment_item_ids' => [item.id],
+        'breakdown' => [
+          { 'type' => 'base', 'label' => '2 hora(s) (2h)', 'amount_cents' => 30_000 },
+          { 'type' => 'equipment_rental', 'equipment_item_id' => item.id, 'label' => 'WiFi (2 hora(s))',
+            'amount_cents' => 1000 }
+        ]
+      }
+    )
+
+    assert @booking.pricing_detail_visible?
+    assert_equal 30_000, @booking.pricing_base_amount_cents
+    assert_equal 1, @booking.pricing_equipment_lines.size
+    assert_match(/500/, @booking.pricing_equipment_line_label(@booking.pricing_equipment_lines.first))
+    assert_match 'Reserva por hora', @booking.pricing_base_label
+  end
 end

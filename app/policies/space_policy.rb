@@ -19,6 +19,11 @@ class SpacePolicy < ApplicationPolicy
     record.published? || user&.admin?
   end
 
+  # Vista /spaces/:id/checkout eliminada; la ruta solo redirige al flujo en space#show.
+  def checkout?
+    false
+  end
+
   def create?
     user&.admin?
   end

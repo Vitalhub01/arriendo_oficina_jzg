@@ -1,28 +1,31 @@
 # frozen_string_literal: true
 
+# Ruta deprecada: /spaces/:id/checkout. Redirige al espacio con parámetros de reserva.
 class SpaceCheckoutsController < ApplicationController
   def show
-    load_checkout!
+    load_checkout_context!
+    target = helpers.space_booking_prefill_path(@space, **@checkout_params)
 
-    store_location_for(:user, request.fullpath) unless user_signed_in?
-
-    if turbo_frame_request?
-      render partial: 'space_checkouts/checkout_frame',
-             locals: { space: @space, checkout_params: @checkout_params, quote: @quote },
-             layout: false
+    unless policy(@space).checkout?
+      store_location_for(:user, target) unless user_signed_in?
+      redirect_to target,
+                  alert: ('Inicia sesión o regístrate para reservar' unless user_signed_in?),
+                  status: :see_other
+      return
     end
+
+    raise 'Space checkout UI removed; policy should deny checkout?'
   end
 
   private
 
-  def load_checkout!
+  def load_checkout_context!
     @space = Space.published_spaces
                   .includes(:slot_rates, :jornada_definitions, space_photos: { image_attachment: :blob })
                   .find(params.expect(:id))
     authorize @space, :show?
 
     @checkout_params = normalized_checkout_params
-    @quote = Bookings::Quote.new(space: @space, params: @checkout_params, user: current_user).call
   end
 
   def normalized_checkout_params

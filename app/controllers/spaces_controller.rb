@@ -42,6 +42,9 @@ class SpacesController < ApplicationController
     @prefill_date = params[:date]
     @prefill_slot_count = params[:slot_count] || params[:hours]
     @prefill_start_time = params[:start_time]
+    @prefill_reservation_mode = params[:reservation_mode]
+    @prefill_slot_rate_id = params[:slot_rate_id]
+    store_location_for(:user, request.fullpath) unless user_signed_in?
   end
 
   def availability

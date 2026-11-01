@@ -112,7 +112,7 @@ class SpaceAvailabilitySchedulePresenter
   end
 
   def space_slot_checkout_path(space, date:, start_time:)
-    checkout_space_path(
+    space_path(
       space,
       date: date.to_date.iso8601,
       start_time: start_time,
@@ -122,7 +122,7 @@ class SpaceAvailabilitySchedulePresenter
   end
 
   def space_bloque_checkout_path(space, date:, slot_rate:)
-    checkout_space_path(
+    space_path(
       space,
       date: date.to_date.iso8601,
       reservation_mode: 'bloque',
@@ -131,7 +131,7 @@ class SpaceAvailabilitySchedulePresenter
   end
 
   def space_jornada_checkout_path(space, date:)
-    checkout_space_path(
+    space_path(
       space,
       date: date.to_date.iso8601,
       reservation_mode: 'jornada'

@@ -85,7 +85,10 @@
       </div>
 
       <% if user_signed_in? && current_user.can_book? %>
-        <%= form_with url: space_bookings_path(space), method: :post, class: "mt-6 space-y-4", data: { turbo: false, checkout_form_target: "confirmForm" } do %>
+        <%= form_with url: space_bookings_path(space),
+              method: :post,
+              class: "mt-6 space-y-4",
+              data: { turbo: false, checkout_form_target: "confirmForm" } do %>
           <%= hidden_field_tag :date, checkout_params["date"], data: { checkout_form_target: "confirmDate" } %>
           <%= hidden_field_tag :start_time, checkout_params["start_time"], data: { checkout_form_target: "confirmStartTime" } %>
           <%= hidden_field_tag :slot_count, checkout_params["slot_count"], data: { checkout_form_target: "confirmSlotCount" } %>

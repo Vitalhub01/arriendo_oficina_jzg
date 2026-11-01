@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   resources :spaces, only: %i[index show] do
     member do
       get :availability
+      # DEPRECATED: conservada para enlaces antiguos; redirige al espacio + reserva (ver SpacePolicy#checkout?).
       get :checkout, to: 'space_checkouts#show'
     end
     resources :bookings, only: %i[create]
@@ -22,7 +23,7 @@ Rails.application.routes.draw do
   resources :bookings, only: %i[index show] do
     member do
       get :availability
-      get :checkout
+      get :checkout # DEPRECATED: conservada; pago vía Mercado Pago desde la reserva
       patch :cancel
       patch :reschedule
       patch :apply_discount_code

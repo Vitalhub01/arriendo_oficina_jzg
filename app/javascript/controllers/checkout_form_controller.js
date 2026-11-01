@@ -28,7 +28,8 @@ export default class extends Controller {
     "confirmSlotCount",
     "confirmReservationMode",
     "confirmSlotRateId",
-    "confirmSubmit"
+    "confirmSubmit",
+    "confirmForm"
   ]
 
   static values = {
@@ -215,6 +216,24 @@ export default class extends Controller {
     this.confirmSlotRateIdTargets.forEach((el) => {
       el.value = slotRateId
     })
+    this.syncConfirmEquipmentFields()
+  }
+
+  syncConfirmEquipmentFields() {
+    if (!this.hasConfirmFormTarget || !this.hasFormTarget) return
+
+    const confirmForm = this.confirmFormTarget
+    confirmForm.querySelectorAll('input[name="rented_equipment_item_ids[]"]').forEach((el) => el.remove())
+
+    this.formTarget
+      .querySelectorAll('input[name="rented_equipment_item_ids[]"]:checked')
+      .forEach((input) => {
+        const hidden = document.createElement("input")
+        hidden.type = "hidden"
+        hidden.name = "rented_equipment_item_ids[]"
+        hidden.value = input.value
+        confirmForm.appendChild(hidden)
+      })
   }
 
   refreshHourlySummary(dateIso) {

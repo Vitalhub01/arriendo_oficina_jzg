@@ -53,9 +53,9 @@ class UserRegistrationTest < ActionDispatch::IntegrationTest
     assert_nil User.find_by(email: 'nuevo-rut@test.com')
   end
 
-  test 'failed registration from checkout redirects back with flash and register tab' do
+  test 'failed registration from space booking flow redirects back with flash' do
     space = boxes(:published_box)
-    checkout_url = checkout_space_path(
+    space_url = space_path(
       space,
       date: next_monday_at(hour: 10).to_date,
       start_time: '10:00',
@@ -63,26 +63,26 @@ class UserRegistrationTest < ActionDispatch::IntegrationTest
       slot_count: 2
     )
 
-    get checkout_url
+    get space_url
     assert_response :success
 
     post user_registration_path,
          params: {
-      user: {
-        name: 'Checkout Guest',
-        rut: '',
-        email: 'checkout-guest@test.com',
-        password: 'password123',
-        password_confirmation: 'password123'
-      }
-    },
-         headers: { 'HTTP_REFERER' => checkout_url }
+           user: {
+             name: 'Checkout Guest',
+             rut: '',
+             email: 'checkout-guest@test.com',
+             password: 'password123',
+             password_confirmation: 'password123'
+           }
+         },
+         headers: { 'HTTP_REFERER' => space_url }
 
-    assert_redirected_to %r{auth=register}
+    assert_redirected_to space_url
     follow_redirect!
     assert_response :success
     assert_match 'No pudimos crear tu cuenta:', response.body
     assert_match 'data-controller="flash"', response.body
-    assert_match 'Confirmar reserva', response.body
+    assert_match space.title, response.body
   end
 end

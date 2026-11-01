@@ -20,6 +20,12 @@
       <div class="flex justify-between"><dt class="text-gray-500">Fecha</dt><dd><%= l(@booking.start_at.to_date, format: :long) %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Horario</dt><dd><%= l(@booking.start_at, format: "%H:%M") %> — <%= l(@booking.end_at, format: "%H:%M") %></dd></div>
       <div class="flex justify-between"><dt class="text-gray-500">Duración</dt><dd><%= @booking.formatted_duration %> (<%= @booking.slot_count %> hora(s))</dd></div>
+      <% if @booking.pricing_detail_visible? %>
+        <div class="flex justify-between"><dt class="text-gray-500"><%= @booking.pricing_base_label %></dt><dd><%= @booking.formatted_pricing_base_amount %></dd></div>
+        <% @booking.pricing_equipment_lines.each do |line| %>
+          <div class="flex justify-between"><dt class="text-gray-500"><%= @booking.pricing_equipment_line_label(line) %></dt><dd><%= @booking.formatted_pricing_line_amount(line[:amount_cents]) %></dd></div>
+        <% end %>
+      <% end %>
       <% if @booking.promo_discount_cents.positive? %>
         <div class="flex justify-between"><dt class="text-gray-500">Descuento (código <%= @booking.discount_code&.code %>)</dt><dd class="text-green-700">−<%= Money.new(@booking.promo_discount_cents, 'CLP').format(no_cents_if_whole: true) %></dd></div>
       <% end %>

@@ -66,7 +66,8 @@ class BookingsController < ApplicationController
       end
     else
       if params[:from_checkout].present?
-        redirect_to checkout_space_path(@space, checkout_return_params), alert: result.errors.join(', ')
+        redirect_to helpers.space_booking_prefill_path(@space, **checkout_return_params.to_h),
+                    alert: result.errors.join(', ')
       else
         load_space_show_vars
         @errors = result.errors

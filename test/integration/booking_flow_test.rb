@@ -58,6 +58,44 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to booking_path(booking)
   end
 
+  test 'checkout mercado pago preference uses total including equipment rental' do
+    sign_in @renter
+    item = equipment_items(:wifi_equipment)
+    item.update_columns(price_per_hour_cents: 500)
+
+    post space_bookings_path(@box),
+         params: booking_params.merge(
+           from_checkout: '1',
+           rented_equipment_item_ids: [item.id]
+         )
+
+    booking = Booking.order(:created_at).last
+    assert_equal 31_000, booking.total_amount_cents
+
+    preference_unit_price = nil
+    fake_pref = Object.new
+    fake_pref.define_singleton_method(:create) do |data|
+      preference_unit_price = data.dig(:items, 0, :unit_price)
+      {
+        status: 201,
+        response: { 'id' => 'TEST-pref-equipment', 'init_point' => 'https://sandbox.mercadopago.cl/checkout',
+                    'sandbox_init_point' => 'https://sandbox.mercadopago.cl/checkout' }
+      }
+    end
+    fake_pref.define_singleton_method(:get) do |_id|
+      { response: { 'id' => 'TEST-pref-equipment', 'init_point' => 'https://sandbox.mercadopago.cl/checkout' } }
+    end
+    fake_sdk = Object.new
+    fake_sdk.define_singleton_method(:preference) { fake_pref }
+
+    Mercadopago::SDK.stub(:new, ->(_token) { fake_sdk }) do
+      get checkout_booking_path(booking)
+    end
+
+    assert_equal 31_000, preference_unit_price
+    assert_equal 31_000, booking.reload.payment.amount_cents
+  end
+
   test 'checkout creates payment and redirects to mercado pago' do
     sign_in @renter
     booking = create_pending_booking
@@ -83,9 +121,9 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
            params: booking_params.merge(from_checkout: '1')
     end
 
-    assert_redirected_to checkout_space_path(@box, date: booking_date_param(@slot_time),
-                                                      start_time: booking_start_time_param(@slot_time),
-                                                      slot_count: 2)
+    assert_redirected_to space_path(@box, date: booking_date_param(@slot_time),
+                                         start_time: booking_start_time_param(@slot_time),
+                                         slot_count: 2)
     assert_match 'otra persona', flash[:alert]
   end
 

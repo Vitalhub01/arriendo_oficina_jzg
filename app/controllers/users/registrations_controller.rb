@@ -107,12 +107,12 @@ module Users
     end
 
     def prepare_registration_failure
-      redirect_target = checkout_return_location
+      redirect_target = booking_flow_return_location
       @registration_failure_alert = registration_failure_alert(resource, inline_details: redirect_target.blank?)
 
       return unless redirect_target
 
-      @registration_failure_redirect = append_auth_tab(redirect_target, 'register')
+      @registration_failure_redirect = redirect_target
     end
 
     def finish_registration_failure
@@ -130,29 +130,23 @@ module Users
       end
     end
 
-    def checkout_return_location
-      return unless registration_from_checkout?
-
+    def booking_flow_return_location
       location = stored_location_for(:user)
-      return if location.blank?
-      return unless location.include?('/checkout')
+      return location if space_booking_url?(location)
 
-      location
-    end
-
-    def registration_from_checkout?
       referer = request.referer
-      referer.present? && referer.include?('/checkout')
+      return referer if space_booking_url?(referer)
+
+      nil
     end
 
-    def append_auth_tab(path, tab)
-      uri = URI.parse(path)
-      query = Rack::Utils.parse_query(uri.query.to_s)
-      query['auth'] = tab
-      uri.query = query.to_query.presence
-      uri.to_s
+    def space_booking_url?(url)
+      return false if url.blank?
+
+      uri = URI.parse(url)
+      uri.path.match?(%r{\A/spaces/\d+\z})
     rescue URI::InvalidURIError
-      path
+      false
     end
 
     def registration_failure_alert(user, inline_details: false)
