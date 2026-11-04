@@ -5,6 +5,8 @@ require 'sidekiq/cron/web'
 
 Sidekiq.configure_server do |config|
   config.redis = { url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0') }
+  # Menos consultas al scheduled set de Redis (jobs perform_at / sidekiq-cron diarios).
+  config.average_scheduled_poll_interval = 30
 
   schedule_file = Rails.root.join('config/schedule.yml')
   Sidekiq::Cron::Job.load_from_hash YAML.load_file(schedule_file) if File.exist?(schedule_file)

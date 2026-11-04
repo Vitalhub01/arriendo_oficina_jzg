@@ -32,6 +32,8 @@ class Booking < ApplicationRecord
   before_validation :set_duration_and_amount, on: :create
   before_validation :apply_reschedule_credit_deduction, on: :create
 
+  after_commit :schedule_payment_deadline_jobs, on: :create
+
   scope :upcoming, -> { where(start_at: Time.current..).order(:start_at) }
   scope :starting_on_date, lambda { |date|
     day = date.is_a?(Date) ? date : Date.parse(date.to_s)
@@ -276,6 +278,10 @@ class Booking < ApplicationRecord
     return unless pending_payment? || status.nil?
 
     self.payment_expires_at ||= Time.current + self.class.payment_ttl
+  end
+
+  def schedule_payment_deadline_jobs
+    Bookings::SchedulePaymentDeadlineJobs.call(self)
   end
 
   def set_duration_and_amount

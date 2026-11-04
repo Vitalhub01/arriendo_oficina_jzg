@@ -30,5 +30,43 @@ module Bookings
       checker = AvailabilityChecker.new(@box)
       assert checker.available?(@slot_time, @slot_time + 2.hours)
     end
+
+    test 'cancels a single booking by id when expired' do
+      booking = Booking.create!(
+        space: @box,
+        profesional: @renter,
+        start_at: @slot_time,
+        end_at: @slot_time + 2.hours,
+        hours: 2,
+        duration_minutes: 120,
+        total_amount_cents: @box.default_price_per_slot_cents * 2,
+        status: :pending_payment,
+        payment_expires_at: 1.minute.ago,
+        booking_type: :slot_based
+      )
+
+      Bookings::ExpirePendingJob.perform_now(booking.id)
+
+      assert booking.reload.cancelled?
+    end
+
+    test 'no-op for id when booking still within payment window' do
+      booking = Booking.create!(
+        space: @box,
+        profesional: @renter,
+        start_at: @slot_time,
+        end_at: @slot_time + 2.hours,
+        hours: 2,
+        duration_minutes: 120,
+        total_amount_cents: @box.default_price_per_slot_cents * 2,
+        status: :pending_payment,
+        payment_expires_at: 30.minutes.from_now,
+        booking_type: :slot_based
+      )
+
+      Bookings::ExpirePendingJob.perform_now(booking.id)
+
+      assert booking.reload.pending_payment?
+    end
   end
 end

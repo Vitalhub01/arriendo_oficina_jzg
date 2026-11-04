@@ -1,5 +1,6 @@
+# Respaldo horario: la expiración normal va en ExpirePendingJob programado al crear la reserva.
 expire_pending_bookings:
-  cron: "*/5 * * * *"
+  cron: "0 * * * *"
   class: "Bookings::ExpirePendingJob"
   queue: default
 
@@ -23,7 +24,4 @@ expire_memberships:
   class: "Memberships::ExpireJob"
   queue: default
 
-payment_expiry_reminder:
-  cron: "*/15 * * * *"
-  class: "Bookings::PaymentExpiryReminderJob"
-  queue: mailers
+# Recordatorio: PaymentExpiryReminderJob programado al crear la reserva (sin cron).
