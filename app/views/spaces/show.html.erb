@@ -94,7 +94,7 @@
     <% if user_signed_in? %>
       <button type="button" class="btn-primary" data-action="booking-form#openPanel">Reservar</button>
     <% else %>
-      <%= link_to "Reservar", new_user_registration_path, class: "btn-primary" %>
+      <%= link_to "Reservar", new_user_session_path, class: "btn-primary" %>
     <% end %>
   </div>
 </div>
