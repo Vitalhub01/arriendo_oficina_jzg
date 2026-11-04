@@ -197,6 +197,20 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert booking.payment.approved?
   end
 
+  test 'mercadopago return without session confirms booking and prompts sign in' do
+    booking = create_pending_booking
+    create_payment_for(booking)
+
+    with_mercadopago_payment_stub(booking, status: 'approved') do
+      get booking_path(booking, payment_id: 'mp-pay-return', collection_status: 'approved')
+    end
+
+    assert_redirected_to new_user_session_path
+    assert_match 'pago fue recibido', flash[:notice]
+    assert booking.reload.confirmed?
+    assert booking.payment.approved?
+  end
+
   test 'expire job frees slot for new booking' do
     sign_in @renter
     booking = create_pending_booking

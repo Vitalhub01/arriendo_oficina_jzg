@@ -4,6 +4,7 @@ class BookingsController < ApplicationController
   include SpaceScheduleWeeks
 
   before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: :show, if: :mercadopago_booking_return?
   before_action :require_can_book!, only: %i[new create reschedule]
   before_action :set_booking, only: %i[show checkout cancel reschedule apply_discount_code availability]
 
@@ -25,9 +26,18 @@ class BookingsController < ApplicationController
   end
 
   def show
+    if mercadopago_booking_return?
+      Payments::MercadoPago::ProcessReturn.new(booking: @booking, params: params).call
+      @booking.reload
+
+      unless user_signed_in?
+        store_location_for(:user, booking_path(@booking))
+        redirect_to new_user_session_path, notice: mercadopago_return_sign_in_notice
+        return
+      end
+    end
+
     authorize @booking
-    Payments::MercadoPago::ProcessReturn.new(booking: @booking, params: params).call
-    @booking.reload
 
     if policy(@booking).reschedule?
       @reschedule_date = reschedule_form_default_date(@booking)
@@ -240,6 +250,18 @@ class BookingsController < ApplicationController
   def booking_index_filter_counts(scope)
     BOOKING_INDEX_FILTERS.transform_values do |config|
       scope.where(status: config[:statuses]).count
+    end
+  end
+
+  def mercadopago_booking_return?
+    Payments::MercadoPago::ReturnParams.return?(params)
+  end
+
+  def mercadopago_return_sign_in_notice
+    if @booking.confirmed?
+      'Tu pago fue recibido. Inicia sesión para ver los detalles de tu reserva.'
+    else
+      'Inicia sesión para ver el estado de tu reserva.'
     end
   end
 end

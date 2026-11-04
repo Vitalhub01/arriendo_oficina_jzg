@@ -90,7 +90,12 @@ es:
       long: "%A %d de %B %H:%M"
   devise:
     failure:
+      unauthenticated: "Debes iniciar sesión para continuar."
+      timedout: "Tu sesión expiró. Vuelve a iniciar sesión para continuar."
+      invalid: "Email o contraseña incorrectos."
       banned: "Tu cuenta está suspendida. Contacta al administrador."
+      user:
+        unauthenticated: "Debes iniciar sesión para continuar."
     sessions:
       signed_in: "Sesión iniciada."
       signed_out: "Sesión cerrada."
