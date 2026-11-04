@@ -33,6 +33,12 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     assert_match gallery_frame_path(item), response.body
   end
 
+  test 'guest home header includes mobile sign in link' do
+    get root_path
+    assert_response :success
+    assert_select 'header .md\\:hidden a[href=?]', new_user_session_path, text: 'Ingresar'
+  end
+
   test 'show displays main photo viewer for tag slug' do
     first = GalleryItem.create!(position: 0, tag: 'Box clínico', visible: true)
     first.image.attach(
