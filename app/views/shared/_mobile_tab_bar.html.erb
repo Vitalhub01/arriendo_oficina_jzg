@@ -1,0 +1,40 @@
+<nav
+  class="mobile-tab-bar fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)] md:hidden pb-[env(safe-area-inset-bottom,0px)]"
+  aria-label="Navegación principal">
+  <div class="mx-auto grid h-16 max-w-lg grid-cols-3">
+    <% if user_signed_in? %>
+      <%= link_to bookings_path, class: mobile_tab_bar_link_class(active: mobile_tab_bookings_active?) do %>
+        <%= mobile_tab_bar_icon(:bookings) %>
+        <span class="truncate"><%= site_nav_text('nav_link_bookings') %></span>
+      <% end %>
+      <%= link_to spaces_path, class: mobile_tab_bar_link_class(active: mobile_tab_reserve_active?) do %>
+        <%= mobile_tab_bar_icon(:reserve) %>
+        <span class="truncate"><%= site_nav_text('nav_link_reserve') %></span>
+      <% end %>
+      <%= link_to edit_profile_path,
+            class: mobile_tab_bar_link_class(active: mobile_tab_profile_active?),
+            title: (current_user.profile_complete? ? nil : "Perfil incompleto") do %>
+        <span class="relative inline-flex shrink-0">
+          <%= mobile_tab_bar_icon(:profile) %>
+          <% unless current_user.profile_complete? %>
+            <span class="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white" aria-hidden="true"></span>
+          <% end %>
+        </span>
+        <span class="truncate"><%= site_nav_text('nav_link_profile') %></span>
+      <% end %>
+    <% else %>
+      <%= link_to root_path, class: mobile_tab_bar_link_class(active: mobile_tab_home_active?) do %>
+        <%= mobile_tab_bar_icon(:home) %>
+        <span class="truncate">Inicio</span>
+      <% end %>
+      <%= link_to spaces_path, class: mobile_tab_bar_link_class(active: mobile_tab_reserve_active?) do %>
+        <%= mobile_tab_bar_icon(:reserve) %>
+        <span class="truncate"><%= site_nav_text('nav_link_reserve') %></span>
+      <% end %>
+      <%= link_to new_user_session_path, class: mobile_tab_bar_link_class(active: mobile_tab_sign_in_active?) do %>
+        <%= mobile_tab_bar_icon(:sign_in) %>
+        <span class="truncate"><%= site_nav_text('nav_link_sign_in') %></span>
+      <% end %>
+    <% end %>
+  </div>
+</nav>

@@ -181,6 +181,59 @@ module ApplicationHelper
     site_navigation_settings.fetch(key.to_s) { SiteNavigationSettings::DEFAULTS.fetch(key.to_s) }
   end
 
+  def mobile_tab_bar_link_class(active: false, primary: false)
+    base = 'flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-medium uppercase tracking-wide transition-colors'
+    if active
+      primary ? "#{base} text-brand-dark" : "#{base} text-brand"
+    else
+      "#{base} text-gray-500 hover:text-brand"
+    end
+  end
+
+  def mobile_tab_home_active?
+    current_page?(root_path)
+  end
+
+  def mobile_tab_sign_in_active?
+    controller_path.in?(%w[users/sessions users/registrations users/passwords])
+  end
+
+  def mobile_tab_bookings_active?
+    controller_name == 'bookings'
+  end
+
+  def mobile_tab_reserve_active?
+    return false if mobile_tab_bookings_active?
+
+    controller_name.in?(%w[spaces space_checkouts])
+  end
+
+  def mobile_tab_profile_active?
+    controller_name == 'profiles'
+  end
+
+  def mobile_tab_bar_icon(name)
+    paths = {
+      home: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+      reserve: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+      sign_in: 'M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5m0 0l-5-5m5 5H3',
+      bookings: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+      profile: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+    }
+    tag.svg(
+      class: 'h-6 w-6 shrink-0',
+      width: 24,
+      height: 24,
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '1.5',
+      viewBox: '0 0 24 24',
+      aria: { hidden: true }
+    ) do
+      tag.path('stroke-linecap': 'round', 'stroke-linejoin': 'round', d: paths.fetch(name))
+    end
+  end
+
   def site_logo_url
     absolute_url(asset_path(SITE_LOGO_ASSET))
   end

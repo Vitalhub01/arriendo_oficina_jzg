@@ -33,10 +33,23 @@ class GalleriesTest < ActionDispatch::IntegrationTest
     assert_match gallery_frame_path(item), response.body
   end
 
-  test 'guest home header includes mobile sign in link' do
+  test 'guest home includes mobile bottom tab bar with sign in and reserve' do
     get root_path
     assert_response :success
-    assert_select 'header .md\\:hidden a[href=?]', new_user_session_path, text: 'Ingresar'
+    assert_select 'nav.mobile-tab-bar[aria-label="Navegación principal"]', 1
+    assert_select 'nav.mobile-tab-bar a[href=?]', new_user_session_path, text: 'Ingresar'
+    assert_select 'nav.mobile-tab-bar a[href=?]', spaces_path, text: 'Reservar'
+    assert_select 'nav.mobile-tab-bar a[href=?]', root_path, text: 'Inicio'
+  end
+
+  test 'signed in user sees mobile tab bar with profile bookings and reserve' do
+    sign_in users(:renter)
+    get root_path
+    assert_response :success
+    assert_select 'nav.mobile-tab-bar', 1
+    assert_select 'nav.mobile-tab-bar a[href=?]', edit_profile_path, text: 'Perfil'
+    assert_select 'nav.mobile-tab-bar a[href=?]', bookings_path, text: 'Mis reservas'
+    assert_select 'nav.mobile-tab-bar a[href=?]', spaces_path, text: 'Reservar'
   end
 
   test 'show displays main photo viewer for tag slug' do

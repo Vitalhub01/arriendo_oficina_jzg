@@ -62,4 +62,8 @@
 
     <%= f.submit "Guardar", class: "btn-primary" %>
   <% end %>
+
+  <div class="mt-10 border-t border-gray-200 pt-6">
+    <%= button_to site_nav_text('nav_link_sign_out'), destroy_user_session_path, method: :delete, class: "btn-secondary w-full" %>
+  </div>
 </div>

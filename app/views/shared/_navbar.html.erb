@@ -14,15 +14,6 @@
       </div>
     <% end %>
 
-    <div class="flex shrink-0 items-center gap-2 md:hidden">
-      <% if user_signed_in? %>
-        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "#{compact ? 'btn-primary !min-h-[36px] !px-4 !py-2 !text-xs' : 'btn-primary !min-h-[42px] !px-4 !py-2 !text-xs'}" %>
-      <% else %>
-        <%= link_to site_nav_text('nav_link_sign_in'), new_user_session_path, class: "whitespace-nowrap text-xs font-medium uppercase tracking-wide text-gray-700 hover:text-brand" %>
-        <%= link_to site_nav_text('nav_link_reserve'), spaces_path, class: "#{compact ? 'btn-primary !min-h-[36px] !px-4 !py-2 !text-xs' : 'btn-primary !min-h-[42px] !px-4 !py-2 !text-xs'}" %>
-      <% end %>
-    </div>
-
     <nav class="hidden items-center gap-6 md:flex <%= 'gap-4 text-xs' if compact %>">
       <%= link_to site_nav_text('nav_link_spaces'), spaces_path, class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>
       <%= link_to site_nav_text('nav_link_gallery'), root_path(anchor: "galeria"), class: "text-sm font-medium uppercase tracking-wide text-gray-700 transition hover:text-brand #{compact ? '!text-xs' : ''}" %>

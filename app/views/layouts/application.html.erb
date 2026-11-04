@@ -20,7 +20,15 @@
       </script>
     <% end %>
   </head>
-  <body class="min-h-screen bg-white<%= ' gallery-view' if @minimal_chrome.present? %>">
+  <% mobile_bottom_pad =
+       if @minimal_chrome.present?
+         ''
+       elsif content_for?(:mobile_page_dock)
+         'pb-32 md:pb-0'
+       else
+         'pb-16 md:pb-0'
+       end %>
+  <body class="min-h-screen bg-white<%= ' gallery-view' if @minimal_chrome.present? %> <%= mobile_bottom_pad %><%= " #{content_for(:body_class)}" if content_for?(:body_class) %>">
     <%= render "shared/navbar", compact: @minimal_chrome.present? %>
     <% if notice.present? || alert.present? %>
       <div class="mx-auto max-w-7xl px-4 py-3">
@@ -30,6 +38,7 @@
     <%= flash[:ga_event_script].html_safe if flash[:ga_event_script].present? %>
     <%= yield %>
     <% unless @minimal_chrome.present? %>
+      <%= render "shared/mobile_tab_bar" %>
       <%= render "shared/footer" %>
     <% end %>
   </body>
