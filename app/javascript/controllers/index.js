@@ -21,6 +21,8 @@ import RescheduleFormController from "controllers/reschedule_form_controller"
 import AdminBookingFormController from "controllers/admin_booking_form_controller"
 import SpotOfferFormController from "controllers/spot_offer_form_controller"
 import PreventNumberScrollController from "controllers/prevent_number_scroll_controller"
+import AdminBookingsCalendarController from "controllers/admin_bookings_calendar_controller"
+import DropdownMenuController from "controllers/dropdown_menu_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -45,6 +47,8 @@ application.register("reschedule-form", RescheduleFormController)
 application.register("admin-booking-form", AdminBookingFormController)
 application.register("spot-offer-form", SpotOfferFormController)
 application.register("prevent-number-scroll", PreventNumberScrollController)
+application.register("admin-bookings-calendar", AdminBookingsCalendarController)
+application.register("dropdown-menu", DropdownMenuController)
 window.Stimulus = application
 
 export { application }

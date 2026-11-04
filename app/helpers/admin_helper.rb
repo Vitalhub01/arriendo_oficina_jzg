@@ -146,8 +146,19 @@ module AdminHelper
       available: 'border-green-300 bg-green-100 text-green-900',
       pending: 'border-amber-300 bg-amber-100 text-amber-950',
       blocked: 'border-gray-300 bg-gray-200 text-gray-600',
-      confirmed: 'border-blue-300 bg-blue-100 text-blue-950'
+      confirmed: 'border-blue-300 bg-blue-100 text-blue-950',
+      cancelled: 'border-red-200 bg-red-50 text-red-800'
     }.fetch(status.to_sym, 'border-gray-200 bg-white text-gray-800')
+  end
+
+  def admin_booking_calendar_status_label(slot)
+    {
+      available: 'Disponible',
+      pending: 'Pendiente',
+      blocked: 'Bloqueado',
+      confirmed: 'Confirmada',
+      cancelled: 'Anulada'
+    }.fetch(slot.status.to_sym, slot.status.to_s)
   end
 
   def admin_photo_thumbnail(attachment, alt:, resize_to_limit: [320, 240], **options)

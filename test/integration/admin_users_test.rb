@@ -31,4 +31,19 @@ class AdminUsersTest < ActionDispatch::IntegrationTest
     get admin_users_path
     assert_redirected_to root_path
   end
+
+  test 'admin generates shareable password reset link' do
+    sign_in @admin
+    @profesional.update!(reset_password_token: nil, reset_password_sent_at: nil)
+
+    get password_reset_link_admin_user_path(@profesional)
+    assert_response :success
+    assert_match %r{/users/password/edit\?reset_password_token=}, response.body
+    assert @profesional.reload.reset_password_token.present?
+
+    token = response.body[%r{reset_password_token=([^"&\s]+)}, 1]
+    sign_out @admin
+    get edit_user_password_path(reset_password_token: token)
+    assert_response :success
+  end
 end

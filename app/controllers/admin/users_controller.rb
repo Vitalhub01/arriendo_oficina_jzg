@@ -2,7 +2,7 @@
 
 module Admin
   class UsersController < Admin::BaseController
-    before_action :set_user, only: %i[edit update]
+    before_action :set_user, only: %i[edit update password_reset_link]
     before_action :guard_self_admin_change, only: :update
 
     def index
@@ -16,6 +16,11 @@ module Admin
     end
 
     def edit; end
+
+    def password_reset_link
+      result = Users::IssuePasswordResetLink.new(user: @user).call(url_options: default_url_options)
+      @password_reset_url = result.url
+    end
 
     def update
       @user.assign_attributes(user_params)

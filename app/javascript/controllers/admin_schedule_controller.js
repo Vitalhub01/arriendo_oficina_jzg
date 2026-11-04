@@ -10,7 +10,8 @@ export default class extends Controller {
     "deleteDialog", "deleteDialogMessage",
     "bulkFillDialog", "bulkDay", "bulkStartTime", "bulkEndTime", "bulkPriceClp",
     "bulkUseSpacePricing", "bulkCustomPriceField", "bulkReplace", "bulkPreview", "bulkError",
-    "templateDefaultPrice", "templateSpecialPrice", "templateSpecialPriceField"
+    "templateDefaultPrice", "templateSpecialPrice", "templateSpecialPriceField",
+    "pageError"
   ]
   static values = {
     blocks: Array,
@@ -599,16 +600,23 @@ export default class extends Controller {
   }
 
   async blockDateFor(blockId, date) {
-    const response = await this.jsonRequest(
-      `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${blockId}/override`,
-      "POST",
-      { date, blocked: "1", week_start: this.weekStartValue }
-    )
+    if (this.overrideRequestInFlight) return
+    this.overrideRequestInFlight = true
 
-    if (response.ok) {
-      this.reloadWithToast()
-    } else {
-      this.showError(response.errors)
+    try {
+      const response = await this.jsonRequest(
+        `/admin/spaces/${this.spaceIdValue}/schedule_blocks/${blockId}/override`,
+        "POST",
+        { date, blocked: "1", week_start: this.weekStartValue }
+      )
+
+      if (response.ok) {
+        this.reloadWithToast()
+      } else {
+        this.showError(response.errors)
+      }
+    } finally {
+      this.overrideRequestInFlight = false
     }
   }
 
@@ -739,12 +747,24 @@ export default class extends Controller {
   }
 
   showError(messages) {
-    this.errorTarget.textContent = messages.join(", ")
-    this.errorTarget.classList.remove("hidden")
+    const text = messages.join(", ")
+    if (this.hasErrorTarget) {
+      this.errorTarget.textContent = text
+      this.errorTarget.classList.remove("hidden")
+    }
+    if (this.hasPageErrorTarget) {
+      this.pageErrorTarget.textContent = text
+      this.pageErrorTarget.classList.remove("hidden")
+    }
   }
 
   hideError() {
-    this.errorTarget.classList.add("hidden")
+    if (this.hasErrorTarget) {
+      this.errorTarget.classList.add("hidden")
+    }
+    if (this.hasPageErrorTarget) {
+      this.pageErrorTarget.classList.add("hidden")
+    }
   }
 
   dayName(day) {

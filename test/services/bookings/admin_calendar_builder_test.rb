@@ -71,18 +71,44 @@ module Bookings
       slot = days.flat_map { |d| d[:slots] }.find { |s| s.schedule_block_id == block.id }
 
       assert_equal :blocked, slot.status
+      assert slot.unblockable
+    end
+
+    test 'marks slot cancelled when only cancelled booking overlaps' do
+      create_booking!(start_at: @slot_time, status: :cancelled)
+
+      days = AdminCalendarBuilder.new(space: @space, week_start: @week_start).build
+      slot = find_slot(days, @slot_time)
+
+      assert_equal :cancelled, slot.status
+      assert_includes slot.label, 'Anulada'
+    end
+
+    test 'merges contiguous slots with the same confirmed booking' do
+      create_booking!(start_at: @slot_time, end_at: @slot_time + 3.hours, status: :confirmed)
+
+      days = AdminCalendarBuilder.new(space: @space, week_start: @week_start).build
+      day = days.find { |entry| entry[:date] == @slot_time.to_date }
+      confirmed = day[:slots].select { |s| s.status == :confirmed }
+
+      assert_operator confirmed.size, :<, 3, 'expected fewer display slots than schedule blocks'
+      span = confirmed.find { |s| s.starts_at.hour == @slot_time.hour }
+      assert span
+      assert_operator span.ends_at, :>, span.starts_at + 1.hour
     end
 
     private
 
-    def create_booking!(start_at:, status:, payment_expires_at: nil)
+    def create_booking!(start_at:, status:, end_at: nil, payment_expires_at: nil)
+      finish = end_at || start_at + 2.hours
+      duration = ((finish - start_at) / 60).to_i
       Booking.create!(
         space: @space,
         profesional: @renter,
         start_at: start_at,
-        end_at: start_at + 2.hours,
-        hours: 2,
-        duration_minutes: 120,
+        end_at: finish,
+        hours: (duration / 60.0).ceil,
+        duration_minutes: duration,
         total_amount_cents: 30_000,
         status: status,
         payment_expires_at: payment_expires_at,

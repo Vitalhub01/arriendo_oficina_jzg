@@ -35,7 +35,7 @@
         <th>Estado</th>
         <th>Prof. verificado</th>
         <th>Último acceso</th>
-        <th class="admin-table__actions"></th>
+        <th class="admin-table__actions w-14"></th>
       </tr>
     </thead>
     <tbody>
@@ -70,8 +70,8 @@
           <td class="text-gray-500">
             <%= user.last_sign_in_at ? l(user.last_sign_in_at, format: :short) : '—' %>
           </td>
-          <td class="admin-table__actions">
-            <%= link_to "Permisos", edit_admin_user_path(user), class: "text-brand hover:underline" %>
+          <td class="admin-table__actions w-14">
+            <%= render "admin/users/actions_menu", user: user %>
           </td>
         </tr>
       <% end %>

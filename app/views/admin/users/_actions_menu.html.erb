@@ -1,0 +1,30 @@
+<div class="relative inline-flex justify-end" data-controller="dropdown-menu">
+  <button type="button"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+          aria-label="Acciones para <%= user.name %>"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          data-dropdown-menu-target="trigger"
+          data-action="dropdown-menu#toggle">
+    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 15a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/>
+    </svg>
+  </button>
+
+  <div class="admin-dropdown-menu hidden absolute right-0 z-20 mt-1 w-56 origin-top-right"
+       data-dropdown-menu-target="menu"
+       role="menu">
+    <%= link_to edit_admin_user_path(user), class: "admin-dropdown-menu__item", role: "menuitem" do %>
+      <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+      </svg>
+      <span>Permisos y rol</span>
+    <% end %>
+    <%= link_to password_reset_link_admin_user_path(user), class: "admin-dropdown-menu__item", role: "menuitem" do %>
+      <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m3.939-3.939a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+      </svg>
+      <span>Enlace restablecer contraseña</span>
+    <% end %>
+  </div>
+</div>

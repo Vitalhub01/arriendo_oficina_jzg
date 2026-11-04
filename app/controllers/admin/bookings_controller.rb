@@ -110,8 +110,55 @@ module Admin
     def update
       if params[:cancel].present?
         result = ::Bookings::Cancel.new(booking: @booking, actor: current_user).call
-        flash_key = result.success? ? :notice : :alert
-        flash[flash_key] = result.success? ? 'Reserva anulada' : result.errors.join(', ')
+        message = result.success? ? 'Reserva anulada' : result.errors.join(', ')
+        respond_to do |format|
+          format.html do
+            flash[result.success? ? :notice : :alert] = message
+            redirect_to admin_booking_path(@booking)
+          end
+          format.json do
+            if result.success?
+              head :no_content
+            else
+              render json: { errors: result.errors }, status: :unprocessable_content
+            end
+          end
+        end
+        return
+      elsif params[:restore].present?
+        result = ::Bookings::RestoreCancelled.new(booking: @booking, actor: current_user).call
+        message = result.success? ? 'Reserva reactivada' : result.errors.join(', ')
+        respond_to do |format|
+          format.html do
+            flash[result.success? ? :notice : :alert] = message
+            redirect_to admin_booking_path(@booking)
+          end
+          format.json do
+            if result.success?
+              head :no_content
+            else
+              render json: { errors: result.errors }, status: :unprocessable_content
+            end
+          end
+        end
+        return
+      elsif params[:dismiss_from_calendar].present?
+        result = ::Bookings::DismissFromAdminCalendar.new(booking: @booking, actor: current_user).call
+        message = result.success? ? 'Horario disponible en el calendario' : result.errors.join(', ')
+        respond_to do |format|
+          format.html do
+            flash[result.success? ? :notice : :alert] = message
+            redirect_to admin_booking_path(@booking)
+          end
+          format.json do
+            if result.success?
+              head :no_content
+            else
+              render json: { errors: result.errors }, status: :unprocessable_content
+            end
+          end
+        end
+        return
       elsif params[:confirm_manually].present?
         result = ::Bookings::ConfirmManually.new(booking: @booking, actor: current_user).call
         flash_key = result.success? ? :notice : :alert

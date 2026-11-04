@@ -64,6 +64,14 @@
     @apply w-28 whitespace-nowrap text-right;
   }
 
+  .admin-dropdown-menu {
+    @apply overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg ring-1 ring-black/5;
+  }
+
+  .admin-dropdown-menu__item {
+    @apply flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 hover:text-gray-900;
+  }
+
   .admin-form-section {
     @apply overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm;
   }

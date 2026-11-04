@@ -79,7 +79,11 @@ Rails.application.routes.draw do
     resources :jornada_definitions
     resources :pricing_rules
     resources :discount_codes
-    resources :users, only: %i[index edit update]
+    resources :users, only: %i[index edit update] do
+      member do
+        get :password_reset_link
+      end
+    end
     resources :professionals, only: %i[index show update]
     resources :spot_offers, only: %i[index new create show] do
       collection do

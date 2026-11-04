@@ -4,11 +4,13 @@ module Bookings
   class AdminCalendarBuilder
     Slot = Struct.new(
       :schedule_block_id,
+      :schedule_block_ids,
       :starts_at,
       :ends_at,
       :status,
       :booking_ids,
       :label,
+      :unblockable,
       keyword_init: true
     )
 
@@ -49,44 +51,121 @@ module Bookings
                                .where('start_at < ? AND end_at > ?', range_end, range_start)
                                .includes(:profesional)
                                .to_a
+
+      @cancelled_bookings = space.bookings.cancelled.without_spot_offer
+                                 .where('start_at < ? AND end_at > ?', range_end, range_start)
+                                 .where.not("pricing_breakdown @> ?", { Bookings::DismissFromAdminCalendar::HIDDEN_KEY => true }.to_json)
+                                 .includes(:profesional)
+                                 .to_a
+
+      @availability_blocks = space.availability_blocks
+                                  .where('end_at > ? AND start_at < ?', range_start, range_end)
+                                  .to_a
     end
 
     def slots_for(date, day_of_week)
       blocks = space.schedule_blocks.for_day(day_of_week).ordered.select { |block| block.active_on?(date) }
       blocks = ScheduleBlock.sort_for_display_on(blocks, date)
 
-      blocks.map do |block|
+      slots = blocks.map do |block|
         starts_at = block.starts_at_on(date)
         ends_at = block.ends_at_on(date)
-        status, bookings = resolve_status_and_bookings(block, date, starts_at, ends_at)
+        status, bookings, unblockable = resolve_status_and_bookings(block, date, starts_at, ends_at)
 
         Slot.new(
           schedule_block_id: block.id,
+          schedule_block_ids: [block.id],
           starts_at: starts_at,
           ends_at: ends_at,
           status: status,
           booking_ids: bookings.map(&:id),
-          label: slot_label(status, bookings, starts_at, ends_at)
+          label: slot_label(status, bookings, starts_at, ends_at),
+          unblockable: unblockable
         )
       end
+
+      merge_adjacent_slots(slots)
     end
 
     def resolve_status_and_bookings(block, date, starts_at, ends_at)
-      if block.blocked_on?(date) || availability_blocked?(starts_at, ends_at)
-        return [:blocked, []]
+      if block.blocked_on?(date)
+        return [:blocked, [], true]
+      end
+
+      if availability_blocked?(starts_at, ends_at)
+        return [:blocked, [], false]
       end
 
       confirmed = overlapping(@confirmed_bookings, starts_at, ends_at)
-      return [:confirmed, confirmed] if confirmed.any?
+      return [:confirmed, confirmed, false] if confirmed.any?
 
       pending = overlapping(@pending_bookings, starts_at, ends_at)
-      return [:pending, pending] if pending.any?
+      return [:pending, pending, false] if pending.any?
 
-      [:available, []]
+      cancelled = overlapping(@cancelled_bookings, starts_at, ends_at)
+      return [:cancelled, cancelled, false] if cancelled.any?
+
+      [:available, [], false]
     end
 
     def availability_blocked?(starts_at, ends_at)
-      space.availability_blocks.exists?(['start_at < ? AND end_at > ?', ends_at, starts_at])
+      @availability_blocks.any? { |block| block.start_at < ends_at && block.end_at > starts_at }
+    end
+
+    def merge_adjacent_slots(slots)
+      slots.each_with_object([]) do |slot, merged|
+        if merged.last && mergeable?(merged.last, slot)
+          merged[-1] = combine_slots(merged.last, slot)
+        else
+          merged << slot
+        end
+      end
+    end
+
+    def mergeable?(left, right)
+      return false unless left.ends_at == right.starts_at
+      return false unless left.status == right.status
+
+      case left.status
+      when :available
+        false
+      when :blocked
+        left.unblockable == right.unblockable
+      when :confirmed, :pending, :cancelled
+        left.booking_ids.sort == right.booking_ids.sort && left.booking_ids.any?
+      else
+        false
+      end
+    end
+
+    def combine_slots(first, second)
+      bookings = bookings_for_ids(first.booking_ids)
+      Slot.new(
+        schedule_block_id: first.schedule_block_id,
+        schedule_block_ids: first.schedule_block_ids + second.schedule_block_ids,
+        starts_at: first.starts_at,
+        ends_at: second.ends_at,
+        status: first.status,
+        booking_ids: first.booking_ids,
+        label: slot_label(first.status, bookings, first.starts_at, second.ends_at),
+        unblockable: first.unblockable
+      )
+    end
+
+    def bookings_for_ids(ids)
+      return [] if ids.empty?
+
+      ids.filter_map { |id| booking_index[id] }
+    end
+
+    def booking_index
+      @booking_index ||= begin
+        index = {}
+        (@confirmed_bookings + @pending_bookings + @cancelled_bookings).each do |booking|
+          index[booking.id] = booking
+        end
+        index
+      end
     end
 
     def overlapping(bookings, starts_at, ends_at)
@@ -104,6 +183,9 @@ module Bookings
         names = bookings.map { |b| b.profesional.name }.uniq.join(', ')
         state = status == :confirmed ? 'Confirmada' : 'Pendiente de pago'
         "#{time_range} · #{state} — #{names}"
+      when :cancelled
+        names = bookings.map { |b| b.profesional.name }.uniq.join(', ')
+        "#{time_range} · Anulada — #{names}"
       else
         time_range
       end

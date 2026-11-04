@@ -108,32 +108,26 @@ module Admin
 
       def upsert_override
         date = Date.parse(params.require(:date))
-        override = @schedule_block.overrides.find_or_initialize_by(date: date, space: @space)
 
-        if params[:blocked] == '1' || params[:blocked] == true
-          override.blocked = true
-          override.price_cents = nil
-          override.start_time = nil
-          override.end_time = nil
-          override.reason = params[:reason]
-        elsif date_override_payload?
-          overlap_error = ensure_date_overlap_resolved!(date, override)
-          return respond_with_errors([overlap_error]) if overlap_error
-
-          block_overlapping_on_date!(date)
-          override.blocked = false
-          apply_date_override_fields!(override)
-        else
+        if !block_requested? && !date_override_payload?
           return respond_with_errors(['Indica precio, horario o bloqueo'])
         end
 
-        if override.save
-          respond_to do |format|
-            format.html { redirect_to schedule_index_path(week_start: @week_start), notice: 'Cambio guardado para esta fecha' }
-            format.json { render json: serialize_override(override) }
-          end
+        if date_override_payload? && !block_requested?
+          overlap_error = ensure_date_overlap_resolved!(date, nil)
+          return respond_with_errors([overlap_error]) if overlap_error
+        end
+
+        override = persist_date_override!(date)
+        respond_with_override(override)
+      rescue ActiveRecord::RecordInvalid => e
+        respond_with_errors(e.record.errors.full_messages)
+      rescue ActiveRecord::RecordNotUnique
+        override = @schedule_block.overrides.find_by(date: date)
+        if override && concurrent_override_matches?(override)
+          respond_with_override(override)
         else
-          respond_with_errors(override.errors.full_messages)
+          respond_with_errors(['No se pudo guardar el cambio. Actualiza la página e intenta de nuevo.'])
         end
       end
 
@@ -241,6 +235,57 @@ module Admin
         return if raw[:start_time].blank?
 
         raw[:price_cents] = @space.price_per_slot_at(raw[:start_time])
+      end
+
+      def respond_with_override(override)
+        respond_to do |format|
+          format.html { redirect_to schedule_index_path(week_start: @week_start), notice: 'Cambio guardado para esta fecha' }
+          format.json { render json: serialize_override(override) }
+        end
+      end
+
+      def concurrent_override_matches?(override)
+        return override.blocked? if block_requested?
+
+        !override.blocked?
+      end
+
+      def block_requested?
+        ActiveModel::Type::Boolean.new.cast(params[:blocked])
+      end
+
+      def persist_date_override!(date)
+        attempts = 0
+        begin
+          ScheduleBlockOverride.transaction do
+            override = @schedule_block.overrides.find_or_initialize_by(date: date)
+            override.space = @space
+
+            if block_requested?
+              apply_block_override!(override)
+            else
+              block_overlapping_on_date!(date)
+              override.blocked = false
+              apply_date_override_fields!(override)
+            end
+
+            override.save!
+            override
+          end
+        rescue ActiveRecord::RecordNotUnique
+          attempts += 1
+          retry if attempts < 2
+
+          raise
+        end
+      end
+
+      def apply_block_override!(override)
+        override.blocked = true
+        override.price_cents = nil
+        override.start_time = nil
+        override.end_time = nil
+        override.reason = params[:reason]
       end
 
       def date_override_payload?

@@ -8,6 +8,16 @@
 <% elsif @calendar_space.blank? %>
   <p class="mt-6 text-sm text-gray-600">Selecciona un espacio para ver el calendario.</p>
 <% else %>
+  <div data-controller="admin-bookings-calendar"
+       data-admin-bookings-calendar-space-id-value="<%= @calendar_space.id %>"
+       data-admin-bookings-calendar-week-start-value="<%= @week_start.iso8601 %>"
+       data-admin-bookings-calendar-csrf-value="<%= form_authenticity_token %>">
+
+    <div id="bookings-calendar-toast" class="<%= params[:saved] == '1' ? '' : 'hidden' %> mt-4 rounded-xl bg-green-50 p-3 text-green-800" role="status" data-admin-bookings-calendar-target="toast">
+      Cambios guardados
+    </div>
+    <div class="hidden mt-4 rounded-xl bg-red-50 p-3 text-red-800" role="alert" data-admin-bookings-calendar-target="pageError"></div>
+
   <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
     <%= form_with url: calendar_admin_bookings_path, method: :get, class: "flex flex-wrap items-end gap-3" do %>
       <input type="hidden" name="week_start" value="<%= @week_start.iso8601 %>">
@@ -22,6 +32,9 @@
     <% end %>
 
     <div class="flex items-center gap-2 text-sm">
+      <%= link_to "Calendario y precios",
+                  admin_space_schedule_blocks_path(@calendar_space, week_start: @week_start),
+                  class: "text-brand hover:underline" %>
       <%= link_to "← Semana",
                   calendar_admin_bookings_path(space_id: @calendar_space.id, week_start: @week_start - 1.week),
                   class: "text-brand hover:underline" %>
@@ -49,7 +62,12 @@
       <span class="h-3 w-3 rounded border border-blue-300 bg-blue-100" aria-hidden="true"></span>
       Confirmada
     </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-3 w-3 rounded border border-red-200 bg-red-50" aria-hidden="true"></span>
+      Anulada
+    </span>
   </div>
+  <p class="mt-2 text-xs text-gray-500">Clic en franjas con reserva abre el detalle. Anuladas: flecha reactiva la reserva · círculo con check la deja disponible (verde) en el calendario sin borrar el historial.</p>
 
   <div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
     <div class="grid min-w-[960px] grid-cols-[3rem_repeat(7,1fr)]">
@@ -75,27 +93,116 @@
             <% end_m = slot.ends_at.hour * 60 + slot.ends_at.min %>
             <% top = ((start_m - calendar_start_hour * 60).to_f / calendar_minutes * 100) %>
             <% height = ((end_m - start_m).to_f / calendar_minutes * 100) %>
-            <% slot_url = slot.booking_ids.one? ? admin_booking_path(slot.booking_ids.first) : nil %>
-            <% tag_name = slot_url ? :a : :div %>
-            <%= content_tag tag_name,
-                            href: slot_url,
-                            title: slot.label,
-                            class: "absolute left-0.5 right-0.5 overflow-hidden rounded-md border px-1 py-0.5 text-[10px] leading-tight #{admin_booking_calendar_slot_classes(slot.status)} #{slot_url ? 'hover:ring-2 hover:ring-brand/40' : ''}",
-                            style: "top: #{top}%; height: #{[height, 3].max}%; min-height: 24px;" do %>
-              <span class="font-semibold"><%= slot.starts_at.strftime('%H:%M') %>–<%= slot.ends_at.strftime('%H:%M') %></span>
-              <% if slot.status == :available %>
-                <span class="block truncate">Disponible</span>
-              <% elsif slot.status == :blocked %>
-                <span class="block truncate">Bloqueado</span>
-              <% elsif slot.status == :pending %>
-                <span class="block truncate">Pendiente</span>
-              <% else %>
-                <span class="block truncate">Confirmada</span>
+            <% show_view = slot.booking_ids.any? %>
+            <% show_cancel = slot.status.in?(%i[confirmed pending]) && slot.booking_ids.any? %>
+            <% show_restore = slot.status == :cancelled && slot.booking_ids.any? %>
+            <% show_dismiss = show_restore %>
+            <% show_block = slot.status == :available %>
+            <% show_unblock = slot.status == :blocked && slot.unblockable %>
+            <% action_icons = 0 %>
+            <% action_icons += 1 if show_cancel %>
+            <% action_icons += 1 if show_restore %>
+            <% action_icons += 1 if show_dismiss %>
+            <% action_icons += 1 if show_block %>
+            <% action_icons += 1 if show_unblock %>
+            <% action_count = (show_view ? 1 : 0) + action_icons %>
+            <% content_pad = action_count.positive? ? (action_count * 14 + 6) : 4 %>
+            <% slot_clickable = show_view %>
+            <div class="absolute left-0.5 right-0.5 overflow-hidden rounded-md border px-1 py-0.5 text-[10px] leading-tight <%= admin_booking_calendar_slot_classes(slot.status) %> <%= slot_clickable ? 'cursor-pointer hover:brightness-[0.97]' : 'cursor-default' %>"
+                 style="top: <%= top %>%; height: <%= [height, 3].max %>%; min-height: 24px;"
+                 title="<%= slot.label %>"
+                 <% if slot_clickable %>
+                   data-action="click->admin-bookings-calendar#openBooking"
+                   data-booking-url="<%= admin_booking_path(slot.booking_ids.first) %>"
+                 <% end %>>
+              <% if action_count.positive? %>
+                <div class="absolute top-0 right-0 z-10 flex items-center gap-0.5 px-0.5 py-0.5">
+                  <% if show_view %>
+                    <span class="pointer-events-none rounded p-0.5 text-gray-600" title="Ver reserva" aria-hidden="true">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </span>
+                  <% end %>
+                  <% if show_cancel %>
+                    <button type="button"
+                            data-slot-action
+                            class="pointer-events-auto cursor-pointer rounded p-0.5 text-gray-600 hover:bg-red-50 hover:text-red-700"
+                            title="Anular reserva"
+                            aria-label="Anular reserva"
+                            data-action="click->admin-bookings-calendar#cancelBooking"
+                            data-booking-ids="<%= slot.booking_ids.join(',') %>">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </button>
+                  <% end %>
+                  <% if show_restore %>
+                    <button type="button"
+                            data-slot-action
+                            class="pointer-events-auto cursor-pointer rounded p-0.5 text-gray-600 hover:bg-green-50 hover:text-green-800"
+                            title="Desanular reserva (reactivar)"
+                            aria-label="Desanular reserva"
+                            data-action="click->admin-bookings-calendar#restoreBooking"
+                            data-booking-ids="<%= slot.booking_ids.join(',') %>">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                      </svg>
+                    </button>
+                  <% end %>
+                  <% if show_dismiss %>
+                    <button type="button"
+                            data-slot-action
+                            class="pointer-events-auto cursor-pointer rounded p-0.5 text-green-700 hover:bg-green-100"
+                            title="Disponibilizar en calendario (sigue anulada en historial)"
+                            aria-label="Disponibilizar horario"
+                            data-action="click->admin-bookings-calendar#dismissFromCalendar"
+                            data-booking-ids="<%= slot.booking_ids.join(',') %>">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  <% end %>
+                  <% if show_block %>
+                    <button type="button"
+                            data-slot-action
+                            class="pointer-events-auto cursor-pointer rounded p-0.5 text-gray-500 hover:bg-red-50 hover:text-red-600"
+                            title="Bloquear horario"
+                            aria-label="Bloquear horario"
+                            data-action="click->admin-bookings-calendar#blockSlot"
+                            data-block-id="<%= slot.schedule_block_ids.first %>"
+                            data-date="<%= date.iso8601 %>">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
+                    </button>
+                  <% end %>
+                  <% if show_unblock %>
+                    <button type="button"
+                            data-slot-action
+                            class="pointer-events-auto cursor-pointer rounded p-0.5 text-gray-600 hover:bg-green-50 hover:text-green-800"
+                            title="Quitar bloqueo"
+                            aria-label="Quitar bloqueo"
+                            data-action="click->admin-bookings-calendar#unblockSlot"
+                            data-block-ids="<%= slot.schedule_block_ids.join(',') %>"
+                            data-date="<%= date.iso8601 %>">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                      </svg>
+                    </button>
+                  <% end %>
+                </div>
               <% end %>
-            <% end %>
+              <div class="truncate pt-0.5 <%= 'line-through' if slot.status == :cancelled %>" style="padding-right: <%= content_pad %>px;">
+                <span class="font-semibold"><%= slot.starts_at.strftime('%H:%M') %>–<%= slot.ends_at.strftime('%H:%M') %></span>
+                <span class="block truncate"><%= admin_booking_calendar_status_label(slot) %></span>
+              </div>
+            </div>
           <% end %>
         </div>
       <% end %>
     </div>
+  </div>
   </div>
 <% end %>
