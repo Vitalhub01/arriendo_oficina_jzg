@@ -61,6 +61,13 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     assert_match 'Iniciar sesión o registrarse para reservar', response.body
   end
 
+  test 'guest mobile reserve bar links to registration not hidden panel anchor' do
+    get space_path(@space)
+    assert_response :success
+    assert_no_match 'href="#space-booking-panel"', response.body
+    assert_select '.fixed.inset-x-0.bottom-0 a.btn-primary[href=?]', new_user_registration_path, text: 'Reservar'
+  end
+
   test 'signed in user can book from space show form' do
     sign_in users(:renter)
     get space_path(@space)
