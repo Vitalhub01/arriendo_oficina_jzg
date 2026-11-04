@@ -39,6 +39,9 @@ class AdminUsersTest < ActionDispatch::IntegrationTest
     get password_reset_link_admin_user_path(@profesional)
     assert_response :success
     assert_match %r{/users/password/edit\?reset_password_token=}, response.body
+    assert_match 'Compartir link por WP', response.body
+    assert_match 'wa.me/?text=', response.body
+    assert_match 'Vence', response.body
     assert @profesional.reload.reset_password_token.present?
 
     token = response.body[%r{reset_password_token=([^"&\s]+)}, 1]

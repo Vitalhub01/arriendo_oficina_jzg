@@ -20,6 +20,7 @@ module Admin
     def password_reset_link
       result = Users::IssuePasswordResetLink.new(user: @user).call(url_options: default_url_options)
       @password_reset_url = result.url
+      @password_reset_expires_at = @user.reset_password_sent_at + Devise.reset_password_within
     end
 
     def update

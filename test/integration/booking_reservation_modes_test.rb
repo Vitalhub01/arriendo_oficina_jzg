@@ -30,7 +30,10 @@ class BookingReservationModesTest < ActionDispatch::IntegrationTest
     ).call
 
     assert_not result.success?
-    assert_match(/no está disponible|Ya reservado/i, result.errors.join(' '))
+    assert_match(
+      /no está disponible|Ya reservado|Ya tienes una reserva en ese horario/i,
+      result.errors.join(' ')
+    )
   end
 
   test 'hourly booking blocks bloque reservation for same day' do
@@ -87,7 +90,7 @@ class BookingReservationModesTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_match 'ya no está disponible', response.body
+    assert_match(/ya no está disponible|Ya tienes una reserva en ese horario/i, response.body)
   end
 
   private

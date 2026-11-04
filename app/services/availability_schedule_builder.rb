@@ -105,12 +105,18 @@ class AvailabilityScheduleBuilder
 
     @bloque_slot_rates.map do |rate|
       blocks = schedule_blocks_within_time_range(date, rate.start_time, rate.end_time)
-      window = BloqueScheduleWindow.labels_for(
-        date,
-        blocks,
-        fallback_start: rate.start_time,
-        fallback_end: rate.end_time
-      )
+      sorted = blocks.sort_by { |block| [starts_at_on(block, date), block.id] }
+      window = if sorted.empty?
+                 {
+                   start: rate.start_time.strftime('%H:%M'),
+                   end: rate.end_time.strftime('%H:%M')
+                 }
+               else
+                 {
+                   start: starts_at_on(sorted.first, date).strftime('%H:%M'),
+                   end: ends_at_on(sorted.last, date).strftime('%H:%M')
+                 }
+               end
       {
         rate: rate,
         available: period_window_available?(date, blocks),
@@ -186,7 +192,7 @@ class AvailabilityScheduleBuilder
     day = (date.wday + 6) % 7
     blocks = @schedule_blocks_by_day[day] || []
     active = blocks.reject { |block| !active_on?(block, date) || blocked_on?(block, date) }
-    ScheduleBlock.sort_for_display_on(active, date)
+    active.sort_by { |block| [starts_at_on(block, date), block.id] }
   end
 
   def active_on?(block, date)
