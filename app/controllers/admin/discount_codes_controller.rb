@@ -6,7 +6,22 @@ module Admin
 
     def index
       @discount_codes = DiscountCode.order(created_at: :desc)
-      @spaces = Space.order(:title)
+      code_ids = @discount_codes.map(&:id)
+
+      @confirmed_bookings_counts =
+        if code_ids.empty?
+          {}
+        else
+          Booking.confirmed.where(discount_code_id: code_ids).group(:discount_code_id).count
+        end
+
+      space_ids = @discount_codes.flat_map { |code| code.normalized_allowed_space_ids }.uniq
+      @space_titles_by_id =
+        if space_ids.empty?
+          {}
+        else
+          Space.where(id: space_ids).pluck(:id, :title).to_h
+        end
     end
 
     def new

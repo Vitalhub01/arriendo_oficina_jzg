@@ -28,8 +28,9 @@
           <td><%= code.display_discount %></td>
           <td class="text-sm text-gray-700"><%= code.display_booking_types %></td>
           <td class="text-sm text-gray-600">
-            <% if code.display_schedule_restrictions.present? %>
-              <%= code.display_schedule_restrictions %>
+            <% restrictions = code.display_schedule_restrictions(space_titles_by_id: @space_titles_by_id) %>
+            <% if restrictions.present? %>
+              <%= restrictions %>
             <% else %>
               <span class="text-gray-400">—</span>
             <% end %>
@@ -51,7 +52,7 @@
             <% end %>
           </td>
           <td class="font-medium text-gray-900">
-            <%= code.confirmed_bookings_count %>
+            <%= @confirmed_bookings_counts[code.id] || 0 %>
           </td>
           <td>
             <% if code.redeemable_at? %>

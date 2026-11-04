@@ -84,11 +84,11 @@ module DiscountCodeRestrictions
     bookings.confirmed.count
   end
 
-  def display_schedule_restrictions
+  def display_schedule_restrictions(space_titles_by_id: nil)
     parts = []
     parts << weekday_restrictions_summary if weekday_restricted?
     parts << time_restrictions_summary if time_restricted?
-    parts << space_restrictions_summary if space_restricted?
+    parts << space_restrictions_summary(space_titles_by_id: space_titles_by_id) if space_restricted?
     parts.presence&.join(' · ')
   end
 
@@ -109,11 +109,15 @@ module DiscountCodeRestrictions
     "#{format_clock(allowed_start_time)}–#{format_clock(allowed_end_time)}"
   end
 
-  def space_restrictions_summary
+  def space_restrictions_summary(space_titles_by_id: nil)
     ids = normalized_allowed_space_ids
     return nil if ids.empty?
 
-    titles = Space.where(id: ids).order(:title).pluck(:title)
+    titles = if space_titles_by_id
+               ids.filter_map { |id| space_titles_by_id[id] }
+             else
+               Space.where(id: ids).order(:title).pluck(:title)
+             end
     return "Espacio ##{ids.first}" if titles.empty?
 
     titles.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')
