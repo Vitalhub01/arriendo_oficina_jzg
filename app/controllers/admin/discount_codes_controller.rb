@@ -6,21 +6,25 @@ module Admin
 
     def index
       @discount_codes = DiscountCode.order(created_at: :desc)
+      @spaces = Space.order(:title)
     end
 
     def new
       @discount_code = DiscountCode.new(
-        starts_at: Time.zone.now.beginning_of_day,
-        ends_at: 1.month.from_now.end_of_day,
+        discount_starts_on: Date.current,
+        discount_ends_on: 1.month.from_now.to_date,
         discount_type: :percent,
         percent: 10,
         applies_to_hourly: true,
         applies_to_slot_based: true,
         applies_to_jornada: true
       )
+      @spaces = Space.order(:title)
     end
 
-    def edit; end
+    def edit
+      @spaces = Space.order(:title)
+    end
 
     def create
       @discount_code = DiscountCode.new(discount_code_params)
@@ -28,6 +32,7 @@ module Admin
       if @discount_code.save
         redirect_to admin_discount_codes_path, notice: 'Código creado'
       else
+        @spaces = Space.order(:title)
         render :new, status: :unprocessable_content
       end
     end
@@ -36,6 +41,7 @@ module Admin
       if @discount_code.update(discount_code_params)
         redirect_to admin_discount_codes_path, notice: 'Código actualizado'
       else
+        @spaces = Space.order(:title)
         render :edit, status: :unprocessable_content
       end
     end
@@ -56,21 +62,28 @@ module Admin
     end
 
     def discount_code_params
-      params.expect(
-        discount_code: %i[
-          code
-          discount_type
-          percent
-          amount_cents
-          starts_at
-          ends_at
-          active
-          max_uses
-          applies_to_hourly
-          applies_to_slot_based
-          applies_to_jornada
+      permitted = params.expect(
+        discount_code: [
+          :code,
+          :discount_type,
+          :percent,
+          :amount_cents,
+          :discount_starts_on,
+          :discount_ends_on,
+          :active,
+          :max_uses,
+          :max_uses_per_user,
+          :allowed_start_time,
+          :allowed_end_time,
+          :applies_to_hourly,
+          :applies_to_slot_based,
+          :applies_to_jornada,
+          { allowed_weekdays: [],
+            allowed_space_ids: [] }
         ]
       )
+
+      permitted
     end
   end
 end

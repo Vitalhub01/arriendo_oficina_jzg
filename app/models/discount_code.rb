@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class DiscountCode < ApplicationRecord
+  include DiscountCodeRestrictions
+
   has_many :bookings, dependent: :nullify
 
   enum :discount_type, { percent: 0, fixed_amount: 1 }
@@ -49,9 +51,10 @@ class DiscountCode < ApplicationRecord
     end
   end
 
-  def reserve_redemption!
+  def reserve_redemption!(user_id:)
     with_lock do
       raise ActiveRecord::RecordInvalid, self unless redeemable_at?
+      raise ActiveRecord::RecordInvalid, self unless within_user_use_limit?(user_id)
 
       increment!(:redemptions_count)
     end
@@ -74,7 +77,9 @@ class DiscountCode < ApplicationRecord
   end
 
   def applies_to_booking?(booking)
-    applies_to_booking_type?(booking.booking_type)
+    applies_to_booking_type?(booking.booking_type) &&
+      applies_to_booking_space?(booking) &&
+      applies_to_booking_schedule?(booking)
   end
 
   def applies_to_booking_type?(booking_type)

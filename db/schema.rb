@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_01_143000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_04_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -174,6 +174,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_01_143000) do
     t.boolean "applies_to_hourly", default: true, null: false
     t.boolean "applies_to_slot_based", default: true, null: false
     t.boolean "applies_to_jornada", default: true, null: false
+    t.integer "max_uses_per_user"
+    t.integer "allowed_weekdays", default: [], null: false, array: true
+    t.bigint "allowed_space_ids", default: [], null: false, array: true
+    t.time "allowed_start_time"
+    t.time "allowed_end_time"
     t.index "lower((code)::text)", name: "index_discount_codes_on_lower_code", unique: true
   end
 

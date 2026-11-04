@@ -1,73 +1,210 @@
-<%= form_with model: [:admin, @discount_code], class: "mt-6 max-w-lg space-y-4" do |f| %>
+<%= form_with model: [:admin, @discount_code],
+              class: "mt-8 max-w-3xl space-y-8",
+              data: { controller: "discount-code-form prevent-number-scroll" } do |f| %>
   <% if @discount_code.errors.any? %>
-    <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-      <%= @discount_code.errors.full_messages.to_sentence %>
+    <div class="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+      <ul class="list-disc space-y-1 pl-5">
+        <% @discount_code.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
     </div>
   <% end %>
 
-  <div>
-    <%= f.label :code, "Código", class: "block text-sm font-medium" %>
-    <%= f.text_field :code, class: "input-field font-mono uppercase", autocomplete: "off", placeholder: "VERANO2026" %>
-  </div>
+  <section class="admin-form-section">
+    <header class="admin-form-section__header">
+      <h2 class="admin-form-section__title">Código y descuento</h2>
+      <p class="admin-form-section__hint">El cliente lo escribe al pagar la reserva. Se guarda en mayúsculas sin espacios.</p>
+    </header>
+    <div class="admin-form-section__body">
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="admin-form-field sm:col-span-2">
+          <%= f.label :code, "Código" %>
+          <%= f.text_field :code, class: "input-field font-mono uppercase tracking-wide", autocomplete: "off", placeholder: "VERANO2026" %>
+        </div>
 
-  <div>
-    <%= f.label :discount_type, "Tipo de descuento", class: "block text-sm font-medium" %>
-    <%= f.select :discount_type, DiscountCode.discount_types.keys.map { |k| [k == 'percent' ? 'Porcentaje' : 'Monto fijo', k] }, {}, class: "input-field" %>
-  </div>
+        <div class="admin-form-field">
+          <%= f.label :discount_type, "Tipo de descuento" %>
+          <%= f.select :discount_type,
+                       DiscountCode.discount_types.keys.map { |k| [k == "percent" ? "Porcentaje" : "Monto fijo", k] },
+                       {},
+                       class: "input-field",
+                       data: {
+                         discount_code_form_target: "discountType",
+                         action: "change->discount-code-form#discountTypeChanged"
+                       } %>
+        </div>
 
-  <div>
-    <%= f.label :percent, "Porcentaje (%)", class: "block text-sm font-medium" %>
-    <%= f.number_field :percent, min: 1, max: 100, class: "input-field" %>
-  </div>
-
-  <div>
-    <%= f.label :amount_cents, "Monto fijo (centavos CLP)", class: "block text-sm font-medium" %>
-    <%= f.number_field :amount_cents, min: 1, class: "input-field" %>
-    <p class="mt-1 text-xs text-gray-500">Ej.: 5000 = $5.000</p>
-  </div>
-
-  <div class="grid gap-4 sm:grid-cols-2">
-    <div>
-      <%= f.label :starts_at, "Válido desde", class: "block text-sm font-medium" %>
-      <%= f.datetime_field :starts_at, class: "input-field" %>
-    </div>
-    <div>
-      <%= f.label :ends_at, "Válido hasta", class: "block text-sm font-medium" %>
-      <%= f.datetime_field :ends_at, class: "input-field" %>
-    </div>
-  </div>
-
-  <div>
-    <%= f.label :max_uses, "Máximo de usos (opcional)", class: "block text-sm font-medium" %>
-    <%= f.number_field :max_uses, min: 1, class: "input-field" %>
-  </div>
-
-  <fieldset>
-    <legend class="block text-sm font-medium">Tipos de reserva</legend>
-    <p class="mt-1 text-xs text-gray-500">El código solo podrá usarse en los tipos marcados.</p>
-    <div class="mt-3 space-y-2">
-      <div class="flex items-center gap-2">
-        <%= f.check_box :applies_to_hourly, class: "rounded border-gray-300" %>
-        <%= f.label :applies_to_hourly, "Por hora", class: "text-sm font-medium" %>
+        <div class="admin-form-field flex items-end">
+          <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-50/80 px-4 py-3 text-sm font-medium text-gray-800">
+            <%= f.check_box :active, class: "rounded border-gray-300 text-brand focus:ring-brand" %>
+            Código activo
+          </label>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <%= f.check_box :applies_to_slot_based, class: "rounded border-gray-300" %>
-        <%= f.label :applies_to_slot_based, "Por bloque", class: "text-sm font-medium" %>
-      </div>
-      <div class="flex items-center gap-2">
-        <%= f.check_box :applies_to_jornada, class: "rounded border-gray-300" %>
-        <%= f.label :applies_to_jornada, "Jornada completa", class: "text-sm font-medium" %>
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="admin-form-field" data-discount-code-form-target="percentField">
+          <%= f.label :percent, "Porcentaje (%)" %>
+          <%= f.number_field :percent, min: 1, max: 100, class: "input-field" %>
+        </div>
+
+        <div class="admin-form-field hidden" data-discount-code-form-target="amountField">
+          <%= f.label :amount_cents, "Monto fijo (CLP)" %>
+          <%= f.number_field :amount_cents, min: 1, class: "input-field", step: 1 %>
+          <p class="text-xs text-gray-500">Ej.: 5000 = $5.000 de descuento.</p>
+        </div>
       </div>
     </div>
-  </fieldset>
+  </section>
 
-  <div class="flex items-center gap-2">
-    <%= f.check_box :active, class: "rounded border-gray-300" %>
-    <%= f.label :active, "Activo", class: "text-sm font-medium" %>
-  </div>
+  <section class="admin-form-section">
+    <header class="admin-form-section__header">
+      <h2 class="admin-form-section__title">Vigencia y cupos</h2>
+      <p class="admin-form-section__hint">Fuera de estas fechas el código no se puede aplicar, aunque siga activo.</p>
+    </header>
+    <div class="admin-form-section__body">
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="admin-form-field">
+          <%= f.label :discount_starts_on, "Fecha de inicio" %>
+          <%= f.date_field :discount_starts_on, class: "input-field" %>
+        </div>
+        <div class="admin-form-field">
+          <%= f.label :discount_ends_on, "Fecha de término" %>
+          <%= f.date_field :discount_ends_on, class: "input-field" %>
+        </div>
 
-  <div class="flex gap-3">
-    <%= f.submit "Guardar", class: "btn-primary" %>
+        <div class="admin-form-field">
+          <%= f.label :max_uses, "Máximo de usos totales" %>
+          <%= f.number_field :max_uses, min: 1, class: "input-field", placeholder: "Sin límite" %>
+          <p class="text-xs text-gray-500">Opcional. Cuenta cada vez que alguien aplica el código.</p>
+        </div>
+        <div class="admin-form-field">
+          <%= f.label :max_uses_per_user, "Máximo por usuario" %>
+          <%= f.number_field :max_uses_per_user, min: 1, class: "input-field", placeholder: "Sin límite" %>
+          <p class="text-xs text-gray-500">Opcional. Ej.: 1 = una sola vez por persona.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-form-section">
+    <header class="admin-form-section__header">
+      <h2 class="admin-form-section__title">Días y horario</h2>
+      <p class="admin-form-section__hint">Opcional. Sin selección de días aplica toda la semana; sin horas aplica todo el día.</p>
+    </header>
+    <div class="admin-form-section__body">
+      <div>
+        <p class="text-sm font-medium text-gray-800">Días de la semana</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" class="admin-form-chip"
+                  data-action="click->discount-code-form#selectWeekdays" data-discount-code-form-days-param="mon_thu">
+            Lun–Jue
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->discount-code-form#selectWeekdays" data-discount-code-form-days-param="weekdays">
+            Lun–Vie
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->discount-code-form#selectWeekdays" data-discount-code-form-days-param="all">
+            Todos
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->discount-code-form#selectWeekdays" data-discount-code-form-days-param="none">
+            Limpiar
+          </button>
+        </div>
+
+        <input type="hidden" name="discount_code[allowed_weekdays][]" value="" autocomplete="off">
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          <% AvailabilityRule::DAY_NAMES.each_with_index do |name, day| %>
+            <label class="admin-form-day">
+              <%= check_box_tag "discount_code[allowed_weekdays][]",
+                                day,
+                                @discount_code.normalized_allowed_weekdays.include?(day),
+                                id: "discount_code_allowed_weekdays_#{day}",
+                                class: "rounded border-gray-300 text-brand focus:ring-brand",
+                                data: { discount_code_form_target: "weekday" } %>
+              <span><%= name.slice(0, 3) %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 pt-5">
+        <p class="text-sm font-medium text-gray-800">Franja horaria</p>
+        <p class="mt-1 text-xs text-gray-500">La reserva debe quedar entera dentro del rango.</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" class="admin-form-chip"
+                  data-action="click->discount-code-form#applyTimePreset" data-discount-code-form-preset-param="morning">
+            Mañana (08:00–12:00)
+          </button>
+          <button type="button" class="admin-form-chip"
+                  data-action="click->discount-code-form#applyTimePreset" data-discount-code-form-preset-param="clear">
+            Quitar franja
+          </button>
+        </div>
+        <div class="mt-4 grid gap-5 sm:grid-cols-2">
+          <div class="admin-form-field">
+            <%= f.label :allowed_start_time, "Desde" %>
+            <%= f.time_field :allowed_start_time, class: "input-field", data: { discount_code_form_target: "startTime" } %>
+          </div>
+          <div class="admin-form-field">
+            <%= f.label :allowed_end_time, "Hasta" %>
+            <%= f.time_field :allowed_end_time, class: "input-field", data: { discount_code_form_target: "endTime" } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-form-section">
+    <header class="admin-form-section__header">
+      <h2 class="admin-form-section__title">Espacios y tipos de reserva</h2>
+      <p class="admin-form-section__hint">Limita en qué espacios y modalidades de reserva se puede usar el código.</p>
+    </header>
+    <div class="admin-form-section__body">
+      <div class="admin-form-field">
+        <%= f.label :allowed_space_ids, "Espacios permitidos" %>
+        <p class="text-xs text-gray-500">Si no marcas ninguno, aplica a todos.</p>
+        <input type="hidden" name="discount_code[allowed_space_ids][]" value="" autocomplete="off">
+        <div class="mt-4 grid max-h-64 grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
+          <% (@spaces || Space.order(:title)).each do |space| %>
+            <label class="admin-form-day min-h-[3.25rem] cursor-pointer !items-start !justify-start gap-2.5 px-4 py-3 text-left">
+              <%= check_box_tag "discount_code[allowed_space_ids][]",
+                                space.id,
+                                @discount_code.normalized_allowed_space_ids.include?(space.id),
+                                id: "discount_code_allowed_space_ids_#{space.id}",
+                                class: "mt-0.5 shrink-0 rounded border-gray-300 text-brand focus:ring-brand" %>
+              <span class="min-w-0 flex-1 text-sm leading-snug"><%= space.title %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="admin-form-field border-t border-gray-100 pt-5">
+        <p class="text-sm font-medium text-gray-800">Tipos de reserva</p>
+        <p class="text-xs text-gray-500">Debes marcar al menos uno.</p>
+        <div class="mt-3 flex flex-wrap gap-3">
+          <label class="admin-form-day min-h-0 flex-1 sm:flex-none sm:min-w-[8rem]">
+            <%= f.check_box :applies_to_hourly, class: "rounded border-gray-300 text-brand focus:ring-brand" %>
+            <span>Por hora</span>
+          </label>
+          <label class="admin-form-day min-h-0 flex-1 sm:flex-none sm:min-w-[8rem]">
+            <%= f.check_box :applies_to_slot_based, class: "rounded border-gray-300 text-brand focus:ring-brand" %>
+            <span>Por bloque</span>
+          </label>
+          <label class="admin-form-day min-h-0 flex-1 sm:flex-none sm:min-w-[8rem]">
+            <%= f.check_box :applies_to_jornada, class: "rounded border-gray-300 text-brand focus:ring-brand" %>
+            <span>Jornada</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex flex-wrap gap-3 border-t border-gray-200 pt-2">
+    <%= f.submit "Guardar código", class: "btn-primary" %>
     <%= link_to "Cancelar", admin_discount_codes_path, class: "btn-secondary" %>
   </div>
 <% end %>

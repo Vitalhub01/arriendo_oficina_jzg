@@ -1,2 +1,8 @@
-<h1 class="text-2xl font-bold">Nuevo código de descuento</h1>
-<%= render "form" %>
+<div class="max-w-3xl">
+  <%= link_to "← Códigos de descuento", admin_discount_codes_path, class: "text-sm text-brand hover:underline" %>
+  <h1 class="mt-2 text-2xl font-bold">Nuevo código de descuento</h1>
+  <p class="mt-2 text-sm leading-relaxed text-gray-600">
+    Define el monto o porcentaje, vigencia, cupos de uso y, si hace falta, restricciones por día, horario o espacio.
+  </p>
+  <%= render "form" %>
+</div>

@@ -1,2 +1,11 @@
-<h1 class="text-2xl font-bold">Editar código <%= @discount_code.code %></h1>
-<%= render "form" %>
+<div class="max-w-3xl">
+  <%= link_to "← Códigos de descuento", admin_discount_codes_path, class: "text-sm text-brand hover:underline" %>
+  <h1 class="mt-2 text-2xl font-bold">Editar código <span class="font-mono text-brand"><%= @discount_code.code %></span></h1>
+  <% if @discount_code.confirmed_bookings_count.positive? %>
+    <p class="mt-2 text-sm text-gray-600">
+      Usado en <strong><%= @discount_code.confirmed_bookings_count %></strong>
+      <%= @discount_code.confirmed_bookings_count == 1 ? "reserva confirmada" : "reservas confirmadas" %>.
+    </p>
+  <% end %>
+  <%= render "form" %>
+</div>

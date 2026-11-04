@@ -15,8 +15,17 @@ module Bookings
       discount_code = DiscountCode.find_by_normalized(@raw_code)
       return failure('Código no válido') unless discount_code
       return failure('Este código no está vigente') unless discount_code.redeemable_at?
-      unless discount_code.applies_to_booking?(@booking)
+      unless discount_code.applies_to_booking_type?(@booking.booking_type)
         return failure('El código no es válido para el tipo de reserva')
+      end
+      unless discount_code.applies_to_booking_space?(@booking)
+        return failure('El código no aplica a este espacio')
+      end
+      unless discount_code.applies_to_booking_schedule?(@booking)
+        return failure('El código no aplica al día u horario de esta reserva')
+      end
+      unless discount_code.within_user_use_limit?(@booking.profesional_id)
+        return failure('Ya alcanzaste el máximo de usos de este código')
       end
 
       payable_base = payable_amount_before_promo
@@ -25,7 +34,7 @@ module Bookings
 
       ApplicationRecord.transaction do
         release_previous_code!
-        discount_code.reserve_redemption!
+        discount_code.reserve_redemption!(user_id: @booking.profesional_id)
         apply_to_booking!(discount_code, promo_cents, payable_base)
       end
 

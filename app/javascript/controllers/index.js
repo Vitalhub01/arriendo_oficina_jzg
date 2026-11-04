@@ -23,6 +23,7 @@ import SpotOfferFormController from "controllers/spot_offer_form_controller"
 import PreventNumberScrollController from "controllers/prevent_number_scroll_controller"
 import AdminBookingsCalendarController from "controllers/admin_bookings_calendar_controller"
 import DropdownMenuController from "controllers/dropdown_menu_controller"
+import DiscountCodeFormController from "controllers/discount_code_form_controller"
 
 const application = Application.start()
 application.register("booking-form", BookingFormController)
@@ -49,6 +50,7 @@ application.register("spot-offer-form", SpotOfferFormController)
 application.register("prevent-number-scroll", PreventNumberScrollController)
 application.register("admin-bookings-calendar", AdminBookingsCalendarController)
 application.register("dropdown-menu", DropdownMenuController)
+application.register("discount-code-form", DiscountCodeFormController)
 window.Stimulus = application
 
 export { application }

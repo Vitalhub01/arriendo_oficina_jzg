@@ -13,8 +13,10 @@
         <th>Código</th>
         <th>Descuento</th>
         <th>Tipos de reserva</th>
+        <th>Restricciones</th>
         <th>Vigencia</th>
-        <th>Usos</th>
+        <th>Usos / cupo</th>
+        <th>Confirmadas</th>
         <th>Estado</th>
         <th class="admin-table__actions"></th>
       </tr>
@@ -25,15 +27,31 @@
           <td class="font-mono font-medium text-gray-900"><%= code.code %></td>
           <td><%= code.display_discount %></td>
           <td class="text-sm text-gray-700"><%= code.display_booking_types %></td>
+          <td class="text-sm text-gray-600">
+            <% if code.display_schedule_restrictions.present? %>
+              <%= code.display_schedule_restrictions %>
+            <% else %>
+              <span class="text-gray-400">—</span>
+            <% end %>
+            <% if code.max_uses_per_user.present? %>
+              <div class="text-xs text-gray-500">Máx. <%= code.max_uses_per_user %> por usuario</div>
+            <% end %>
+          </td>
           <td>
-            <%= l(code.starts_at, format: :short) %> —
-            <%= l(code.ends_at, format: :short) %>
+            <%= l(code.starts_at.to_date) %> —
+            <%= l(code.ends_at.to_date) %>
           </td>
           <td>
             <%= code.redemptions_count %>
             <% if code.max_uses.present? %>
               / <%= code.max_uses %>
             <% end %>
+            <% if code.max_uses_per_user.present? %>
+              <div class="text-xs text-gray-500"><%= code.max_uses_per_user %> / usuario</div>
+            <% end %>
+          </td>
+          <td class="font-medium text-gray-900">
+            <%= code.confirmed_bookings_count %>
           </td>
           <td>
             <% if code.redeemable_at? %>
