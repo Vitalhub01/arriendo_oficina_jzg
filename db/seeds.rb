@@ -260,7 +260,7 @@ SiteSetting.set('google_analytics_id', ENV.fetch('GOOGLE_ANALYTICS_ID', ''))
 if GalleryItem.none?
   [
     [2, 'Sala común'],
-    [3, 'Box clínico'],
+    [3, 'Box'],
     [4, 'Recepción'],
     [5, 'Equipamiento']
   ].each_with_index do |(n, tag), index|

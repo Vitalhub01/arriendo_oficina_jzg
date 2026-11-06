@@ -53,13 +53,13 @@ class GalleriesTest < ActionDispatch::IntegrationTest
   end
 
   test 'show displays main photo viewer for tag slug' do
-    first = GalleryItem.create!(position: 0, tag: 'Box clínico', visible: true)
+    first = GalleryItem.create!(position: 0, tag: 'Box', visible: true)
     first.image.attach(
       io: File.open(Rails.root.join('test/fixtures/files/cover.jpg')),
       filename: 'cover.jpg',
       content_type: 'image/jpeg'
     )
-    second = GalleryItem.create!(position: 1, tag: 'Box clínico', visible: true)
+    second = GalleryItem.create!(position: 1, tag: 'Box', visible: true)
     second.image.attach(
       io: File.open(Rails.root.join('test/fixtures/files/cover.jpg')),
       filename: 'cover2.jpg',
@@ -68,7 +68,7 @@ class GalleriesTest < ActionDispatch::IntegrationTest
 
     get gallery_path(tag: first.tag_slug, photo_id: second.id)
     assert_response :success
-    assert_match 'Box clínico', response.body
+    assert_match 'Box', response.body
     assert_match 'gallery_main_photo', response.body
     assert_match 'data-controller="gallery-set"', response.body
     assert_match 'Todas las fotos de la galería', response.body

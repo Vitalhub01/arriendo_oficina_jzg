@@ -23,7 +23,7 @@ class Space < ApplicationRecord
   enum :status, { draft: 0, published: 1, suspended: 2 }
 
   BOX_TYPE_LABELS = {
-    'clinical' => 'Box clínico',
+    'clinical' => 'Box',
     'office' => 'Oficina',
     'workspace' => 'Workspace'
   }.freeze

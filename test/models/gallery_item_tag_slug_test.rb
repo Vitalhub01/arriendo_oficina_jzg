@@ -13,7 +13,7 @@ class GalleryItemTagSlugTest < ActiveSupport::TestCase
       content_type: 'image/jpeg'
     )
 
-    other = GalleryItem.create!(tag: 'Box clínico', position: 0, visible: true)
+    other = GalleryItem.create!(tag: 'Box', position: 0, visible: true)
     other.image.attach(
       io: File.open(Rails.root.join('test/fixtures/files/cover.jpg')),
       filename: 'cover2.jpg',

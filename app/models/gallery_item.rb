@@ -7,7 +7,7 @@ class GalleryItem < ApplicationRecord
 
   TAG_SUGGESTIONS = [
     'Recepción',
-    'Box clínico',
+    'Box',
     'Sala común',
     'Exterior',
     'Pasillo',
