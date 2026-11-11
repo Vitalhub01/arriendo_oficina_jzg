@@ -5,10 +5,13 @@ module Admin
     before_action :set_request, only: %i[update]
 
     def index
-      scope = PasswordResetRequest.includes(:user, :resolved_by).pending_first
+      scope = PasswordResetRequest.includes(:user, :resolved_by)
       scope = scope.where(status: params[:status]) if params[:status].present?
-      @pagy, @password_reset_requests = pagy(scope)
-      @pending_count = PasswordResetRequest.pending.count
+      groups = PasswordResetRequest.grouped_day_windows(scope.to_a)
+      groups.select!(&:pending?) if params[:status] == 'pending'
+      groups.reject!(&:pending?) if params[:status] == 'resolved'
+      @pagy, @password_reset_groups = pagy_array(groups)
+      @pending_count = PasswordResetRequest.pending_group_count
     end
 
     def update

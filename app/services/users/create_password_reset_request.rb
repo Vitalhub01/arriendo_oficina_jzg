@@ -9,6 +9,14 @@ module Users
     def call
       return if @email.blank?
 
+      existing = PasswordResetRequest
+                 .pending
+                 .where(email: @email)
+                 .where(created_at: PasswordResetRequest::GROUPING_WINDOW.ago..)
+                 .order(created_at: :desc)
+                 .first
+      return existing if existing
+
       user = User.find_by(email: @email)
 
       PasswordResetRequest.create!(

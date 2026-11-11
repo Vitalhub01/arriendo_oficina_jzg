@@ -32,6 +32,13 @@ class PasswordResetRequestsTest < ActionDispatch::IntegrationTest
     assert request.pending?
   end
 
+  test 'repeated requests within 24 hours reuse the same record' do
+    assert_difference 'PasswordResetRequest.count', 1 do
+      post user_password_path, params: { user: { email: @profesional.email } }
+      post user_password_path, params: { user: { email: @profesional.email } }
+    end
+  end
+
   test 'request with unknown email still succeeds without revealing account' do
     assert_difference 'PasswordResetRequest.count', 1 do
       post user_password_path, params: { user: { email: 'desconocido@example.com' } }
