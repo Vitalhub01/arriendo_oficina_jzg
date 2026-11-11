@@ -65,7 +65,7 @@ class SpaceCheckoutTest < ActionDispatch::IntegrationTest
     get space_path(@space)
     assert_response :success
     assert_no_match 'href="#space-booking-panel"', response.body
-    assert_select '.fixed.inset-x-0.bottom-0 a.btn-primary[href=?]', new_user_session_path, text: 'Reservar'
+    assert_select '#space-booking-mobile-dock a.btn-primary[href=?]', new_user_session_path, text: 'Reservar'
   end
 
   test 'signed in user can book from space show form' do
