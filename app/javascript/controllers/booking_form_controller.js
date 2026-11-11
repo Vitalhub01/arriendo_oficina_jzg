@@ -49,11 +49,25 @@ export default class extends Controller {
     const panel = document.getElementById("space-booking-panel")
     if (!panel) return
     panel.classList.remove("hidden")
+    this.setMobileBookingOverlay(true)
     panel.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   closePanel() {
     document.getElementById("space-booking-panel")?.classList.add("hidden")
+    this.setMobileBookingOverlay(false)
+  }
+
+  disconnect() {
+    this.setMobileBookingOverlay(false)
+  }
+
+  setMobileBookingOverlay(active) {
+    if (!window.matchMedia("(max-width: 1023px)").matches) return
+
+    document.getElementById("space-booking-mobile-dock")?.classList.toggle("hidden", active)
+    document.querySelector(".mobile-tab-bar")?.classList.toggle("hidden", active)
+    document.body.classList.toggle("overflow-hidden", active)
   }
 
   dateChanged() {

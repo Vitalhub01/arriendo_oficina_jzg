@@ -1,11 +1,14 @@
 <div class="mx-auto max-w-lg px-4 py-12">
   <h1 class="text-2xl font-bold">Recuperar contraseña</h1>
+  <p class="mt-2 text-sm text-gray-600">
+    Escribe el correo de tu cuenta. El equipo recibirá una alerta y te contactará para ayudarte a restablecer tu contraseña.
+  </p>
   <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "mt-6 space-y-4" }) do |f| %>
     <div>
       <%= f.label :email, class: "block text-sm font-medium" %>
-      <%= f.email_field :email, autofocus: true, class: "input-field" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "input-field" %>
     </div>
-    <%= f.submit "Enviar instrucciones", class: "btn-primary w-full" %>
+    <%= f.submit "Solicitar ayuda", class: "btn-primary w-full" %>
   <% end %>
   <%= link_to "Volver al login", new_user_session_path, class: "mt-4 inline-block text-sm text-brand hover:underline" %>
 </div>

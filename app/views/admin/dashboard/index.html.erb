@@ -1,4 +1,14 @@
 <h1 class="text-2xl font-bold">Dashboard</h1>
+<% if @password_reset_requests_pending.positive? %>
+  <div class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4">
+    <p class="font-medium text-amber-950">
+      <%= @password_reset_requests_pending %> solicitud<%= @password_reset_requests_pending == 1 ? '' : 'es' %> de recuperación de contraseña pendiente<%= @password_reset_requests_pending == 1 ? '' : 's' %>.
+    </p>
+    <p class="mt-1 text-sm text-amber-900">
+      <%= link_to "Ver solicitudes", admin_password_reset_requests_path(status: :pending), class: "font-medium text-brand hover:underline" %>
+    </p>
+  </div>
+<% end %>
 <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <div class="card p-4"><p class="text-sm text-gray-500">Espacios</p><p class="text-2xl font-bold"><%= @spaces_count %></p></div>
   <div class="card p-4"><p class="text-sm text-gray-500">Reservas</p><p class="text-2xl font-bold"><%= @bookings_count %></p></div>

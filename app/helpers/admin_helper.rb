@@ -34,7 +34,24 @@ module AdminHelper
       path: :admin_discount_codes_path,
       match: ->(req) { req.path.start_with?('/admin/discount_codes') }
     },
-    { label: 'Usuarios y permisos', path: :admin_users_path, match: ->(req) { req.path.start_with?('/admin/users') } },
+    {
+      label: 'Usuarios',
+      match: lambda { |req|
+        req.path.start_with?('/admin/users', '/admin/password_reset_requests')
+      },
+      children: [
+        {
+          label: 'Usuarios y permisos',
+          path: :admin_users_path,
+          match: ->(req) { req.path.start_with?('/admin/users') }
+        },
+        {
+          label: 'Recuperar contraseña',
+          path: :admin_password_reset_requests_path,
+          match: ->(req) { req.path.start_with?('/admin/password_reset_requests') }
+        }
+      ]
+    },
     {
       label: 'Profesionales',
       path: :admin_professionals_path,

@@ -75,7 +75,7 @@
     </div>
 
     <div id="space-booking-panel"
-         class="fixed inset-0 z-50 hidden overflow-y-auto bg-white p-4 lg:static lg:z-auto lg:block lg:overflow-visible lg:bg-transparent lg:p-0">
+         class="fixed inset-0 z-[60] hidden overflow-y-auto bg-white p-4 pb-8 lg:static lg:z-auto lg:block lg:overflow-visible lg:bg-transparent lg:p-0 lg:pb-0">
       <div class="mb-4 flex items-center justify-between lg:hidden">
         <h2 class="text-lg font-semibold">Reservar</h2>
         <button type="button" data-action="booking-form#closePanel" class="text-2xl leading-none" aria-label="Cerrar">&times;</button>
@@ -87,7 +87,7 @@
   </div>
 </div>
 
-<div class="fixed inset-x-0 bottom-16 z-40 border-t border-gray-200 bg-white p-4 shadow-lg lg:hidden">
+<div id="space-booking-mobile-dock" class="fixed inset-x-0 bottom-16 z-40 border-t border-gray-200 bg-white p-4 shadow-lg lg:hidden">
   <div class="flex items-center justify-between gap-4">
     <div class="min-w-0">
       <%= render "shared/space_pricing_summary", space: @space, compact: true %>

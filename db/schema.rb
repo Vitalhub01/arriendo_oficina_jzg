@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_04_130000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_11_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -307,6 +307,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_04_130000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "password_reset_requests", force: :cascade do |t|
+    t.string "email", null: false
+    t.bigint "user_id"
+    t.integer "status", default: 0, null: false
+    t.datetime "resolved_at"
+    t.bigint "resolved_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_password_reset_requests_on_created_at"
+    t.index ["resolved_by_id"], name: "index_password_reset_requests_on_resolved_by_id"
+    t.index ["status"], name: "index_password_reset_requests_on_status"
+    t.index ["user_id"], name: "index_password_reset_requests_on_user_id"
+  end
+
   create_table "payments", force: :cascade do |t|
     t.bigint "booking_id"
     t.bigint "payer_id", null: false
@@ -549,6 +563,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_04_130000) do
   add_foreign_key "jornada_definitions", "offices"
   add_foreign_key "memberships", "membership_plans"
   add_foreign_key "memberships", "users"
+  add_foreign_key "password_reset_requests", "users"
+  add_foreign_key "password_reset_requests", "users", column: "resolved_by_id"
   add_foreign_key "payments", "bookings"
   add_foreign_key "payments", "memberships"
   add_foreign_key "payments", "spot_offers"

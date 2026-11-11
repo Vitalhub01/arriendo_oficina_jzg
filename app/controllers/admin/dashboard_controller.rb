@@ -14,6 +14,7 @@ module Admin
       total_payments = Payment.where(status: %i[approved rejected]).count
       @conversion_rate = total_payments.positive? ? ((paid.to_f / total_payments) * 100).round(1) : 0
       @recent_bookings = Booking.order(created_at: :desc).limit(10).includes(:space, :profesional)
+      @password_reset_requests_pending = PasswordResetRequest.pending.count
     end
   end
 end

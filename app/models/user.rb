@@ -20,6 +20,7 @@ class User < ApplicationRecord
   has_many :testimonials, foreign_key: :profesional_id, dependent: :destroy, inverse_of: :profesional
   has_many :memberships, dependent: :destroy
   has_many :reschedule_credits, dependent: :destroy
+  has_many :password_reset_requests, dependent: :nullify
 
   validates :name, presence: true
 

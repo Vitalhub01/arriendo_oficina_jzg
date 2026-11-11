@@ -6,6 +6,10 @@ Rails.application.routes.draw do
     passwords: 'users/passwords'
   }
 
+  devise_scope :user do
+    get 'users/password/solicitud-recibida', to: 'users/passwords#sent', as: :password_request_sent
+  end
+
   root 'home#index'
 
   resource :profile, only: %i[show edit update], controller: 'users/profiles'
@@ -84,6 +88,7 @@ Rails.application.routes.draw do
         get :password_reset_link
       end
     end
+    resources :password_reset_requests, only: %i[index update]
     resources :professionals, only: %i[index show update]
     resources :spot_offers, only: %i[index new create show] do
       collection do
