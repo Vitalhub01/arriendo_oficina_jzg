@@ -181,6 +181,15 @@ module ApplicationHelper
     site_navigation_settings.fetch(key.to_s) { SiteNavigationSettings::DEFAULTS.fetch(key.to_s) }
   end
 
+  # Safari en iPhone/iPad (petición normal desde el dispositivo, no Android).
+  def ios_web_client?
+    user_agent = request.user_agent.to_s
+    return true if user_agent.match?(/iPhone|iPad|iPod/i)
+
+    # iPadOS 13+ a veces envía UA tipo Mac con "Mobile".
+    user_agent.include?('Macintosh') && user_agent.include?('Mobile')
+  end
+
   def mobile_tab_bar_link_class(active: false, primary: false)
     base = 'flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-medium uppercase tracking-wide transition-colors'
     if active

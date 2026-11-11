@@ -10,6 +10,10 @@
 }
 
 @layer base {
+  html.ios-ui-zoom-out {
+    zoom: 0.85;
+  }
+
   body {
     @apply bg-white font-sans text-gray-900 antialiased;
   }
