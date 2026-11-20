@@ -51,7 +51,7 @@ module Bookings
     end
 
     test 'rejects code when booking type is not allowed' do
-      @code.update!(applies_to_slot_based: false)
+      @code.update!(applies_to_hourly: false)
       payable = @booking.total_amount_cents
 
       result = ApplyDiscountCode.new(booking: @booking, code: 'PROMO10', actor: @renter).call
@@ -59,6 +59,15 @@ module Bookings
       assert_not result.success?
       assert_includes result.errors, 'El código no es válido para el tipo de reserva'
       assert_equal payable, @booking.reload.total_amount_cents
+    end
+
+    test 'allows admin Por hora flag for slot_based reserva por hora bookings' do
+      @code.update!(applies_to_hourly: true, applies_to_slot_based: false, applies_to_jornada: false)
+      assert_equal 'hora', @booking.reschedule_reservation_mode
+
+      result = ApplyDiscountCode.new(booking: @booking, code: 'PROMO10', actor: @renter).call
+
+      assert result.success?, result.errors.inspect
     end
 
     test 'rejects code outside allowed schedule' do

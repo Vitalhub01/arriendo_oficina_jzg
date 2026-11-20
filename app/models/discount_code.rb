@@ -77,16 +77,18 @@ class DiscountCode < ApplicationRecord
   end
 
   def applies_to_booking?(booking)
-    applies_to_booking_type?(booking.booking_type) &&
+    applies_to_reservation_mode?(booking.reschedule_reservation_mode) &&
       applies_to_booking_space?(booking) &&
       applies_to_booking_schedule?(booking)
   end
 
-  def applies_to_booking_type?(booking_type)
-    case booking_type.to_s
-    when 'hourly'
+  # Admin labels "Por hora", "Por bloque" and "Jornada" match reservation_mode (hora/bloque/jornada),
+  # not the booking_type enum (hourly/slot_based are named after pricing, not the UI).
+  def applies_to_reservation_mode?(mode)
+    case mode.to_s
+    when 'hora'
       applies_to_hourly?
-    when 'slot_based'
+    when 'bloque'
       applies_to_slot_based?
     when 'jornada'
       applies_to_jornada?

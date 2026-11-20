@@ -15,7 +15,7 @@ module Bookings
       discount_code = DiscountCode.find_by_normalized(@raw_code)
       return failure('Código no válido') unless discount_code
       return failure('Este código no está vigente') unless discount_code.redeemable_at?
-      unless discount_code.applies_to_booking_type?(@booking.booking_type)
+      unless discount_code.applies_to_reservation_mode?(@booking.reschedule_reservation_mode)
         return failure('El código no es válido para el tipo de reserva')
       end
       unless discount_code.applies_to_booking_space?(@booking)
