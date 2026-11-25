@@ -1,5 +1,8 @@
 <h1 class="text-2xl font-bold">Contactos del día</h1>
-<p class="mt-1 text-sm text-gray-600">Correos de profesionales con reserva activa en la fecha elegida.</p>
+<p class="mt-1 text-sm text-gray-600">
+  Correos de profesionales con reserva confirmada o pendiente de pago vigente en la fecha elegida.
+  Las reservas reprogramadas no se listan: ya no ocupan el box en ese horario.
+</p>
 
 <%= turbo_frame_tag "day_contacts", class: "mt-6 block transition-opacity duration-150 [&[busy]]:pointer-events-none [&[busy]]:opacity-60" do %>
   <div class="flex flex-wrap items-center justify-between gap-4">

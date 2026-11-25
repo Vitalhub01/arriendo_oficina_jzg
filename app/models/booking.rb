@@ -233,9 +233,12 @@ class Booking < ApplicationRecord
     reschedule_credit&.source_booking
   end
 
+  def reschedule_successor_booking
+    RescheduleCredit.applied.find_by(source_booking_id: id)&.applied_booking
+  end
+
   def pending_reschedule_replacement
-    credit = RescheduleCredit.applied.find_by(source_booking_id: id)
-    replacement = credit&.applied_booking
+    replacement = reschedule_successor_booking
     replacement if replacement&.pending_payment?
   end
 

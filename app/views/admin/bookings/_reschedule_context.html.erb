@@ -1,0 +1,38 @@
+<% if booking.rescheduled? %>
+  <% successor = booking.reschedule_successor_booking %>
+  <div class="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
+    <p class="font-medium">Esta reserva fue reprogramada</p>
+    <p class="mt-1 text-blue-900">
+      El horario de abajo es el <strong>anterior</strong> y ya no bloquea disponibilidad en el box.
+    </p>
+    <% if successor %>
+      <p class="mt-2">
+        <strong>Cita vigente:</strong>
+        <%= successor.space.title %> —
+        <%= l(successor.start_at, format: :long) %>–<%= l(successor.end_at, format: "%H:%M") %>
+        (<%= booking_status_label(successor) %>)
+        <%= link_to "Ver reserva ##{successor.id}",
+                    admin_booking_path(successor),
+                    class: "ml-1 font-medium text-brand hover:underline" %>
+      </p>
+    <% else %>
+      <p class="mt-2 text-blue-800">No hay una reserva de reemplazo vinculada en el sistema.</p>
+    <% end %>
+  </div>
+<% elsif booking.reschedule_replacement? %>
+  <% source = booking.reschedule_source_booking %>
+  <% if source %>
+    <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800">
+      <p class="font-medium">Reserva por reagendamiento</p>
+      <p class="mt-1">
+        Sustituye la reserva anterior:
+        <%= source.space.title %> —
+        <%= l(source.start_at, format: :long) %>–<%= l(source.end_at, format: "%H:%M") %>
+        (<%= booking_status_label(source) %>)
+        <%= link_to "Ver reserva ##{source.id}",
+                    admin_booking_path(source),
+                    class: "ml-1 font-medium text-brand hover:underline" %>
+      </p>
+    </div>
+  <% end %>
+<% end %>

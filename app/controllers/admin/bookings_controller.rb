@@ -28,8 +28,8 @@ module Admin
     def day_contacts
       @date = parse_contact_date
       bookings = Booking.includes(:space, :profesional)
+                        .blocking_availability
                         .starting_on_date(@date)
-                        .excluding_cancelled
                         .order(:start_at)
       @bookings_by_user = bookings.group_by(&:profesional)
 

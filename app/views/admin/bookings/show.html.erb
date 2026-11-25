@@ -7,6 +7,8 @@
   <% end %>
 </div>
 
+<%= render "reschedule_context", booking: @booking %>
+
 <div class="card mt-6 p-6 text-sm">
   <p><strong>Espacio:</strong> <%= @booking.space.title %></p>
   <p><strong>Profesional:</strong> <%= @booking.profesional.name %> (<%= @booking.profesional.email %>)</p>
